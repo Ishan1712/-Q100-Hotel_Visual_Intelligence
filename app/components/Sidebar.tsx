@@ -4,54 +4,60 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Home, 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
   LogOut, 
   ChevronLeft, 
   ChevronRight,
   ClipboardList,
-  Building2,
-  ShieldCheck,
-  Zap
+  Zap,
+  LayoutGrid,
+  Sparkles,
+  History,
+  Menu,
+  Triangle
 } from 'lucide-react';
 
 const menuItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Unit Inspection", href: "/inspection", icon: Zap },
-  { name: "Housekeeping", href: "/housekeeping", icon: ClipboardList },
-  { name: "Staff Management", href: "/staff", icon: Users },
-  { name: "Hotel Settings", href: "/settings", icon: Building2 },
-  { name: "QC Control", href: "/qc", icon: ShieldCheck },
-  { name: "System Config", href: "/config", icon: Settings },
+  { name: "My Rooms", href: "/", icon: LayoutGrid },
+  { name: "AI Inspection Module", href: "/inspection", icon: Zap },
+  { name: "Inspection Report", href: "/inspection/report", icon: ClipboardList },
+  { name: "Shift Summary", href: "/shift-summary", icon: Sparkles },
+  { name: "Room History", href: "/history", icon: History }
 ];
 
-export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
+
+export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
+  const [hovered, setHovered] = useState<string | null>(null);
   const pathname = usePathname();
 
   return (
     <aside 
-      className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-[#0b1220] to-[#1a2335] text-slate-100 border-r border-slate-800 shadow-2xl flex flex-col transition-all duration-300 ease-in-out z-50 ${collapsed ? 'w-20' : 'w-64'}`}
+      className={`fixed top-0 left-0 h-screen bg-[#0b1220] text-slate-300 transition-all duration-300 ease-in-out z-50 flex flex-col ${collapsed ? 'w-20' : 'w-64'}`}
     >
       {/* Sidebar Header */}
-      <div className={`p-6 flex items-center justify-between border-b border-slate-800/50 ${collapsed ? 'justify-center px-0' : ''}`}>
-        {!collapsed && (
+      <div className={`flex flex-col items-center py-6 border-b border-white/5 transition-all duration-300 ${collapsed ? 'px-0' : 'px-6'}`}>
+        <div className={`flex items-center w-full ${collapsed ? 'flex-col gap-4' : 'justify-between'}`}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Zap size={18} className="text-white fill-white" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
+               <Triangle size={22} className="text-white fill-white rotate-180" />
             </div>
-            <span className="font-black text-xl tracking-tighter text-white">
-              Q100<span className="text-blue-400">.AI</span>
-            </span>
+            {!collapsed && (
+              <span className="font-bold text-xl tracking-tight text-white flex items-baseline">
+                Q100<span className="text-blue-400 font-medium lowercase">.ai</span>
+              </span>
+            )}
           </div>
-        )}
-        {collapsed && (
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Zap size={22} className="text-white fill-white" />
-          </div>
-        )}
+          
+          <button 
+            onClick={() => setCollapsed(!collapsed)}
+            className={`text-slate-500 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5 ${collapsed ? 'mt-2' : ''}`}
+          >
+            <Menu size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -60,41 +66,52 @@ export default function Sidebar() {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${
+              onMouseEnter={() => setHovered(item.name)}
+              onMouseLeave={() => setHovered(null)}
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-              } ${collapsed ? 'justify-center px-0 mx-2' : ''}`}
+                  ? 'bg-[#1e293b] text-white' 
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+              } ${collapsed ? 'justify-center px-0 mx-auto w-12 h-12' : ''}`}
             >
-              <Icon size={20} className={`${isActive ? 'text-white' : 'group-hover:text-blue-400'}`} />
-              {!collapsed && <span className="font-semibold text-sm">{item.name}</span>}
+              <div className={`flex items-center justify-center transition-all ${isActive ? 'text-blue-400' : 'group-hover:text-white'}`}>
+                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+              </div>
+              {!collapsed && <span className={`font-bold text-[13px] tracking-wide ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}>{item.name}</span>}
+              {isActive && !collapsed && (
+                <div className="ml-auto w-1 h-4 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Sidebar Footer */}
-      <div className="p-4 border-t border-slate-800/50 space-y-2">
-        <button 
-          onClick={() => setCollapsed(!collapsed)}
-          className={`flex items-center gap-4 w-full px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all ${collapsed ? 'justify-center px-0' : ''}`}
+      {/* Footer */}
+      <div className="p-3 border-t border-white/5 space-y-2">
+        <Link 
+          href="/logout"
+          className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-slate-400 hover:bg-[#1e293b] transition-all ${collapsed ? 'justify-center px-0 mx-auto w-12 h-12' : ''}`}
         >
-          {collapsed ? <ChevronRight size={20} /> : (
-            <>
-              <ChevronLeft size={20} />
-              <span className="font-semibold text-sm">Collapse</span>
-            </>
-          )}
-        </button>
-        <button className={`flex items-center gap-4 w-full px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 transition-all ${collapsed ? 'justify-center px-0' : ''}`}>
-          <LogOut size={20} />
-          {!collapsed && <span className="font-semibold text-sm">Logout</span>}
-        </button>
+          <div className="flex items-center justify-center">
+            <LogOut size={18} className="text-rose-500" />
+          </div>
+          {!collapsed && <span className="font-bold text-[13px] tracking-wide">Logout</span>}
+        </Link>
+        <div className="pt-2 text-center opacity-30">
+           {!collapsed && <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-slate-500">© 2025 Q100.AI</span>}
+        </div>
       </div>
+
+      <style jsx>{`
+        .active-glow {
+          box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+      `}</style>
     </aside>
   );
 }

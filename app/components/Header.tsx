@@ -1,48 +1,47 @@
 "use client";
 
 import React from 'react';
-import { Search, Bell, User, ChevronDown, Camera } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, Moon } from 'lucide-react';
 
 export default function Header() {
   return (
-    <header className="h-20 bg-white border-b border-slate-100 px-8 flex items-center justify-between sticky top-0 z-40 shadow-sm shadow-slate-200/50">
-      {/* Center Actions / Search (Optional) */}
-      <div className="flex-1 max-w-lg hidden md:block">
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search rooms..." 
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2 pl-12 pr-4 outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-sm font-medium"
-          />
+    <header className="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40">
+      {/* Left: Branding */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-blue-600 border border-slate-100 shadow-sm transition-transform hover:scale-105">
+           <span className="font-black text-xl">H</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-slate-900 leading-none">Hotel Yash Palace</span>
+          <span className="text-[10px] font-bold text-blue-500 mt-1 uppercase tracking-widest">Premium Estate</span>
         </div>
       </div>
 
       {/* Right Actions */}
       <div className="flex items-center gap-6">
-        <button className="bg-blue-600 text-white h-11 px-6 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-sm uppercase tracking-wider">
-           <Camera size={18} />
-           Go Scan a Room
-        </button>
+        
+        {/* Morning Shift Badge */}
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-full shadow-sm">
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Morning Shift</span>
+        </div>
 
-        <button className="relative p-2.5 rounded-xl hover:bg-slate-50 transition-all group">
-          <Bell size={20} className="text-slate-500 group-hover:text-slate-900" />
+        <button className="p-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-500 hover:text-slate-900 group relative">
+          <Bell size={20} strokeWidth={2} />
           <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
         </button>
+
+        <div className="h-8 w-px bg-slate-100 mx-1" />
         
-        <div className="h-10 w-[1px] bg-slate-100 mx-1" />
-        
-        <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-all">
-          <div className="flex flex-col items-end">
-            <span className="text-sm font-black text-slate-900 leading-none">Priya Tyagi</span>
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Admin Manager</span>
+        <div className="flex items-center gap-3 cursor-pointer group">
+          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm overflow-hidden border-2 border-slate-100 transition-transform group-hover:scale-105">
+             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=priya" className="w-full h-full object-cover" alt="User" />
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 p-0.5 shadow-md overflow-hidden">
-            <div className="w-full h-full rounded-[14px] bg-slate-50 flex items-center justify-center text-slate-400">
-              <User size={20} />
-            </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-slate-900 leading-none group-hover:text-blue-600 transition-colors">Priya Tyagi</span>
+            <span className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-wider">Housekeeper</span>
           </div>
-          <ChevronDown size={14} className="text-slate-400" />
+          <ChevronDown size={14} className="text-slate-400 ml-1" />
         </div>
       </div>
     </header>
