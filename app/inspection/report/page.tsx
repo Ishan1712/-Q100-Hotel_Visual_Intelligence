@@ -83,21 +83,22 @@ export default function InspectionReportPage() {
   // If no room is selected, show the selection list
   if (!selectedRoom) {
     return (
-      <div className="max-w-[1440px] mx-auto space-y-8 animate-fade-in px-4">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-           <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Inspection Reports</h1>
-              <p className="text-slate-500 font-medium">Select a room to view its detailed AI inspection report and resolve any issues.</p>
+      <div className="max-w-[1440px] mx-auto space-y-6 animate-fade-in px-4">
+        {/* Header Card — Title + Search */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xl shadow-slate-300">
+           <div className="space-y-0.5">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Inspection Reports</h1>
+              <p className="text-slate-400 font-medium text-xs">Select a room to view its detailed AI inspection report and resolve any issues.</p>
            </div>
            
-           <div className="relative group min-w-[320px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+           <div className="relative group flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
               <input 
                  type="text" 
                  placeholder="Search by Room ID..." 
                  value={reportSearchQuery}
                  onChange={(e) => setReportSearchQuery(e.target.value)}
-                 className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-10 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-sm font-medium shadow-sm"
+                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 pl-12 pr-10 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-sm font-medium shadow-inner"
               />
               {reportSearchQuery && (
                 <button 
@@ -110,41 +111,51 @@ export default function InspectionReportPage() {
            </div>
         </header>
 
+        {/* Room Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-           {reportRooms.filter(r => r.number.toLowerCase().includes(reportSearchQuery.toLowerCase()) || r.type.toLowerCase().includes(reportSearchQuery.toLowerCase())).map((room) => (
-             <button
-               key={room.number}
-               onClick={() => setSelectedRoom(room.number)}
-               className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:border-blue-200 hover:scale-[1.02] transition-all cursor-pointer text-left relative overflow-hidden"
-             >
-               <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                     <LayoutGrid size={24} />
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    room.status === 'ready' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                  }`}>
-                    {room.status === 'ready' ? 'Room Ready' : `${room.issues} Issues Found`}
-                  </div>
-               </div>
+           {reportRooms.filter(r => r.number.toLowerCase().includes(reportSearchQuery.toLowerCase()) || r.type.toLowerCase().includes(reportSearchQuery.toLowerCase())).map((room) => {
+             const isReady = room.status === 'ready';
+             return (
+               <button
+                 key={room.number}
+                 onClick={() => setSelectedRoom(room.number)}
+                 className={`group p-5 rounded-2xl border transition-all duration-300 cursor-pointer text-left relative overflow-hidden shadow-2xl hover:scale-[1.02] active:scale-95 ${
+                   isReady
+                     ? 'bg-emerald-50/50 border-emerald-200 hover:border-emerald-300'
+                     : 'bg-amber-50/50 border-amber-200 hover:border-amber-300'
+                 }`}
+               >
 
-               <div className="space-y-1">
-                  <h3 className="text-2xl font-bold text-slate-900">Room {room.number}</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{room.type} • Floor {room.floor}</p>
-               </div>
+                 <div className="flex justify-between items-start mb-5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${
+                      isReady
+                        ? 'bg-white text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'
+                        : 'bg-white text-amber-600 group-hover:bg-amber-600 group-hover:text-white'
+                    }`}>
+                       <LayoutGrid size={24} />
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm ${
+                      isReady ? 'bg-emerald-600/10 text-emerald-700' : 'bg-amber-600/10 text-amber-700'
+                    }`}>
+                      {isReady ? 'Room Ready' : `${room.issues} Issues`}
+                    </div>
+                 </div>
 
-               <div className="mt-6 pt-4 border-t border-slate-50 flex justify-between items-center text-xs font-semibold">
-                  <span className="text-slate-400">Captured: {room.time}</span>
-                  <div className="flex items-center gap-1 text-blue-600 group-hover:gap-2 transition-all">
-                     <span>View Report</span>
-                     <ChevronRight size={16} />
-                  </div>
-               </div>
-               
-               {/* Decorative Background Element */}
-               <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-50/20 rounded-full blur-2xl group-hover:bg-blue-50/40 transition-colors" />
-             </button>
-           ))}
+                 <div className="space-y-0.5">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Room {room.number}</h3>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{room.type} • Floor {room.floor}</p>
+                 </div>
+
+                 <div className="mt-5 pt-4 border-t border-slate-200/50 flex justify-between items-center">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{room.time}</span>
+                    <div className="flex items-center gap-1 text-[9px] font-black text-blue-600 uppercase tracking-widest group-hover:gap-2 transition-all">
+                       <span>View Report</span>
+                       <ChevronRight size={14} />
+                    </div>
+                 </div>
+               </button>
+             );
+           })}
         </div>
       </div>
     );

@@ -6,30 +6,31 @@ import Link from 'next/link';
 
 // --- Housekeeper Specific Components ---
 
-const ProgressRing = ({ completed, total }: { completed: number, total: number }) => {
+const ProgressRing = ({ completed, total, size = 200 }: { completed: number, total: number, size?: number }) => {
   const percentage = (completed / total) * 100;
-  const radius = 70;
+  const radius = (size / 2) - 10;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const strokeWidth = size > 150 ? 8 : 6;
 
   return (
-    <div className="relative flex items-center justify-center w-[200px] h-[200px] animate-fade-in-up stagger-1">
-      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 180 180">
+    <div className={`relative flex items-center justify-center animate-fade-in-up stagger-1`} style={{ width: size, height: size }}>
+      <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
         <circle
-          cx="90"
-          cy="90"
+          cx={size / 2}
+          cy={size / 2}
           r={radius}
           stroke="currentColor"
-          strokeWidth="8"
+          strokeWidth={strokeWidth}
           fill="transparent"
           className="text-blue-100/40"
         />
         <circle
-          cx="90"
-          cy="90"
+          cx={size / 2}
+          cy={size / 2}
           r={radius}
-          stroke="url(#blueGradient)"
-          strokeWidth="8"
+          stroke="url(#blueGradientDashboard)"
+          strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
@@ -37,15 +38,17 @@ const ProgressRing = ({ completed, total }: { completed: number, total: number }
           className="transition-all duration-1000 ease-out"
         />
         <defs>
-          <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="blueGradientDashboard" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#3b82f6" />
             <stop offset="100%" stopColor="#2563eb" />
           </linearGradient>
         </defs>
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-5xl font-bold tracking-tight text-slate-900 leading-none">{completed}<span className="text-slate-300 mx-1">/</span>{total}</span>
-        <span className="text-[8px] uppercase tracking-[0.3em] text-slate-400 font-bold mt-4">Remaining Task</span>
+        <span className={`${size > 150 ? 'text-5xl' : 'text-3xl'} font-bold tracking-tight text-slate-900 leading-none`}>
+          {completed}<span className="text-slate-300 mx-1">/</span>{total}
+        </span>
+        <span className={`${size > 150 ? 'text-[8px]' : 'text-[6px]'} uppercase tracking-[0.3em] text-slate-400 font-bold mt-2 md:mt-4`}>Remaining Task</span>
       </div>
     </div>
   );
@@ -76,20 +79,20 @@ const RoomCard = ({ number, type, status, index }: { number: string, type: 'Stan
   const href = status === 'done' ? `/inspection/report?room=${number}` : `/inspection?room=${number}`;
 
   return (
-    <Link href={href} className={`p-4 rounded-3xl border flex items-center justify-between animate-fade-in-up stagger-${(index % 5) + 3} transition-all duration-300 group ${typeColorMap} bg-white shadow-sm hover:scale-[1.02] active:scale-95`}>
-      <div className="flex items-center gap-4">
-        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${iconBgMap}`}>
-          <TypeIcon size={22} />
+    <Link href={href} className={`p-5 md:p-6 rounded-[1.75rem] md:rounded-[2rem] border flex items-center justify-between animate-fade-in-up stagger-${(index % 5) + 3} transition-all duration-300 group ${typeColorMap} bg-white shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-95`}>
+      <div className="flex items-center gap-5 md:gap-6">
+        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl flex items-center justify-center transition-all ${iconBgMap}`}>
+          <TypeIcon className="w-6 h-6 md:w-8 md:h-8" />
         </div>
         <div>
-          <h3 className="text-base font-bold text-slate-900 tracking-tight leading-none">Room {number}</h3>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{type}</p>
+          <h3 className="text-base md:text-xl font-black text-slate-900 tracking-tight leading-none uppercase">Room {number}</h3>
+          <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 md:mt-2">{type}</p>
         </div>
       </div>
       <div className="flex items-center gap-5">
-        <div className={`w-2 h-2 rounded-full ${statusColors[status]}`} />
+        <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${statusColors[status]} shadow-sm transition-transform group-hover:scale-125`} />
         <div className="text-slate-200 group-hover:text-blue-500 transition-colors">
-          <ChevronRight size={18} />
+          <ChevronRight size={20} strokeWidth={2.5} />
         </div>
       </div>
     </Link>
@@ -119,59 +122,64 @@ export default function HousekeeperDashboard() {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto space-y-6 pb-10 px-6">
+    <div className="max-w-[1440px] mx-auto space-y-6 pb-10 px-4 md:px-6">
       
       {/* 1. Progress Centerpiece (Premium Light Blue Theme) */}
-      <section className="bg-[#F4F8FF] rounded-3xl p-8 relative overflow-hidden animate-fade-in-up border border-blue-100/50 shadow-sm">
+      <section className="bg-[#F4F8FF] rounded-3xl p-6 md:p-8 relative overflow-hidden animate-fade-in-up border border-blue-100/50 shadow-sm">
         {/* Background Decor */}
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/5 to-transparent pointer-events-none" />
         
         {/* Floating Badges */}
-        <div className="absolute top-6 right-6 flex items-center gap-3 z-30">
-           <div className="flex items-center gap-2.5 px-4 py-2 bg-white/80 backdrop-blur-md border border-blue-50 rounded-xl shadow-sm hover:scale-105 transition-all group">
-              <div className="p-1.5 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
-                <Flame size={18} className="text-orange-500 fill-orange-500/10" />
+        <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 md:gap-3 z-30 scale-90 md:scale-100 origin-right">
+           <div className="flex items-center gap-2 md:gap-2.5 px-3 py-1.5 md:px-4 md:py-2 bg-white/80 backdrop-blur-md border border-blue-50 rounded-xl shadow-sm hover:scale-105 transition-all group">
+              <div className="p-1 md:p-1.5 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+                <Flame size={16} className="text-orange-500 fill-orange-500/10" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 leading-none">7 Days</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Streak</span>
+                <span className="text-xs md:text-sm font-bold text-slate-900 leading-none">7 Days</span>
+                <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 md:mt-1">Streak</span>
               </div>
            </div>
 
-           <div className="flex items-center gap-2.5 px-4 py-2 bg-white/80 backdrop-blur-md border border-blue-50 rounded-xl shadow-sm">
-              <div className="p-1.5 bg-emerald-50 rounded-lg">
-                <Wifi size={18} className="text-emerald-500" />
+           <div className="flex items-center gap-2 md:gap-2.5 px-3 py-1.5 md:px-4 md:py-2 bg-white/80 backdrop-blur-md border border-blue-50 rounded-xl shadow-sm">
+              <div className="p-1 md:p-1.5 bg-emerald-50 rounded-lg">
+                <Wifi size={16} className="text-emerald-500" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 leading-none">Active</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cloud Sync</span>
+              <div className="flex flex-col text-right sm:text-left">
+                <span className="text-xs md:text-sm font-bold text-slate-900 leading-none">Active</span>
+                <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 md:mt-1">Sync</span>
               </div>
            </div>
         </div>
 
         {/* Center Content */}
-        <div className="flex flex-col md:flex-row items-center gap-8">
-          <div className="relative shrink-0 p-4 bg-blue-100/30 rounded-full">
-            <ProgressRing completed={6} total={14} />
+        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 pt-12 md:pt-0">
+          <div className="relative shrink-0 p-3 md:p-4 bg-blue-100/30 rounded-full">
+            <div className="hidden md:block">
+              <ProgressRing completed={6} total={14} size={200} />
+            </div>
+            <div className="md:hidden">
+              <ProgressRing completed={6} total={14} size={150} />
+            </div>
           </div>
           
-          <div className="space-y-6 z-10 text-center md:text-left">
+          <div className="space-y-4 md:space-y-6 z-10 text-center md:text-left">
             <div className="space-y-2">
-              <p className="text-slate-500 font-bold text-sm uppercase tracking-widest">Shift Completion</p>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              <p className="text-slate-500 font-bold text-[10px] md:text-sm uppercase tracking-widest">Shift Completion</p>
+              <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
                 You've completed <span className="text-blue-600">64%</span> of your shift!
               </h2>
-              <p className="text-slate-400 font-medium text-base">6 of 14 rooms verified. Keep it up!</p>
+              <p className="text-slate-400 font-medium text-sm md:text-base">6 of 14 rooms verified. Keep it up!</p>
             </div>
             
             <Link 
               href="/inspection"
-              className="group inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-2xl font-bold text-base shadow-xl shadow-slate-900/10 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300"
+              className="group inline-flex items-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-slate-900 text-white rounded-2xl font-bold text-sm md:text-base shadow-xl shadow-slate-900/10 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300 w-full md:w-auto justify-center"
             >
-              <Camera size={24} className="group-hover:rotate-[15deg] transition-transform" />
+              <Camera size={20} className="group-hover:rotate-[15deg] transition-transform md:w-6 md:h-6" />
               <span>Go Scan a Room</span>
-              <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center -mr-1">
-                <ChevronRight size={16} />
+              <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center -mr-1">
+                <ChevronRight size={14} className="md:w-4 md:h-4" />
               </div>
             </Link>
           </div>
@@ -179,57 +187,59 @@ export default function HousekeeperDashboard() {
       </section>
 
       {/* 2. Room List Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 animate-fade-in-up stagger-2 gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-100 pb-4 animate-fade-in-up stagger-2 gap-4">
         <div className="flex flex-col">
-          <h2 className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.4em]">Floor 4 • Operational List</h2>
-          <p className="text-xl font-black text-slate-900 tracking-tight mt-1">Room Status Grid</p>
+          <h2 className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-[0.4em]">Floor 4 • Operational List</h2>
+          <p className="text-lg md:text-xl font-black text-slate-900 tracking-tight mt-1">Room Status Grid</p>
         </div>
         
-        <div className="flex items-center gap-4 flex-1 max-w-md">
+        <div className="flex items-center gap-3 md:gap-4 flex-1 max-w-full lg:max-w-md">
            <div className="relative group w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={14} />
               <input 
                  type="text" 
                  placeholder="Find a room..." 
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full bg-white border border-slate-200 rounded-2xl py-2 pl-12 pr-10 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-sm font-medium shadow-sm"
+                 className="w-full bg-white border border-slate-200 rounded-2xl py-2 pl-10 pr-10 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-xs md:text-sm font-medium shadow-sm"
               />
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
                 >
-                  <XCircle size={18} />
+                  <XCircle size={16} />
                 </button>
               )}
            </div>
            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-bold uppercase tracking-widest border border-blue-100 whitespace-nowrap">{filteredRooms.length} of {rooms.length} Rooms</span>
+              <span className="px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[8px] md:text-[9px] font-bold uppercase tracking-widest border border-blue-100 whitespace-nowrap">
+                {filteredRooms.length} <span className="hidden xs:inline">of {rooms.length}</span> Rooms
+              </span>
            </div>
         </div>
       </div>
 
       {/* 4. Room Grid (Compact) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 min-h-[400px] items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 md:gap-6 min-h-[300px] items-start">
         {filteredRooms.length > 0 ? (
           filteredRooms.map((room, i) => (
             <RoomCard key={room.number} number={room.number} type={room.type as any} status={room.status as any} index={i} />
           ))
         ) : (
-          <div className="col-span-full flex flex-col items-center justify-center py-20 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200 animate-fade-in">
-             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-300 shadow-sm mb-4">
-                <Search size={32} />
+          <div className="col-span-full flex flex-col items-center justify-center py-12 md:py-20 bg-slate-50 rounded-[2rem] md:rounded-[3rem] border border-dashed border-slate-200 animate-fade-in">
+             <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center text-slate-300 shadow-sm mb-4">
+                <Search size={28} />
              </div>
-             <p className="text-slate-500 font-bold">No rooms match "{searchQuery}"</p>
-             <button onClick={() => setSearchQuery("")} className="mt-4 text-blue-600 text-xs font-bold uppercase tracking-widest hover:underline">Clear Search</button>
+             <p className="text-slate-500 font-bold text-sm">No rooms match "{searchQuery}"</p>
+             <button onClick={() => setSearchQuery("")} className="mt-4 text-blue-600 text-[10px] font-bold uppercase tracking-widest hover:underline">Clear Search</button>
           </div>
         )}
       </div>
 
       {/* 5. Footer Info (Offline Indicator / Branding) */}
-      <div className="pt-8 flex items-center justify-between border-t border-slate-100">
-        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.4em] italic">
+      <div className="pt-6 flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 gap-4">
+        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.4em] italic text-center sm:text-left">
           Floor 4 • Morning Shift
         </p>
         <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
