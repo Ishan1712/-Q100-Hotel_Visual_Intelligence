@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Camera,
   Video,
@@ -47,18 +47,18 @@ const rooms: Room[] = [
 ];
 
 const checkpoints = [
-  { id: 1, name: "Dustbin", icon: "🗑", ref: "Empty dustbin with fresh liner, positioned left of desk" },
-  { id: 2, name: "Bed & Pillows", icon: "🛏", ref: "King bed, 4 pillows in diamond pattern, bed runner centred" },
-  { id: 3, name: "Bed Linen", icon: "🧺", ref: "Crisp white sheets, hospital corners, no wrinkles visible" },
-  { id: 4, name: "Towels (Bathroom)", icon: "🛁", ref: "2 bath towels fan-folded on rack, 2 hand towels on ring, 1 bath mat flat" },
-  { id: 5, name: "Towels (Bedroom)", icon: "🏨", ref: "1 folded bathrobe on bed foot, 1 towel swan decoration" },
-  { id: 6, name: "Coffee/Tea Tray", icon: "☕", ref: "Kettle, 2 cups on saucers, 4 tea bags, 4 coffee sachets, 4 sugar, 2 milk pods" },
-  { id: 7, name: "Minibar / Water Bottles", icon: "🧴", ref: "2 Bisleri 500ml bottles on tray, 1 Coca-Cola, 1 Sprite" },
-  { id: 8, name: "Bathroom Amenities", icon: "🧼", ref: "2 wrapped soaps, 1 shampoo, 1 conditioner, 1 lotion, 2 dental kits in arc" },
-  { id: 9, name: "TV Remote & Menu Card", icon: "📺", ref: "Remote at 45° on nightstand, menu card propped against lamp base" },
-  { id: 10, name: "Curtains & Lighting", icon: "🪟", ref: "Both curtains tied back symmetrically, sheer curtains drawn, both lamps ON" },
-  { id: 11, name: "Wardrobe/Closet", icon: "🚪", ref: "6 hangers evenly spaced, 1 laundry bag, 1 shoe mitt, iron + board present" },
-  { id: 12, name: "Welcome Items & Stationery", icon: "✉️", ref: "Welcome card centred on desk, pen on notepad, Wi-Fi card beside phone" },
+  { id: 1, name: "Dustbin", icon: "\u{1F5D1}", ref: "Empty dustbin with fresh liner, positioned left of desk" },
+  { id: 2, name: "Bed & Pillows", icon: "\u{1F6CF}", ref: "King bed, 4 pillows in diamond pattern, bed runner centred" },
+  { id: 3, name: "Bed Linen", icon: "\u{1F9FA}", ref: "Crisp white sheets, hospital corners, no wrinkles visible" },
+  { id: 4, name: "Towels (Bathroom)", icon: "\u{1F6C1}", ref: "2 bath towels fan-folded on rack, 2 hand towels on ring, 1 bath mat flat" },
+  { id: 5, name: "Towels (Bedroom)", icon: "\u{1F3E8}", ref: "1 folded bathrobe on bed foot, 1 towel swan decoration" },
+  { id: 6, name: "Coffee/Tea Tray", icon: "\u2615", ref: "Kettle, 2 cups on saucers, 4 tea bags, 4 coffee sachets, 4 sugar, 2 milk pods" },
+  { id: 7, name: "Minibar / Water Bottles", icon: "\u{1F9F4}", ref: "2 Bisleri 500ml bottles on tray, 1 Coca-Cola, 1 Sprite" },
+  { id: 8, name: "Bathroom Amenities", icon: "\u{1F9FC}", ref: "2 wrapped soaps, 1 shampoo, 1 conditioner, 1 lotion, 2 dental kits in arc" },
+  { id: 9, name: "TV Remote & Menu Card", icon: "\u{1F4FA}", ref: "Remote at 45\u00B0 on nightstand, menu card propped against lamp base" },
+  { id: 10, name: "Curtains & Lighting", icon: "\u{1FA9F}", ref: "Both curtains tied back symmetrically, sheer curtains drawn, both lamps ON" },
+  { id: 11, name: "Wardrobe/Closet", icon: "\u{1F6AA}", ref: "6 hangers evenly spaced, 1 laundry bag, 1 shoe mitt, iron + board present" },
+  { id: 12, name: "Welcome Items & Stationery", icon: "\u2709\uFE0F", ref: "Welcome card centred on desk, pen on notepad, Wi-Fi card beside phone" },
 ];
 
 export default function InspectionFlowPage() {
@@ -77,6 +77,10 @@ export default function InspectionFlowPage() {
   const [videoTimer, setVideoTimer] = useState(0);
   const [captureStrip, setCaptureStrip] = useState<{ id: number; status: 'pass' | 'fail' | 'unknown' }[]>([]);
   const videoInterval = useRef<NodeJS.Timeout | null>(null);
+  const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   // --- Handlers ---
 
@@ -127,6 +131,40 @@ export default function InspectionFlowPage() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  // --- Camera Effect ---
+
+  useEffect(() => {
+    if (phase === 'photo' || phase === 'video') {
+      setCameraReady(false);
+      setCameraError(null);
+      const startCamera = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          });
+          cameraStreamRef.current = stream;
+          if (cameraVideoRef.current) {
+            cameraVideoRef.current.srcObject = stream;
+            await cameraVideoRef.current.play();
+          }
+          setCameraReady(true);
+        } catch (err: any) {
+          console.error('Camera error:', err);
+          setCameraError(err?.message || 'Could not access camera');
+        }
+      };
+      startCamera();
+    }
+    return () => {
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach(t => t.stop());
+        cameraStreamRef.current = null;
+        setCameraReady(false);
+      }
+    };
+  }, [phase]);
+
   // --- Effects ---
 
   useEffect(() => {
@@ -171,7 +209,7 @@ export default function InspectionFlowPage() {
             Unit Inspection
           </h1>
           <p className="text-slate-400 font-bold uppercase tracking-widest text-[8px] md:text-[9px]">
-            Floor 4 • Active Worklist
+            Floor 4 &bull; Active Worklist
           </p>
         </div>
 
@@ -380,15 +418,49 @@ export default function InspectionFlowPage() {
            </div>
         </div>
 
-        {/* Updated Photography Layout (Top: Capture, Bottom: Master Info) */}
+        {/* Photography Layout (Top: Live Camera, Bottom: Master Info) */}
         <div className="flex-1 flex flex-col p-3 md:p-4 gap-3 md:gap-4 overflow-hidden">
-           {/* 1. TOP: ACTIVE VIEW (Camera Viewfinder) */}
+           {/* 1. TOP: LIVE CAMERA VIEW */}
            <div className="flex-[1.2] relative bg-slate-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-slate-900/50 group">
-              <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
-                 <div className="w-[80%] h-[70%] border-2 border-blue-400/20 border-dashed rounded-[2rem] animate-pulse flex items-center justify-center">
-                    <span className="text-9xl text-blue-400/5">{cp.icon}</span>
-                 </div>
-              </div>
+              {/* Live Camera Feed */}
+              <video
+                ref={cameraVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+
+              {/* Camera loading state */}
+              {!cameraReady && !cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3">
+                   <div className="w-12 h-12 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
+                   <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Opening Camera...</p>
+                </div>
+              )}
+
+              {/* Camera error state */}
+              {cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 p-6">
+                   <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center">
+                      <AlertCircle size={32} className="text-rose-400" />
+                   </div>
+                   <p className="text-white/80 text-sm font-bold text-center">Camera Access Denied</p>
+                   <p className="text-white/40 text-xs text-center max-w-[250px]">{cameraError}</p>
+                </div>
+              )}
+
+              {/* Viewfinder corners overlay */}
+              {cameraReady && !comparing && !itemStatus && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                   <div className="w-[80%] h-[70%] relative">
+                      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 rounded-tl-2xl" />
+                      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 rounded-tr-2xl" />
+                      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 rounded-bl-2xl" />
+                      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 rounded-br-2xl" />
+                   </div>
+                </div>
+              )}
 
               {comparing && (
                 <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-4 animate-fade-in">
@@ -423,7 +495,7 @@ export default function InspectionFlowPage() {
                        <div className="flex items-start gap-2 group">
                           <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
                           <p className="text-[10px] md:text-xs font-semibold text-slate-600 leading-relaxed">
-                             "{cp.ref}"
+                             &quot;{cp.ref}&quot;
                           </p>
                        </div>
                     </div>
@@ -462,7 +534,7 @@ export default function InspectionFlowPage() {
                    </div>
                    <div>
                       <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Issue Detected</h2>
-                      <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mt-1 block tracking-widest">{cp.name} Needed</span>
+                      <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mt-1 block">{cp.name} Needed</span>
                    </div>
                 </div>
                 <button onClick={() => setShowFailureDetail(false)} className="bg-white p-3 rounded-xl text-slate-300 border border-slate-100 hover:text-slate-900 transition-colors shadow-sm"><X size={20} /></button>
@@ -516,9 +588,27 @@ export default function InspectionFlowPage() {
     );
   };
 
-  const renderVideoMode = () => (
-    <div className="relative h-full animate-fade-in flex flex-col bg-slate-950 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
+  const renderVideoMode = () => {
+    const nextCp = checkpoints.find(c => !captureStrip.some(cap => cap.id === c.id));
+
+    return (
+      <div className="relative h-full animate-fade-in flex flex-col bg-slate-950 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
        <div className="flex-1 relative overflow-hidden">
+          {/* Live Camera Feed */}
+          <video
+            ref={cameraVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Camera loading state */}
+          {!cameraReady && !cameraError && (
+             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 bg-slate-950/80 backdrop-blur-sm">
+                <div className="w-12 h-12 border-4 border-rose-600/10 border-t-rose-500 rounded-full animate-spin" />
+                <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Opening Camera...</p>
+             </div>
+          )}
           <div className="absolute inset-0 border-4 border-rose-600/20 animate-pulse pointer-events-none z-10" />
           
           <div className="absolute top-4 left-4 md:top-6 md:left-6 flex items-center gap-2 md:gap-3 z-20">
@@ -531,10 +621,10 @@ export default function InspectionFlowPage() {
 
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 text-center">
              <div className="w-20 h-20 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl animate-bounce-slow">
-                <span className="text-4xl">{checkpoints[captureStrip.length]?.icon || "✅"}</span>
+                <span className="text-4xl">{nextCp?.icon || "\u2705"}</span>
              </div>
              <p className="mt-4 text-white/80 font-bold uppercase tracking-widest text-[8px] bg-black/40 px-3 py-1 rounded-full inline-block backdrop-blur-md">
-                Align: {checkpoints[captureStrip.length]?.name || "Complete"}
+                Align: {nextCp?.name || "Complete"}
              </p>
           </div>
 
@@ -576,6 +666,7 @@ export default function InspectionFlowPage() {
        </div>
     </div>
   );
+  };
 
   const renderReport = () => (
     <div className="p-4 md:p-6 space-y-6 md:space-y-8 animate-fade-in h-full overflow-y-auto no-scrollbar bg-white rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100">
