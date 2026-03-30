@@ -54,21 +54,28 @@ export default function Sidebar({ collapsed, setCollapsed, isMobileOpen, setIsMo
       >
         {/* Sidebar Header */}
         <div className={`flex flex-col items-center py-6 border-b border-white/5 transition-all duration-300 ${collapsed ? 'px-0' : 'px-6'}`}>
-          <div className={`flex items-center w-full ${collapsed ? 'flex-col gap-4' : 'justify-between'}`}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-                 <Triangle size={22} className="text-white fill-white rotate-180" />
+          <div className={`flex items-center w-full ${collapsed ? 'flex-col gap-1' : 'justify-between'}`}>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 flex items-center justify-center shrink-0 overflow-hidden">
+                   <img src="/auglelogo.png" alt="Augle Logo" className="w-full h-full object-contain" />
+                </div>
+                {(!collapsed || isMobileOpen) && (
+                  <span className="font-bold text-xl tracking-tight text-white flex items-baseline leading-none">
+                    Q100<span className="text-blue-400 font-medium lowercase">.ai</span>
+                  </span>
+                )}
               </div>
               {(!collapsed || isMobileOpen) && (
-                <span className="font-bold text-xl tracking-tight text-white flex items-baseline">
-                  Q100<span className="text-blue-400 font-medium lowercase">.ai</span>
+                <span className="text-[8px] font-bold text-blue-500/80 uppercase tracking-[0.2em] leading-none mt-2">
+                  Hotel Visual Intelligence
                 </span>
               )}
             </div>
             
             <button 
               onClick={() => isMobileOpen ? setIsMobileOpen(false) : setCollapsed(!collapsed)}
-              className={`text-slate-500 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5 ${collapsed ? 'mt-2' : ''}`}
+              className={`text-slate-500 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5`}
             >
               {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

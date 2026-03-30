@@ -23,9 +23,11 @@ import {
   Crown,
   Star,
   Search,
-  XCircle
+  XCircle,
+  Upload
 } from 'lucide-react';
 import Link from 'next/link';
+import { analyzeWithGPT4v, fileToBase64, masterToBase64 } from '../lib/comparison';
 
 // --- Types & Dummy Data ---
 
@@ -47,18 +49,18 @@ const rooms: Room[] = [
 ];
 
 const checkpoints = [
-  { id: 1, name: "Dustbin", icon: "\u{1F5D1}", ref: "Empty dustbin with fresh liner, positioned left of desk" },
-  { id: 2, name: "Bed & Pillows", icon: "\u{1F6CF}", ref: "King bed, 4 pillows in diamond pattern, bed runner centred" },
-  { id: 3, name: "Bed Linen", icon: "\u{1F9FA}", ref: "Crisp white sheets, hospital corners, no wrinkles visible" },
-  { id: 4, name: "Towels (Bathroom)", icon: "\u{1F6C1}", ref: "2 bath towels fan-folded on rack, 2 hand towels on ring, 1 bath mat flat" },
-  { id: 5, name: "Towels (Bedroom)", icon: "\u{1F3E8}", ref: "1 folded bathrobe on bed foot, 1 towel swan decoration" },
-  { id: 6, name: "Coffee/Tea Tray", icon: "\u2615", ref: "Kettle, 2 cups on saucers, 4 tea bags, 4 coffee sachets, 4 sugar, 2 milk pods" },
-  { id: 7, name: "Minibar / Water Bottles", icon: "\u{1F9F4}", ref: "2 Bisleri 500ml bottles on tray, 1 Coca-Cola, 1 Sprite" },
-  { id: 8, name: "Bathroom Amenities", icon: "\u{1F9FC}", ref: "2 wrapped soaps, 1 shampoo, 1 conditioner, 1 lotion, 2 dental kits in arc" },
-  { id: 9, name: "TV Remote & Menu Card", icon: "\u{1F4FA}", ref: "Remote at 45\u00B0 on nightstand, menu card propped against lamp base" },
-  { id: 10, name: "Curtains & Lighting", icon: "\u{1FA9F}", ref: "Both curtains tied back symmetrically, sheer curtains drawn, both lamps ON" },
-  { id: 11, name: "Wardrobe/Closet", icon: "\u{1F6AA}", ref: "6 hangers evenly spaced, 1 laundry bag, 1 shoe mitt, iron + board present" },
-  { id: 12, name: "Welcome Items & Stationery", icon: "\u2709\uFE0F", ref: "Welcome card centred on desk, pen on notepad, Wi-Fi card beside phone" },
+  { id: 1, name: "Dustbin", icon: "\u{1F5D1}", ref: "Empty dustbin with fresh liner, positioned left of desk", masterImg: "/master/01_Dustbin_master.png" },
+  { id: 2, name: "Bed & Pillows", icon: "\u{1F6CF}", ref: "King bed, 4 pillows in diamond pattern, bed runner centred", masterImg: "/master/02_Bed_Pillows_master.png" },
+  { id: 3, name: "Bed Linen", icon: "\u{1F9FA}", ref: "Crisp white sheets, hospital corners, no wrinkles visible", masterImg: "/master/03_Bed_Linen_master.png" },
+  { id: 4, name: "Towels (Bathroom)", icon: "\u{1F6C1}", ref: "2 bath towels fan-folded on rack, 2 hand towels on ring, 1 bath mat flat", masterImg: "/master/04_Towels_Bathroom_master.png" },
+  { id: 5, name: "Towels (Bedroom)", icon: "\u{1F3E8}", ref: "1 folded bathrobe on bed foot, 1 towel swan decoration", masterImg: "/master/05_Towels_Bedroom_master.png" },
+  { id: 6, name: "Coffee/Tea Tray", icon: "\u2615", ref: "Kettle, 2 cups on saucers, 4 tea bags, 4 coffee sachets, 4 sugar, 2 milk pods", masterImg: "/master/06_Coffee_Tea_Tray_master.png" },
+  { id: 7, name: "Minibar / Water Bottles", icon: "\u{1F9F4}", ref: "2 Bisleri 500ml bottles on tray, 1 Coca-Cola, 1 Sprite", masterImg: "/master/07_Minibar_Water_master.png" },
+  { id: 8, name: "Bathroom Amenities", icon: "\u{1F9FC}", ref: "2 wrapped soaps, 1 shampoo, 1 conditioner, 1 lotion, 2 dental kits in arc", masterImg: "/master/08_Bathroom_Amenities_master.png" },
+  { id: 9, name: "TV Remote & Menu Card", icon: "\u{1F4FA}", ref: "Remote at 45\u00B0 on nightstand, menu card propped against lamp base", masterImg: "/master/09_TV_Remote_Menu_master.png" },
+  { id: 10, name: "Curtains & Lighting", icon: "\u{1FA9F}", ref: "Both curtains tied back symmetrically, sheer curtains drawn, both lamps ON", masterImg: "/master/10_Curtains_Lighting_master.png" },
+  { id: 11, name: "Wardrobe/Closet", icon: "\u{1F6AA}", ref: "6 hangers evenly spaced, 1 laundry bag, 1 shoe mitt, iron + board present", masterImg: "/master/11_Wardrobe_Closet_master.png" },
+  { id: 12, name: "Welcome Items & Stationery", icon: "\u2709\uFE0F", ref: "Welcome card centred on desk, pen on notepad, Wi-Fi card beside phone", masterImg: "/master/12_Welcome_Stationery_master.png" },
 ];
 
 export default function InspectionFlowPage() {
@@ -73,7 +75,6 @@ export default function InspectionFlowPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [results, setResults] = useState<Record<number, 'pass' | 'fail' | 'skip' | null>>({});
   const [comparing, setComparing] = useState(false);
-  const [showFailureDetail, setShowFailureDetail] = useState(false);
   const [videoTimer, setVideoTimer] = useState(0);
   const [captureStrip, setCaptureStrip] = useState<{ id: number; status: 'pass' | 'fail' | 'unknown' }[]>([]);
   const videoInterval = useRef<NodeJS.Timeout | null>(null);
@@ -81,6 +82,10 @@ export default function InspectionFlowPage() {
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [analysisReason, setAnalysisReason] = useState<string | null>(null);
+
+  // --- Helpers (comparison logic imported from lib/comparison.ts) ---
 
   // --- Handlers ---
 
@@ -96,17 +101,44 @@ export default function InspectionFlowPage() {
     }, 500);
   }, [selectedRoom]);
 
-  const handlePhotoModeCapture = React.useCallback(() => {
+  const handlePhotoModeCapture = React.useCallback(async () => {
     setComparing(true);
-    setTimeout(() => {
-      setComparing(false);
-      const isFail = checkpoints[currentStep].id === 4 || checkpoints[currentStep].id === 6 || checkpoints[currentStep].id === 8;
+    setAnalysisReason(null);
+    
+    try {
+      const cp = checkpoints[currentStep];
+      let insB64 = "";
 
-      if (isFail) {
-        setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'fail' }));
-        setShowFailureDetail(true);
+      if (uploadedImage) {
+        insB64 = await fileToBase64(uploadedImage);
+      } else if (cameraVideoRef.current) {
+         // Capture from video to canvas
+         const canvas = document.createElement("canvas");
+         canvas.width = cameraVideoRef.current.videoWidth;
+         canvas.height = cameraVideoRef.current.videoHeight;
+         const ctx = canvas.getContext("2d");
+         ctx?.drawImage(cameraVideoRef.current, 0, 0);
+         insB64 = canvas.toDataURL("image/png").split(',')[1];
+      }
+
+      const masB64 = await masterToBase64(cp.masterImg || "");
+      
+      if (!insB64) {
+        throw new Error("No inspection image captured. Please try again.");
+      }
+      if (!masB64) {
+        throw new Error("Reference image not loaded. Please contact support.");
+      }
+
+      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref);
+      
+      setComparing(false);
+      setAnalysisReason(result.reason);
+
+      if (result.status === 'fail') {
+        setResults(prev => ({ ...prev, [cp.id]: 'fail' }));
       } else {
-        setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'pass' }));
+        setResults(prev => ({ ...prev, [cp.id]: 'pass' }));
         setTimeout(() => {
           if (currentStep < checkpoints.length - 1) {
             setCurrentStep(prev => prev + 1);
@@ -115,8 +147,12 @@ export default function InspectionFlowPage() {
           }
         }, 1500);
       }
-    }, 1200);
-  }, [currentStep, checkpoints]);
+    } catch (err: any) {
+      setComparing(false);
+      setAnalysisReason(err.message || "Error processing image.");
+      setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'fail' }));
+    }
+  }, [currentStep, checkpoints, uploadedImage]);
 
   const triggerVideoCapture = React.useCallback((id: number, status: 'pass' | 'fail') => {
     setFlash(true);
@@ -166,6 +202,16 @@ export default function InspectionFlowPage() {
   }, [phase]);
 
   // --- Effects ---
+
+  useEffect(() => {
+    setUploadedImage(null);
+  }, [currentStep, phase]);
+
+  useEffect(() => {
+    if (selectedRoom && Object.keys(results).length > 0) {
+      localStorage.setItem(`q100_room_results_${selectedRoom.number}`, JSON.stringify(results));
+    }
+  }, [results, selectedRoom]);
 
   useEffect(() => {
     if (phase === 'scan' && isScanning && !showKeypad) {
@@ -262,8 +308,15 @@ export default function InspectionFlowPage() {
               key={room.number}
               onClick={() => {
                 setSelectedRoom(room);
-                setPhase("scan");
-                setIsScanning(true);
+                const savedResults = localStorage.getItem(`q100_room_results_${room.number}`);
+                if (savedResults) {
+                  setResults(JSON.parse(savedResults));
+                  setPhase("report");
+                } else {
+                  setResults({});
+                  setPhase("scan");
+                  setIsScanning(true);
+                }
               }}
               className={`group border p-5 rounded-[2rem] transition-all duration-300 text-left shadow-2xl hover:scale-[1.02] active:scale-95 relative overflow-hidden flex flex-col items-stretch ${styles}`}
             >
@@ -423,13 +476,17 @@ export default function InspectionFlowPage() {
            {/* 1. TOP: LIVE CAMERA VIEW */}
            <div className="flex-[1.2] relative bg-slate-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-slate-900/50 group">
               {/* Live Camera Feed */}
-              <video
-                ref={cameraVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              {uploadedImage ? (
+                 <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover z-20" />
+              ) : (
+                 <video
+                   ref={cameraVideoRef}
+                   autoPlay
+                   playsInline
+                   muted
+                   className="absolute inset-0 w-full h-full object-cover"
+                 />
+              )}
 
               {/* Camera loading state */}
               {!cameraReady && !cameraError && (
@@ -479,13 +536,25 @@ export default function InspectionFlowPage() {
               )}
            </div>
 
-           {/* 2. BOTTOM: MASTER REFERENCE BOX */}
-           <div className="flex-1 bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 shadow-xl border border-blue-50 flex flex-col animate-slide-up">
+           {/* 2. BOTTOM: MASTER REFERENCE BOX (Simplified with Inline Failure) */}
+           <div className={`flex-1 bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 shadow-xl border flex flex-col animate-slide-up transition-all duration-300 ${
+              itemStatus === 'fail' ? 'border-rose-400 bg-rose-50/20' : 'border-blue-50'
+           }`}>
+              {/* Failure Reason Banner */}
+              {itemStatus === 'fail' && (
+                <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 animate-fade-in">
+                   <AlertCircle size={18} className="text-rose-500 shrink-0" />
+                   <p className="text-[10px] md:text-xs font-bold text-rose-600 uppercase tracking-widest leading-none">
+                      {analysisReason || "Discrepancy Detected"}
+                   </p>
+                </div>
+              )}
+
               <div className="flex-1 flex gap-4 md:gap-6">
                  {/* Item Details */}
                  <div className="flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-3">
-                       <span className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-lg">
+                       <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg text-white ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-blue-600'}`}>
                           {cp.icon}
                        </span>
                        <h2 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">{cp.name}</h2>
@@ -493,7 +562,7 @@ export default function InspectionFlowPage() {
                     
                     <div className="space-y-3">
                        <div className="flex items-start gap-2 group">
-                          <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                          <CheckCircle2 size={16} className={`${itemStatus === 'fail' ? 'text-rose-400' : 'text-emerald-500'} mt-0.5 shrink-0`} />
                           <p className="text-[10px] md:text-xs font-semibold text-slate-600 leading-relaxed">
                              &quot;{cp.ref}&quot;
                           </p>
@@ -502,88 +571,79 @@ export default function InspectionFlowPage() {
                  </div>
 
                  {/* Master Image Thumbnail (Right side) */}
-                 <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center relative overflow-hidden group shadow-inner shrink-0">
+                 <div className={`w-24 h-24 md:w-32 md:h-32 bg-slate-50 rounded-2xl border flex items-center justify-center relative overflow-hidden group shadow-inner shrink-0 ${itemStatus === 'fail' ? 'border-rose-400' : 'border-slate-100'}`}>
                     <div className="absolute inset-0 bg-slate-900/5 group-hover:bg-transparent transition-colors z-10" />
-                    <span className="text-4xl md:text-5xl opacity-20">{cp.icon}</span>
-                    <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest z-20 shadow-sm leading-none">
-                       Master
+                    {cp.masterImg ? (
+                      <img src={cp.masterImg} alt={cp.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl md:text-5xl opacity-20">{cp.icon}</span>
+                    )}
+                    <div className={`absolute top-2 left-2 text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest z-20 shadow-sm leading-none ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-emerald-500'}`}>
+                       {itemStatus === 'fail' ? 'Fail' : 'Master'}
                     </div>
                  </div>
               </div>
 
-              {/* Relocated Primary Action: Capture Button */}
-              {!comparing && !showFailureDetail && (
-                <button 
-                  onClick={handlePhotoModeCapture}
-                  className="mt-4 w-full h-12 md:h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group"
-                >
-                   <Camera size={20} className="group-hover:rotate-[15deg] transition-transform" />
-                   Capture Image
-                </button>
+              {/* Actions */}
+              {!comparing && itemStatus !== 'pass' && (
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {itemStatus === 'fail' ? (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setUploadedImage(null);
+                          setResults(prev => {
+                            const newResults = { ...prev };
+                            delete newResults[cp.id];
+                            return newResults;
+                          });
+                          setAnalysisReason(null);
+                        }}
+                        className="w-full h-12 md:h-14 bg-blue-600 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      >
+                         <Camera size={18} className="group-hover:rotate-[15deg] transition-transform shrink-0" />
+                         <span className="truncate">Recapture</span>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (currentStep < checkpoints.length - 1) setCurrentStep(prev => prev + 1);
+                          else setPhase('report');
+                        }}
+                        className="w-full h-12 md:h-14 bg-slate-900 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-slate-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      >
+                         <FastForward size={18} className="group-hover:translate-x-1 transition-transform shrink-0" />
+                         <span className="truncate">Skip</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={handlePhotoModeCapture}
+                        className="w-full h-12 md:h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      >
+                         <Camera size={18} className="group-hover:rotate-[15deg] transition-transform shrink-0" />
+                         <span className="truncate">Capture</span>
+                      </button>
+                      <label className="w-full h-12 md:h-14 bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer group">
+                         <Upload size={18} className="group-hover:-translate-y-1 transition-transform text-slate-400 shrink-0" />
+                         <span className="truncate">Upload</span>
+                         <input 
+                           type="file" 
+                           accept="image/*" 
+                           className="hidden" 
+                           onChange={(e) => {
+                             if (e.target.files && e.target.files.length > 0) {
+                               setUploadedImage(URL.createObjectURL(e.target.files[0]));
+                             }
+                           }}
+                         />
+                      </label>
+                    </>
+                  )}
+                </div>
               )}
            </div>
         </div>
-
-        {/* Failure Detail Overlay */}
-        {showFailureDetail && (
-          <div className="absolute inset-x-0 bottom-0 top-[20%] bg-slate-50/98 backdrop-blur-3xl z-[100] p-6 flex flex-col animate-slide-up rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.1)] border-t border-white">
-             <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20">
-                      <AlertCircle size={24} />
-                   </div>
-                   <div>
-                      <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Issue Detected</h2>
-                      <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mt-1 block">{cp.name} Needed</span>
-                   </div>
-                </div>
-                <button onClick={() => setShowFailureDetail(false)} className="bg-white p-3 rounded-xl text-slate-300 border border-slate-100 hover:text-slate-900 transition-colors shadow-sm"><X size={20} /></button>
-             </div>
-
-             <div className="flex-1 grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 flex flex-col gap-3 relative group overflow-hidden">
-                   <div className="flex-1 bg-slate-50 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all group-hover:scale-105">
-                      <span className="text-6xl opacity-10">{cp.icon}</span>
-                      <div className="absolute top-3 left-3 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[7px] font-bold uppercase tracking-widest z-10 shadow-sm">Master</div>
-                   </div>
-                </div>
-                <div className="bg-white rounded-[2rem] p-4 shadow-md border-2 border-rose-500/10 flex flex-col gap-3 relative group overflow-hidden">
-                   <div className="flex-1 bg-slate-50 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all group-hover:scale-105">
-                      <span className="text-6xl opacity-10">{cp.icon}</span>
-                      <div className="absolute top-3 left-3 bg-rose-500 text-white px-2 py-0.5 rounded-full text-[7px] font-bold uppercase tracking-widest z-10 shadow-sm">Captured</div>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border-2 border-rose-500 rounded-full flex items-center justify-center animate-pulse">
-                         <div className="w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-                      </div>
-                   </div>
-                   <div className="bg-rose-50 py-2 rounded-xl text-center border border-rose-100">
-                      <p className="text-[9px] text-rose-600 font-bold uppercase tracking-widest italic">
-                         {cp.id === 4 ? "Towel Mismatch" : 
-                          cp.id === 6 ? "Missing Sugar" : 
-                          cp.id === 8 ? "Dental Kit Missing" : "Discrepancy"}
-                      </p>
-                   </div>
-                </div>
-             </div>
-
-             <div className="grid grid-cols-2 gap-4 pb-4">
-                <button onClick={() => setShowFailureDetail(false)} className="h-14 md:h-16 bg-white border border-slate-100 text-slate-900 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 group">
-                   <RefreshCw size={18} className="text-blue-600 group-hover:rotate-180 transition-transform duration-500" />
-                   <span className="text-sm">Re-capture</span>
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowFailureDetail(false);
-                    if (currentStep < checkpoints.length - 1) setCurrentStep(prev => prev + 1);
-                    else setPhase('report');
-                  }}
-                  className="h-14 md:h-16 bg-rose-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-rose-500 shadow-lg shadow-rose-600/10 transition-all active:scale-95 group"
-                >
-                   <span className="text-sm">Skip Item</span>
-                   <FastForward size={18} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-             </div>
-          </div>
-        )}
       </div>
     );
   };
@@ -670,56 +730,93 @@ export default function InspectionFlowPage() {
 
   const renderReport = () => (
     <div className="p-4 md:p-6 space-y-6 md:space-y-8 animate-fade-in h-full overflow-y-auto no-scrollbar bg-white rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100">
-       <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-50 p-4 md:p-6 rounded-2xl md:rounded-[2rem] border border-slate-100 gap-4">
+       <div className="flex flex-col sm:flex-row justify-between items-center bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-4 md:p-6 rounded-2xl md:rounded-[2rem] border border-blue-100/30 gap-4 shadow-sm">
           <div className="text-center sm:text-left">
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter leading-none">Verified</h1>
             <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
-               <span className="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-[8px] md:text-[9px] font-bold uppercase tracking-widest">Room {selectedRoom?.number}</span>
+               <span className="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-[8px] md:text-[9px] font-bold uppercase tracking-widest shadow-sm">Room {selectedRoom?.number}</span>
             </div>
           </div>
-          <Link href="/" className="bg-blue-600 text-white h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg hover:bg-blue-700 hover:scale-105 transition-all w-full sm:w-auto">
+          <button 
+             onClick={() => {
+               localStorage.removeItem(`q100_room_results_${selectedRoom?.number}`);
+               window.location.href = "/";
+             }}
+             className="bg-blue-600 text-white h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg hover:bg-blue-700 hover:scale-105 transition-all w-full sm:w-auto"
+          >
              Submit Data
              <ArrowRight size={18} />
-          </Link>
+          </button>
        </div>
 
        <div className="grid grid-cols-3 gap-2 md:gap-4">
-          <div className="bg-white p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 text-center group hover:border-blue-200 transition-colors">
-             <span className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">
+          <div className="bg-blue-50/50 p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-blue-100 text-center group hover:bg-blue-50 hover:border-blue-200 transition-all">
+             <span className="text-2xl md:text-4xl font-black text-blue-900 tracking-tighter">
                 {Math.round((Object.values(results).filter(v => v === 'pass').length / checkpoints.length) * 100)}%
              </span>
-             <p className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Score</p>
+             <p className="text-[7px] md:text-[8px] font-bold text-blue-800/60 uppercase tracking-widest mt-1">Score</p>
           </div>
-          <div className="bg-white p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 text-center group hover:border-emerald-200 transition-colors">
-             <span className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">
+          <div className="bg-emerald-50/50 p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-emerald-100 text-center group hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+             <span className="text-2xl md:text-4xl font-black text-emerald-900 tracking-tighter">
                 {Object.values(results).filter(v => v === 'pass').length}/{checkpoints.length}
              </span>
-             <p className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Passed</p>
+             <p className="text-[7px] md:text-[8px] font-bold text-emerald-800/60 uppercase tracking-widest mt-1">Passed</p>
           </div>
-          <div className="bg-white p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 text-center group hover:border-rose-200 transition-colors">
+          <div className="bg-rose-50/50 p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-rose-100 text-center group hover:bg-rose-50 hover:border-rose-200 transition-all">
              <span className="text-2xl md:text-4xl font-black text-rose-600 tracking-tighter">
                 {Object.values(results).filter(v => v === 'fail').length}
              </span>
-             <p className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Flagged</p>
+             <p className="text-[7px] md:text-[8px] font-bold text-rose-800/60 uppercase tracking-widest mt-1">Flagged</p>
           </div>
        </div>
 
        <div className="space-y-4 pb-8">
           <h3 className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2">Checkpoint Analysis</h3>
-          <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 gap-2 md:gap-3">
-             {checkpoints.map((cp) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+             {checkpoints.map((cp, idx) => {
                const status = results[cp.id] || (captureStrip.find(c => c.id === cp.id)?.status);
+               const isFailed = status === 'fail';
                return (
-                 <div key={cp.id} className="bg-white p-2 md:p-3 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center gap-1.5 md:gap-2 hover:shadow-md transition-all group">
-                    <span className="text-2xl md:text-3xl group-hover:scale-110 transition-transform">{cp.icon}</span>
-                    <span className="text-[7px] md:text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center truncate w-full">{cp.name}</span>
-                    <div className={`w-full py-0.5 md:py-1 rounded-md md:rounded-lg text-[6px] md:text-[7px] font-bold uppercase tracking-widest text-center ${
-                      status === 'pass' ? "bg-emerald-50 text-emerald-600" :
-                      status === 'fail' ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-300"
-                    }`}>
-                      {status || "Queued"}
-                    </div>
-                 </div>
+                 <button 
+                   key={cp.id} 
+                   onClick={() => {
+                      if (isFailed) {
+                         setCurrentStep(idx);
+                         setPhase('photo');
+
+                      }
+                   }}
+                   disabled={!isFailed}
+                   className={`bg-white p-4 md:p-5 lg:p-6 rounded-2xl md:rounded-3xl border shadow-sm flex flex-col items-center justify-between gap-3 md:gap-4 transition-all group ${
+                     status === 'fail' 
+                       ? 'border-rose-400 hover:border-rose-500 hover:shadow-lg hover:shadow-rose-500/20 hover:-translate-y-1 cursor-pointer' 
+                       : status === 'pass'
+                         ? 'border-emerald-400 border-[1.5px] shadow-emerald-500/10 cursor-default'
+                         : 'border-slate-100 cursor-default hover:shadow-md'
+                   }`}
+                 >
+                    <span className={`text-4xl md:text-5xl transition-transform ${isFailed ? 'group-hover:scale-110 group-hover:rotate-6' : ''}`}>{cp.icon}</span>
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-900 uppercase tracking-widest text-center w-full">{cp.name}</span>
+                     <div className="w-full mt-auto">
+                       {status === 'fail' ? (
+                         <div className="flex items-center gap-2 w-full">
+                           <div className="px-3 py-2.5 bg-rose-50 text-[#ff1b51] border border-rose-200 rounded-xl font-bold text-[8px] md:text-[9px] uppercase tracking-widest flex items-center justify-center shadow-sm">
+                             Failed
+                           </div>
+                           <div className="flex-1 py-2.5 bg-[#ff1b51] text-white border border-[#ff1b51] rounded-xl shadow-md shadow-rose-500/30 font-bold text-[8px] md:text-[9px] uppercase tracking-widest flex items-center justify-center">
+                             Re-Capture
+                           </div>
+                         </div>
+                       ) : (
+                         <div className={`w-full py-2.5 rounded-xl text-[8px] md:text-[9px] font-bold uppercase tracking-widest text-center border transition-colors ${
+                           status === 'pass' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                           "bg-slate-50 text-slate-400 border-slate-200"
+                         }`}>
+                           {status === 'pass' ? "Pass" : "Queued"}
+                         </div>
+                       )}
+                     </div>
+                 </button>
                );
              })}
           </div>

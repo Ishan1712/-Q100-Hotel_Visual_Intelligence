@@ -162,10 +162,10 @@ export default function InspectionReportPage() {
   }
 
   // Statistics
-  const passedCount = checkpoints.filter(c => c.status === 'pass' || c.status === 'flagged').length;
   const totalCount = checkpoints.length;
-  const failedCount = checkpoints.filter(c => c.status === 'fail').length;
-  const isComplete = passedCount === totalCount;
+  const originalFailCount = checkpoints.filter(c => c.status === 'fail').length;
+  const passedCount = totalCount; // Report displays completed inspections
+  const isComplete = true;
 
   // Handlers
   const handleFix = (id: number) => {
@@ -238,7 +238,7 @@ export default function InspectionReportPage() {
       <section className={`w-full p-6 rounded-3xl border transition-all duration-500 flex items-center justify-between ${
         isComplete 
           ? 'bg-emerald-50 border-emerald-100 text-emerald-900 shadow-lg shadow-emerald-500/10' 
-          : failedCount > 0 
+          : originalFailCount > 0 
             ? 'bg-amber-50 border-amber-100 text-amber-900 shadow-lg shadow-amber-500/10' 
             : 'bg-blue-50 border-blue-100 text-blue-900 shadow-lg shadow-blue-500/10'
       }`}>
@@ -250,7 +250,7 @@ export default function InspectionReportPage() {
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight">
-              {isComplete ? "Room Ready — Inspection Complete" : `${failedCount} of 12 Items Need Attention`}
+              {isComplete ? "Room Ready — Inspection Complete" : `${originalFailCount} of 12 Items Need Attention`}
             </h2>
             <p className="text-sm font-semibold opacity-60">
               {isComplete ? "Room is verified and marked ready for occupancy." : "Correct visual discrepancies to finalize the report."}
@@ -329,7 +329,7 @@ export default function InspectionReportPage() {
 
                 {/* Right: Status Icon & Actions */}
                 <div className="flex items-center gap-4 ml-auto">
-                    {!isFailed && !isFlagged ? (
+                    {(!isFailed && !isFlagged) ? (
                       <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100">
                         <CheckCircle2 size={22} />
                       </div>
@@ -338,19 +338,16 @@ export default function InspectionReportPage() {
                         <Flag size={20} className="fill-blue-500/10" />
                       </div>
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-100">
-                        <XCircle size={22} />
+                      <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100">
+                        <CheckCircle2 size={22} />
                       </div>
                     )}
                     
                     {isFailed && (
-                      <button 
-                        onClick={() => handleFix(cp.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10"
-                      >
-                         <Camera size={14} className="mr-1" />
-                         Fix & Re-capture
-                      </button>
+                      <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-bold uppercase tracking-wider border border-emerald-200 cursor-default">
+                         <CheckCircle2 size={14} className="mr-1" />
+                         Issue Fixed
+                      </div>
                     )}
 
                     <button 
@@ -365,54 +362,38 @@ export default function InspectionReportPage() {
                 </div>
               </div>
 
-              {/* Expansion Area for Failed Items */}
+              {/* Expansion Area for Failed Items (Now Historical Log) */}
               {isFailed && (
-                <div className="px-5 pb-6 pt-2 border-t border-rose-50 bg-rose-50/20 animate-expand-vertical">
+                <div className="px-5 pb-6 pt-2 border-t border-slate-100 bg-slate-50/50">
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                      <div className="bg-white rounded-2xl p-3 border border-rose-100 flex flex-col items-center gap-2 relative">
-                         <div className="w-full h-40 bg-slate-950 rounded-xl overflow-hidden relative">
+                      <div className="bg-white rounded-2xl p-3 border border-slate-200 flex flex-col items-center gap-2 relative shadow-sm">
+                         <div className="w-full h-40 bg-slate-900 rounded-xl overflow-hidden relative opacity-60 grayscale-[30%]">
                             <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
-                            {/* Visual divergence highlight */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-4 border-rose-500 rounded-full animate-pulse-ring" />
-                            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-rose-900/40 to-transparent flex items-end p-3">
-                               <p className="text-[9px] font-bold text-white uppercase tracking-wider truncate bg-rose-600 px-2 py-1 rounded-lg shadow-lg">{cp.detail}</p>
-                            </div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-4 border-rose-500/50 rounded-full" />
                          </div>
-                         <div className="flex items-center gap-2 mt-1">
-                            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500">
-                               <Plus size={16} />
+                         <div className="absolute top-4 left-4">
+                            <p className="text-[9px] font-bold text-white uppercase tracking-wider bg-rose-600 px-2 py-1 rounded-md shadow-sm">1st Capture: Divergence</p>
+                         </div>
+                         <div className="flex items-center gap-2 mt-1 px-2 text-center">
+                            <div className="min-w-6 h-6 rounded-md bg-rose-50 flex items-center justify-center text-rose-500 flex-shrink-0">
+                               <RefreshCw size={14} />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest leading-none">AI Divergence Found</span>
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-tight line-clamp-2">{cp.detail}</span>
                          </div>
                       </div>
 
-                      <div className="space-y-4">
-                         <div className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3 flex items-center gap-2">
-                               <RefreshCw size={14} className="text-blue-500" />
-                               Visual Fix Guide
-                            </h4>
-                            <div className="flex items-center gap-4">
-                               <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 shadow-inner">
-                                  {cp.icon}
-                               </div>
-                               <div>
-                                  <p className="text-sm font-bold text-slate-800 tracking-tight">Requires Fix: {cp.name}</p>
-                                  <p className="text-[10px] font-medium text-slate-400 mt-1 max-w-[240px] leading-relaxed">
-                                     Re-arrange this component to match the Master Reference and re-capture using standard Camera Mode.
-                                  </p>
-                               </div>
-                            </div>
+                      <div className="bg-white rounded-2xl p-3 border border-emerald-100 flex flex-col items-center gap-2 relative shadow-sm ring-1 ring-emerald-500/10">
+                         <div className="w-full h-40 bg-slate-900 rounded-xl overflow-hidden relative">
+                            <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
                          </div>
-                         
-                         <div className="flex gap-2">
-                           <button className="flex-1 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-xs hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
-                              <Maximize2 size={16} />
-                              View Master Detail
-                           </button>
-                           <button className="flex-1 py-3 bg-white border border-slate-200 text-slate-400 rounded-2xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-2">
-                              Skip (Requires Note)
-                           </button>
+                         <div className="absolute top-4 left-4">
+                            <p className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider bg-emerald-100 border border-emerald-200 px-2 py-1 rounded-md shadow-sm">2nd Capture: Verified</p>
+                         </div>
+                         <div className="flex items-center gap-2 mt-1">
+                            <div className="min-w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0">
+                               <CheckCircle2 size={14} />
+                            </div>
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Issue Resolved by Housekeeper</span>
                          </div>
                       </div>
                    </div>
@@ -429,7 +410,7 @@ export default function InspectionReportPage() {
            <div className="flex-1 space-y-2">
               <div className="flex justify-between items-end">
                  <p className="text-xs font-bold text-slate-800 uppercase tracking-widest">Inspection Progress</p>
-                 <p className="text-[10px] font-black">{passedCount} of 12 ✓ <span className="text-slate-300 mx-1">—</span> {isComplete ? "Completed" : `Fix ${failedCount} remaining items`}</p>
+                 <p className="text-[10px] font-black">{passedCount} of 12 ✓ <span className="text-slate-300 mx-1">—</span> Report Finalized</p>
               </div>
               <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
                  <div 

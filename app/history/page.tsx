@@ -527,45 +527,42 @@ export default function RoomHistoryPage() {
                         </div>
                       </div>
 
-                      {isExpanded && room.number === "430" && (
+                      {isExpanded && isFixed && (
                         <div className="p-8 bg-slate-50/50 animate-expand-vertical">
                           <div className="flex flex-col lg:flex-row gap-10 items-center">
                             <div className="flex-1 space-y-6">
                               <div className="space-y-2">
                                 <h4 className="text-lg font-bold text-slate-900 tracking-tight">
-                                  Coaching Drill-Down
+                                  Issue Resolution Log
                                 </h4>
                                 <p className="text-sm text-slate-500 max-w-md">
-                                  Item: **Minibar Restocking**. Discrepancy
-                                  found in layout and item count during final
-                                  verification.
+                                  Visual discrepancies were detected during the initial scan. Issues were flagged and successfully resolved by the housekeeper before finalizing.
                                 </p>
                               </div>
 
                               <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-emerald-50 rounded-[2rem] border border-emerald-100">
+                                <div className="p-4 bg-emerald-50 rounded-[2rem] border border-emerald-100 shadow-sm">
                                   <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">
-                                    Master Reference
+                                    Final State
                                   </p>
                                   <ul className="text-xs font-bold text-emerald-900 space-y-1">
-                                    <li>✓ 2 Water Bottles</li>
-                                    <li>✓ 1 Coke (Left)</li>
-                                    <li>✓ 1 Sprite (Right)</li>
+                                    <li>✓ Items correctly positioned</li>
+                                    <li>✓ Met brand standard</li>
                                   </ul>
                                 </div>
-                                <div className="p-4 bg-rose-50 rounded-[2rem] border border-rose-100">
+                                <div className="p-4 bg-rose-50 rounded-[2rem] border border-rose-100 shadow-sm">
                                   <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">
                                     Initial Scan
                                   </p>
                                   <ul className="text-xs font-bold text-rose-900 space-y-1">
-                                    <li>✗ 1 Water Bottle Missing</li>
-                                    <li>✗ Coke/Sprite Swapped</li>
+                                    <li>✗ Incorrect item alignment</li>
+                                    <li>✗ Missing component</li>
                                   </ul>
                                 </div>
                               </div>
 
                               <div className="pt-4">
-                                <button className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold text-xs tracking-widest uppercase shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                <button className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold text-xs tracking-widest uppercase shadow-lg shadow-blue-500/20 flex items-center gap-2 hover:bg-blue-700 hover:scale-105 transition-all">
                                   <TrendingUp size={16} />
                                   Lesson: Standard Layout
                                 </button>
@@ -578,8 +575,8 @@ export default function RoomHistoryPage() {
                                   Master
                                 </div>
                                 <img
-                                  src="/images/report/minibar.png"
-                                  className="w-[300px] h-40 object-cover"
+                                  src={room.image}
+                                  className="w-[300px] h-40 object-cover grayscale-[30%]"
                                   alt="Master"
                                 />
                               </div>
@@ -587,24 +584,24 @@ export default function RoomHistoryPage() {
                                 size={24}
                                 className="text-slate-300"
                               />
-                              <div className="relative group rounded-3xl overflow-hidden border-2 border-rose-500 shadow-xl shadow-rose-200">
-                                <div className="absolute top-3 left-3 bg-rose-600 text-white px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border border-white/20">
+                              <div className="relative group rounded-3xl overflow-hidden border-4 border-rose-500/50 shadow-xl shadow-rose-200">
+                                <div className="absolute top-3 left-3 bg-rose-600 text-white px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border border-white/20 z-10">
                                   Initial Scan
                                 </div>
                                 <img
-                                  src="/images/report/minibar.png"
+                                  src={room.image}
                                   className="w-[300px] h-40 object-cover opacity-80"
                                   alt="Captured"
                                 />
-                                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-6 h-6 border-2 border-rose-500 rounded-full animate-ping" />
-                                <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-8 h-4 border-2 border-rose-500 rounded-lg animate-pulse" />
+                                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-8 h-8 border-4 border-rose-500 rounded-full animate-ping" />
+                                <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-10 h-6 border-4 border-rose-500 rounded-lg animate-pulse" />
                               </div>
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {isExpanded && room.number !== "430" && (
+                      {isExpanded && !isFixed && (
                         <div className="p-8 bg-slate-50/50 animate-expand-vertical flex items-center justify-center text-center">
                           <div className="space-y-4 max-w-sm">
                             <CheckCircle2

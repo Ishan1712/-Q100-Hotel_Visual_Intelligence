@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Search, Bed, Crown, Star, ChevronRight, Camera, Wifi, Flame, User, Sun, XCircle } from 'lucide-react';
+import { Search, Bed, Crown, Star, ChevronRight, Camera, Wifi, Flame, User, Sun, XCircle, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 // --- Housekeeper Specific Components ---
@@ -23,7 +23,7 @@ const ProgressRing = ({ completed, total, size = 200 }: { completed: number, tot
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="transparent"
-          className="text-blue-100/40"
+          className="text-blue-100/60"
         />
         <circle
           cx={size / 2}
@@ -56,43 +56,58 @@ const ProgressRing = ({ completed, total, size = 200 }: { completed: number, tot
 
 const RoomCard = ({ number, type, status, index }: { number: string, type: 'Standard' | 'Suite' | 'VIP', status: 'not-started' | 'in-progress' | 'done' | 'flagged', index: number }) => {
   const TypeIcon = type === 'Suite' ? Crown : type === 'VIP' ? Star : Bed;
-  
-  const statusColors: Record<string, string> = {
-    'not-started': 'bg-slate-200',
-    'in-progress': 'bg-amber-500 shadow-md',
-    'done': 'bg-emerald-500 shadow-md',
-    'flagged': 'bg-rose-500 shadow-md'
-  };
+  const statusInfo = {
+    'not-started': { label: 'Pending', color: 'slate', icon: Wifi },
+    'in-progress': { label: 'In Progress', color: 'amber', icon: Sun },
+    'done': { label: 'Inspected', color: 'emerald', icon: CheckCircle2 },
+    'flagged': { label: 'Issue Found', color: 'rose', icon: AlertCircle }
+  }[status];
 
-  const typeColorMap = {
-    Standard: "border-blue-100 text-blue-600 bg-blue-50/50 hover:border-blue-300 hover:shadow-blue-200/20",
-    Suite: "border-indigo-100 text-indigo-600 bg-indigo-50/50 hover:border-indigo-300 hover:shadow-indigo-200/20",
-    VIP: "border-amber-100 text-amber-600 bg-amber-50/50 hover:border-amber-300 hover:shadow-amber-200/20",
-  }[type];
+  const statusStyles = {
+    emerald: "bg-gradient-to-br from-emerald-50/90 to-emerald-100/50 border-emerald-200 text-emerald-900 shadow-emerald-100/20",
+    amber: "bg-gradient-to-br from-amber-50/90 to-amber-100/50 border-amber-200 text-amber-900 shadow-amber-100/20",
+    rose: "bg-gradient-to-br from-rose-50/90 to-rose-100/50 border-rose-200 text-rose-900 shadow-rose-100/20",
+    slate: "bg-gradient-to-br from-rose-50/70 to-rose-100/40 border-rose-100 text-rose-900 hover:border-rose-300 hover:shadow-rose-100/30"
+  }[statusInfo.color];
 
-  const iconBgMap = {
-    Standard: "bg-blue-50 text-blue-600",
-    Suite: "bg-indigo-50 text-indigo-600",
-    VIP: "bg-amber-50 text-amber-600",
-  }[type];
+  const iconBgStyles = {
+    emerald: "bg-emerald-500 text-white shadow-emerald-200",
+    amber: "bg-amber-500 text-white shadow-amber-200",
+    rose: "bg-rose-500 text-white shadow-rose-200",
+    slate: "bg-rose-400 text-white shadow-rose-100"
+  }[statusInfo.color];
+
+  const badgeStyles = {
+    emerald: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    amber: "bg-amber-100 text-amber-700 border-amber-200",
+    rose: "bg-rose-100 text-rose-700 border-rose-200",
+    slate: "bg-rose-100/80 text-rose-700 border-rose-200"
+  }[statusInfo.color];
 
   const href = status === 'done' ? `/inspection/report?room=${number}` : `/inspection?room=${number}`;
 
   return (
-    <Link href={href} className={`p-5 md:p-6 rounded-[1.75rem] md:rounded-[2rem] border flex items-center justify-between animate-fade-in-up stagger-${(index % 5) + 3} transition-all duration-300 group ${typeColorMap} bg-white shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-95`}>
+    <Link href={href} className={`p-5 md:p-6 rounded-[2rem] border flex items-center justify-between animate-fade-in-up stagger-${(index % 5) + 3} transition-all duration-300 group ${statusStyles} shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-95`}>
       <div className="flex items-center gap-5 md:gap-6">
-        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl flex items-center justify-center transition-all ${iconBgMap}`}>
+        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl flex items-center justify-center transition-all shadow-lg ${iconBgStyles} group-hover:scale-110`}>
           <TypeIcon className="w-6 h-6 md:w-8 md:h-8" />
         </div>
-        <div>
-          <h3 className="text-base md:text-xl font-black text-slate-900 tracking-tight leading-none uppercase">Room {number}</h3>
-          <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 md:mt-2">{type}</p>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base md:text-xl font-black tracking-tight leading-none uppercase">Room {number}</h3>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">{type}</span>
+            <span className="w-1 h-1 rounded-full bg-slate-300" />
+            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[8px] font-bold uppercase tracking-wider ${badgeStyles}`}>
+              {statusInfo.label}
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-5">
-        <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${statusColors[status]} shadow-sm transition-transform group-hover:scale-125`} />
-        <div className="text-slate-200 group-hover:text-blue-500 transition-colors">
-          <ChevronRight size={20} strokeWidth={2.5} />
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-slate-400 group-hover:text-blue-600 group-hover:bg-white transition-all shadow-sm">
+          <ChevronRight size={18} strokeWidth={3} />
         </div>
       </div>
     </Link>
@@ -107,9 +122,9 @@ export default function HousekeeperDashboard() {
   const rooms = [
     { number: "412", type: "Standard", status: "done" },
     { number: "415", type: "Suite", status: "done" },
-    { number: "418", type: "Standard", status: "done" },
+    { number: "418", type: "Standard", status: "flagged" },
     { number: "420", type: "VIP", status: "done" },
-    { number: "422", type: "Standard", status: "done" },
+    { number: "422", type: "Standard", status: "in-progress" },
     { number: "425", type: "Standard", status: "done" },
     { number: "428", type: "Standard", status: "not-started" },
     { number: "430", type: "Suite", status: "not-started" },
@@ -124,10 +139,12 @@ export default function HousekeeperDashboard() {
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-10 px-4 md:px-6">
       
-      {/* 1. Progress Centerpiece (Premium Light Blue Theme) */}
-      <section className="bg-[#F4F8FF] rounded-3xl p-6 md:p-8 relative overflow-hidden animate-fade-in-up border border-blue-100/50 shadow-sm">
-        {/* Background Decor */}
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/5 to-transparent pointer-events-none" />
+      {/* 1. Progress Centerpiece (Premium Light Gradient Theme) */}
+      <section className="bg-gradient-to-br from-[#f8faff] via-[#eef4ff] to-[#f0f4ff] rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden animate-fade-in-up border border-blue-100/50 shadow-xl shadow-blue-500/5">
+        {/* Background Decor: Soft Glows */}
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.1)_0,transparent_50%)] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(37,99,235,0.05)_0,transparent_50%)] pointer-events-none" />
+        
         
         {/* Floating Badges */}
         <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 md:gap-3 z-30 scale-90 md:scale-100 origin-right">
@@ -165,11 +182,11 @@ export default function HousekeeperDashboard() {
           
           <div className="space-y-4 md:space-y-6 z-10 text-center md:text-left">
             <div className="space-y-2">
-              <p className="text-slate-500 font-bold text-[10px] md:text-sm uppercase tracking-widest">Shift Completion</p>
+              <p className="text-blue-500 font-bold text-[10px] md:text-sm uppercase tracking-widest">Shift Completion</p>
               <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
                 You've completed <span className="text-blue-600">64%</span> of your shift!
               </h2>
-              <p className="text-slate-400 font-medium text-sm md:text-base">6 of 14 rooms verified. Keep it up!</p>
+              <p className="text-slate-500 font-medium text-sm md:text-base">6 of 14 rooms verified. Keep it up!</p>
             </div>
             
             <Link 
