@@ -1,0 +1,19 @@
+[33mff0325c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mkishori_dev[m[33m, [m[1;31maugle/saurav_dev[m[33m)[m HEAD@{0}: merge augle/saurav_dev: Fast-forward
+[33m35c6a15[m[33m ([m[1;31morigin/saurav_dev[m[33m, [m[1;31maugle/main[m[33m, [m[1;31maugle/HEAD[m[33m)[m HEAD@{1}: checkout: moving from kishori_dev to kishori_dev
+[33m35c6a15[m[33m ([m[1;31morigin/saurav_dev[m[33m, [m[1;31maugle/main[m[33m, [m[1;31maugle/HEAD[m[33m)[m HEAD@{2}: checkout: moving from kishori_dev to kishori_dev
+[33m35c6a15[m[33m ([m[1;31morigin/saurav_dev[m[33m, [m[1;31maugle/main[m[33m, [m[1;31maugle/HEAD[m[33m)[m HEAD@{3}: reset: moving to origin/saurav_dev
+[33mf63d7b5[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;31maugle/kishori_dev[m[33m)[m HEAD@{4}: checkout: moving from kishori_dev to kishori_dev
+[33mf63d7b5[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;31maugle/kishori_dev[m[33m)[m HEAD@{5}: commit: feat: add AI inspection, dashboard improvements, and login page
+[33mb1a2c10[m[33m ([m[1;31morigin/kishori_dev[m[33m, [m[1;32mmain[m[33m)[m HEAD@{6}: checkout: moving from kishori_dev to kishori_dev
+[33mb1a2c10[m[33m ([m[1;31morigin/kishori_dev[m[33m, [m[1;32mmain[m[33m)[m HEAD@{7}: checkout: moving from main to kishori_dev
+[33mb1a2c10[m[33m ([m[1;31morigin/kishori_dev[m[33m, [m[1;32mmain[m[33m)[m HEAD@{8}: commit: feat: integrate device camera feeds and logical alignment sequences in photo/video inspection modes
+[33m11602bb[m HEAD@{9}: commit: fix: trigger redeploy for production
+[33m34987c8[m HEAD@{10}: Branch: renamed refs/heads/kishori_dev to refs/heads/main
+[33m34987c8[m HEAD@{12}: commit: feat(ui): redesign UI and add mobile responsiveness
+[33m7e67fb7[m HEAD@{13}: commit: feat: implement housekeeper inspection workflow
+[33m35c6a15[m[33m ([m[1;31morigin/saurav_dev[m[33m, [m[1;31maugle/main[m[33m, [m[1;31maugle/HEAD[m[33m)[m HEAD@{14}: checkout: moving from main to kishori_dev
+[33m35c6a15[m[33m ([m[1;31morigin/saurav_dev[m[33m, [m[1;31maugle/main[m[33m, [m[1;31maugle/HEAD[m[33m)[m HEAD@{15}: Branch: renamed refs/heads/main to refs/heads/main
+[33m35c6a15[m[33m ([m[1;31morigin/saurav_dev[m[33m, [m[1;31maugle/main[m[33m, [m[1;31maugle/HEAD[m[33m)[m HEAD@{17}: commit: added hotel inspection project
+[33m58a07fd[m HEAD@{18}: Branch: renamed refs/heads/master to refs/heads/main
+[33m58a07fd[m HEAD@{20}: commit: first commit
+[33m5e50e67[m HEAD@{21}: commit (initial): Initial commit from Create Next App

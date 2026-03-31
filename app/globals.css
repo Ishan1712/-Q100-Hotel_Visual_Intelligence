@@ -14,7 +14,8 @@
 }
 
 :root {
-  --background: #f8fafc;
+  --background: #f1f5f9;
+  --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   --foreground: #0f172a;
   --radius: 1rem;
 }
@@ -29,28 +30,37 @@ body {
 
 @layer components {
   .glass-card {
-    background: rgba(255, 255, 255, 1);
-    border: 1px solid rgba(226, 232, 240, 1);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 
-      0 1px 3px rgba(0,0,0,0.05),
-      0 4px 12px -2px rgba(0,0,0,0.03);
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .kpi-card {
     background: #ffffff;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px -4px rgba(0,0,0,0.05);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.1);
-    border-color: #e2e8f0;
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #3b82f6;
   }
 
   .premium-shadow {
-    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+  }
+
+  .status-dot-pass {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  }
+
+  .status-dot-fixed {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   }
 }
 
