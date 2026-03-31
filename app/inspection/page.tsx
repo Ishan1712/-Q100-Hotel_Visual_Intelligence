@@ -101,28 +101,12 @@ export default function InspectionFlowPage() {
     }, 500);
   }, [selectedRoom]);
 
-  const handlePhotoModeCapture = React.useCallback(async () => {
+  const runAnalysis = React.useCallback(async (insB64: string) => {
     setComparing(true);
     setAnalysisReason(null);
     
     try {
       const cp = checkpoints[currentStep];
-      let insB64 = "";
-
-      if (uploadedImage) {
-        insB64 = await fileToBase64(uploadedImage);
-      } else if (cameraVideoRef.current) {
-         // Capture from video to canvas
-         const canvas = document.createElement("canvas");
-         canvas.width = cameraVideoRef.current.videoWidth;
-         canvas.height = cameraVideoRef.current.videoHeight;
-         const ctx = canvas.getContext("2d");
-         ctx?.drawImage(cameraVideoRef.current, 0, 0);
-         const dataURL = canvas.toDataURL("image/jpeg", 0.8);
-         // Compress to max 1024px
-         insB64 = await compressImage(dataURL);
-      }
-
       const masB64 = await masterToBase64(cp.masterImg || "");
       
       if (!insB64) {
@@ -154,7 +138,29 @@ export default function InspectionFlowPage() {
       setAnalysisReason(err.message || "Error processing image.");
       setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'fail' }));
     }
-  }, [currentStep, checkpoints, uploadedImage]);
+  }, [currentStep, checkpoints]);
+
+  const handlePhotoModeCapture = React.useCallback(async () => {
+    let insB64 = "";
+
+    if (uploadedImage) {
+      insB64 = await fileToBase64(uploadedImage);
+    } else if (cameraVideoRef.current) {
+       // Capture from video to canvas
+       const canvas = document.createElement("canvas");
+       canvas.width = cameraVideoRef.current.videoWidth;
+       canvas.height = cameraVideoRef.current.videoHeight;
+       const ctx = canvas.getContext("2d");
+       ctx?.drawImage(cameraVideoRef.current, 0, 0);
+       const dataURL = canvas.toDataURL("image/jpeg", 0.8);
+       // Compress to max 1024px
+       insB64 = await compressImage(dataURL);
+    }
+
+    if (insB64) {
+      await runAnalysis(insB64);
+    }
+  }, [uploadedImage, runAnalysis]);
 
   const triggerVideoCapture = React.useCallback((id: number, status: 'pass' | 'fail') => {
     setFlash(true);
@@ -633,9 +639,21 @@ export default function InspectionFlowPage() {
                            type="file" 
                            accept="image/*" 
                            className="hidden" 
-                           onChange={(e) => {
+                           onChange={async (e) => {
                              if (e.target.files && e.target.files.length > 0) {
-                               setUploadedImage(URL.createObjectURL(e.target.files[0]));
+                               const file = e.target.files[0];
+                               const blobUrl = URL.createObjectURL(file);
+                               setUploadedImage(blobUrl);
+                               
+                               // Immediately trigger analysis
+                               try {
+                                 const insB64 = await fileToBase64(blobUrl);
+                                 if (insB64) {
+                                   await runAnalysis(insB64);
+                                 }
+                               } catch (err) {
+                                 console.error("Upload analysis error:", err);
+                               }
                              }
                            }}
                          />
