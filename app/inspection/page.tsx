@@ -27,7 +27,7 @@ import {
   Upload
 } from 'lucide-react';
 import Link from 'next/link';
-import { analyzeWithGPT4v, fileToBase64, masterToBase64 } from '../lib/comparison';
+import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage } from '../lib/comparison';
 
 // --- Types & Dummy Data ---
 
@@ -118,7 +118,9 @@ export default function InspectionFlowPage() {
          canvas.height = cameraVideoRef.current.videoHeight;
          const ctx = canvas.getContext("2d");
          ctx?.drawImage(cameraVideoRef.current, 0, 0);
-         insB64 = canvas.toDataURL("image/png").split(',')[1];
+         const dataURL = canvas.toDataURL("image/jpeg", 0.8);
+         // Compress to max 1024px
+         insB64 = await compressImage(dataURL);
       }
 
       const masB64 = await masterToBase64(cp.masterImg || "");

@@ -22,7 +22,12 @@ import {
   ScanSearch,
   Users,
   FileBarChart,
-  CheckCircle2
+  CheckCircle2,
+  TrendingUp,
+  IndianRupee,
+  FileText,
+  Calculator,
+  Building2
 } from 'lucide-react';
 
 type RoleId = 'worker' | 'manager' | 'owner';
@@ -65,14 +70,15 @@ const roleConfigs = {
     title: 'Owner',
     icon: Crown,
     color: 'amber',
-    dashboard: '/manager', // Owners use manager screens for now
+    dashboard: '/owner',
     menuItems: [
-      { name: "Dashboard", href: "/manager", icon: LayoutDashboard },
-      { name: "Master Gallery", href: "/manager/gallery", icon: Images },
-      { name: "Live Floor Map", href: "/manager/floormap", icon: Map },
-      { name: "AI Inspection Detail", href: "/manager/inspection", icon: ScanSearch },
-      { name: "Staff Performance", href: "/manager/performance", icon: Users },
-      { name: "Daily Report", href: "/manager/report", icon: FileBarChart },
+      { name: "Portfolio Dashboard", href: "/owner", icon: LayoutDashboard },
+      { name: "Property Benchmarking", href: "/owner/comparison", icon: TrendingUp },
+      { name: "Financial ROI", href: "/owner/roi", icon: IndianRupee },
+      { name: "Brand Heatmap", href: "/owner/brand-standards", icon: LayoutGrid },
+      { name: "Staff Analytics", href: "/owner/staff", icon: Users },
+      { name: "Report Generator", href: "/owner/reports", icon: FileText },
+      { name: "Expansion Simulator", href: "/owner/simulator", icon: Calculator },
     ]
   }
 };
@@ -93,7 +99,9 @@ export default function Sidebar({ collapsed, setCollapsed, isMobileOpen, setIsMo
 
   // Initialize role based on current path
   useEffect(() => {
-    if (pathname.startsWith('/manager')) {
+    if (pathname.startsWith('/owner')) {
+      setSelectedRole('owner');
+    } else if (pathname.startsWith('/manager')) {
       setSelectedRole('manager');
     } else {
       setSelectedRole('worker');

@@ -23,15 +23,17 @@ FAIL IF: Any trash visible inside, no liner present, wrong position, or visibly 
   `,
 
   // 2. Bed & Pillows
+  // 2. Bed & Pillows
   "Bed & Pillows": `
 MUST CHECK:
-- King-size bed is fully made and neat.
-- Exactly 4 pillows arranged in a DIAMOND pattern (2 standing upright at headboard, 2 flat in front).
-- All pillow cases are white, crisp, and wrinkle-free.
-- Bed runner is placed at the foot of the bed, CENTRED horizontally.
+- Bed is fully made, crisp, and neatly tucked.
+- Exactly 4 standard white pillows arranged standing upright against the headboard in two rows (2 in the back row, 2 in the front row).
+- Exactly 1 small rectangular decorative accent pillow (red border, embroidered center) placed centrally in front of the white pillows.
+- All white pillowcases are crisp and wrinkle-free.
+- Red and gold patterned bed runner is placed at the foot of the bed, CENTRED horizontally.
 - Bed runner hangs evenly on both sides.
-- No creases, wrinkles, or bunching on the bedspread.
-FAIL IF: Wrong number of pillows, pillows not in diamond pattern, bed runner off-centre or missing, visible wrinkles.
+- No prominent creases, wrinkles, or bunching on the white bed linens.
+FAIL IF: Missing or incorrect number of white pillows, missing decorative accent pillow, pillows arranged flat instead of upright, bed runner off-centre or missing, visible wrinkles on the bed.
   `,
 
   // 3. Bed Linen
@@ -62,13 +64,12 @@ FAIL IF: Wrong count of any towel type, towels not properly folded/hung, stains 
   "Towels (Bedroom)": `
 MUST CHECK:
 - Exactly 1 FOLDED BATHROBE placed at the foot of the bed, neatly folded.
-- Exactly 1 TOWEL SWAN decoration placed on the bed (creative towel art).
 - Bathrobe belt/sash is neatly tucked or tied.
-- Swan towel art is structurally intact and recognisable as a swan shape.
-- Both items are clean, white, and stain-free.
-FAIL IF: Bathrobe missing or not at foot of bed, swan decoration missing or poorly formed, stains present.
+- Other plain, clean, white folded towels are neatly arranged on the bed (e.g., beneath the robe).
+- NO TOWEL SWAN or other creative towel art decoration is present on the bed.
+- All items are clean, white, and stain-free.
+FAIL IF: Bathrobe missing, robe poorly folded or has poor logo/text definition, stains present, or ANY towel swan decoration is present on the bed.
   `,
-
   // 6. Coffee/Tea Tray
   "Coffee/Tea Tray": `
 MUST CHECK:
