@@ -193,49 +193,49 @@ export default function InspectionReportPage() {
     <div className="max-w-[1440px] mx-auto space-y-6 animate-fade-in pb-20 px-4">
       
       {/* 1. Header Section */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm shadow-slate-200/40">
-        <div className="flex items-start gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-white p-5 md:p-6 rounded-3xl border border-slate-100 shadow-sm shadow-slate-200/40">
+        <div className="flex items-start gap-4 flex-1">
           <button 
             onClick={() => setSelectedRoom(null)}
             className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-all mt-1"
           >
             <ArrowLeft size={20} />
           </button>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Room {selectedRoom}</h1>
-              <span className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-md text-[10px] font-bold uppercase tracking-wider border border-slate-100 italic">Standard Double</span>
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight truncate">Room {selectedRoom}</h1>
+              <span className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-md text-[9px] md:text-[10px] font-bold uppercase tracking-wider border border-slate-100 italic whitespace-nowrap">Standard Double</span>
             </div>
-            <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] md:text-xs font-semibold text-slate-400">
               <div className="flex items-center gap-1.5">
-                <User size={14} className="text-slate-300" />
+                <User size={13} className="text-slate-300" />
                 <span>Priya S.</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Clock size={14} className="text-slate-300" />
+                <Clock size={13} className="text-slate-300" />
                 <span>10:22 AM - 10:27 AM</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Camera size={14} className="text-blue-500" />
+                <Camera size={13} className="text-blue-500" />
                 <span className="text-blue-600">Camera Mode</span>
               </div>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Compliance Score</p>
-             <p className="text-2xl font-bold text-slate-900 leading-none">{Math.round((passedCount / totalCount) * 100)}%</p>
+        <div className="flex items-center gap-3 sm:pl-4 sm:border-l border-slate-100">
+          <div className="text-left sm:text-right">
+             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Compliance Score</p>
+             <p className="text-xl md:text-2xl font-bold text-slate-900 leading-none">{Math.round((passedCount / totalCount) * 100)}%</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-base md:text-lg">
              A+
           </div>
         </div>
       </header>
 
       {/* 2. Status Banner */}
-      <section className={`w-full p-6 rounded-3xl border transition-all duration-500 flex items-center justify-between ${
+      <section className={`w-full p-5 md:p-6 rounded-3xl border transition-all duration-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 ${
         isComplete 
           ? 'bg-emerald-50 border-emerald-100 text-emerald-900 shadow-lg shadow-emerald-500/10' 
           : originalFailCount > 0 
@@ -243,23 +243,23 @@ export default function InspectionReportPage() {
             : 'bg-blue-50 border-blue-100 text-blue-900 shadow-lg shadow-blue-500/10'
       }`}>
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all animate-pulse ${
+          <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all animate-pulse ${
             isComplete ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
           }`}>
-            {isComplete ? <ClipboardCheck size={28} /> : <AlertCircle size={28} />}
+            {isComplete ? <ClipboardCheck size={26} /> : <AlertCircle size={26} />}
           </div>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">
+          <div className="space-y-0.5">
+            <h2 className="text-lg md:text-xl font-bold tracking-tight leading-tight">
               {isComplete ? "Room Ready — Inspection Complete" : `${originalFailCount} of 12 Items Need Attention`}
             </h2>
-            <p className="text-sm font-semibold opacity-60">
+            <p className="text-xs md:text-sm font-semibold opacity-60">
               {isComplete ? "Room is verified and marked ready for occupancy." : "Correct visual discrepancies to finalize the report."}
             </p>
           </div>
         </div>
         
         {isComplete && (
-          <Link href="/" className="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+          <Link href="/" className="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2">
             <span>Next Room</span>
             <ArrowRight size={18} />
           </Link>
@@ -285,15 +285,15 @@ export default function InspectionReportPage() {
             >
               <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 {/* Left: Info */}
-                <div className="flex items-center gap-4 min-w-[180px]">
-                  <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center transition-all ${
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex flex-col items-center justify-center transition-all ${
                     isFailed ? 'bg-rose-50 text-rose-600' : isFlagged ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
                   }`}>
                     <span className="text-xl">{cp.icon}</span>
-                    <span className="text-[7px] font-bold uppercase tracking-[0.05em] leading-tight text-center mt-1">{cp.name.split(' ')[0]}</span>
+                    <span className="text-[7px] font-bold uppercase tracking-[0.05em] leading-tight text-center mt-1 truncate w-10 px-0.5">{cp.name.split(' ')[0]}</span>
                   </div>
-                  <div className="space-y-0.5">
-                    <h3 className="text-sm font-bold text-slate-800 tracking-tight leading-none">{cp.name}</h3>
+                  <div className="space-y-0.5 min-w-0">
+                    <h3 className="text-sm font-bold text-slate-800 tracking-tight leading-none truncate">{cp.name}</h3>
                     <p className={`text-[10px] font-bold uppercase tracking-widest ${
                       isFailed ? 'text-rose-500' : isFlagged ? 'text-blue-500' : 'text-emerald-500'
                     }`}>
@@ -303,24 +303,24 @@ export default function InspectionReportPage() {
                 </div>
 
                 {/* Center: Thumbnail Pair */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar py-1">
                    {/* Master */}
-                   <div className="relative group overflow-hidden rounded-xl border-2 border-amber-200/50">
-                      <div className="w-16 h-12 bg-slate-900 overflow-hidden flex items-center justify-center">
+                   <div className="relative group flex-shrink-0 overflow-hidden rounded-xl border-2 border-amber-200/50">
+                      <div className="w-16 h-12 md:w-20 md:h-14 bg-slate-900 overflow-hidden flex items-center justify-center">
                          <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} alt="Master" className="w-full h-full object-cover shadow-inner" />
                          <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center">
-                            <span className="text-[7px] font-bold text-amber-600 bg-white/90 px-1 py-0.5 rounded shadow-sm scale-75">MASTER</span>
+                            <span className="text-[7px] md:text-[8px] font-bold text-amber-600 bg-white/90 px-1 py-0.5 rounded shadow-sm scale-90">MASTER</span>
                          </div>
                       </div>
                    </div>
                    
-                   <ArrowRight size={14} className="text-slate-200" />
+                   <ArrowRight size={14} className="text-slate-200 flex-shrink-0" />
 
                    {/* Captured */}
-                   <div className={`relative group overflow-hidden rounded-xl border-2 transition-all ${
+                   <div className={`relative group flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
                      isFailed ? 'border-rose-400 shadow-md shadow-rose-200/40' : 'border-emerald-400'
                    }`}>
-                      <div className="w-16 h-12 bg-slate-900 overflow-hidden flex items-center justify-center">
+                      <div className="w-16 h-12 md:w-20 md:h-14 bg-slate-900 overflow-hidden flex items-center justify-center">
                          <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} alt="Captured" className="w-full h-full object-cover" />
                          {isFailed && <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />}
                       </div>
@@ -328,31 +328,31 @@ export default function InspectionReportPage() {
                 </div>
 
                 {/* Right: Status Icon & Actions */}
-                <div className="flex items-center gap-4 ml-auto">
+                <div className="flex items-center gap-3 sm:ml-auto">
                     {(!isFailed && !isFlagged) ? (
-                      <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100">
-                        <CheckCircle2 size={22} />
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100 flex-shrink-0">
+                        <CheckCircle2 size={20} />
                       </div>
                     ) : isFlagged ? (
-                      <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center border border-blue-100">
-                        <Flag size={20} className="fill-blue-500/10" />
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center border border-blue-100 flex-shrink-0">
+                        <Flag size={18} className="fill-blue-500/10" />
                       </div>
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100">
-                        <CheckCircle2 size={22} />
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100 flex-shrink-0">
+                        <CheckCircle2 size={20} />
                       </div>
                     )}
                     
                     {isFailed && (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-bold uppercase tracking-wider border border-emerald-200 cursor-default">
-                         <CheckCircle2 size={14} className="mr-1" />
+                      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-wider border border-emerald-200 cursor-default whitespace-nowrap">
+                         <CheckCircle2 size={12} className="mr-1" />
                          Issue Fixed
                       </div>
                     )}
 
                     <button 
                       onClick={() => handleFlag(cp.id)}
-                      className={`p-2.5 rounded-xl transition-all ${
+                      className={`p-2 md:p-2.5 rounded-xl transition-all flex-shrink-0 ${
                         isFlagged ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-300 hover:text-slate-900'
                       }`}
                       title="Flag as Incorrect"
@@ -364,15 +364,15 @@ export default function InspectionReportPage() {
 
               {/* Expansion Area for Failed Items (Now Historical Log) */}
               {isFailed && (
-                <div className="px-5 pb-6 pt-2 border-t border-slate-100 bg-slate-50/50">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div className="px-4 md:px-5 pb-6 pt-2 border-t border-slate-100 bg-slate-50/50">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-center">
                       <div className="bg-white rounded-2xl p-3 border border-slate-200 flex flex-col items-center gap-2 relative shadow-sm">
-                         <div className="w-full h-40 bg-slate-900 rounded-xl overflow-hidden relative opacity-60 grayscale-[30%]">
+                         <div className="w-full h-32 md:h-40 bg-slate-900 rounded-xl overflow-hidden relative opacity-60 grayscale-[30%]">
                             <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-4 border-rose-500/50 rounded-full" />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 border-4 border-rose-500/50 rounded-full" />
                          </div>
                          <div className="absolute top-4 left-4">
-                            <p className="text-[9px] font-bold text-white uppercase tracking-wider bg-rose-600 px-2 py-1 rounded-md shadow-sm">1st Capture: Divergence</p>
+                            <p className="text-[8px] md:text-[9px] font-bold text-white uppercase tracking-wider bg-rose-600 px-2 py-1 rounded-md shadow-sm">1st Capture: Divergence</p>
                          </div>
                          <div className="flex items-center gap-2 mt-1 px-2 text-center">
                             <div className="min-w-6 h-6 rounded-md bg-rose-50 flex items-center justify-center text-rose-500 flex-shrink-0">
@@ -383,11 +383,11 @@ export default function InspectionReportPage() {
                       </div>
 
                       <div className="bg-white rounded-2xl p-3 border border-emerald-100 flex flex-col items-center gap-2 relative shadow-sm ring-1 ring-emerald-500/10">
-                         <div className="w-full h-40 bg-slate-900 rounded-xl overflow-hidden relative">
+                         <div className="w-full h-32 md:h-40 bg-slate-900 rounded-xl overflow-hidden relative">
                             <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
                          </div>
                          <div className="absolute top-4 left-4">
-                            <p className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider bg-emerald-100 border border-emerald-200 px-2 py-1 rounded-md shadow-sm">2nd Capture: Verified</p>
+                            <p className="text-[8px] md:text-[9px] font-bold text-emerald-700 uppercase tracking-wider bg-emerald-100 border border-emerald-200 px-2 py-1 rounded-md shadow-sm">2nd Capture: Verified</p>
                          </div>
                          <div className="flex items-center gap-2 mt-1">
                             <div className="min-w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0">
@@ -404,45 +404,6 @@ export default function InspectionReportPage() {
         })}
       </div>
 
-      {/* 4. Bottom Progress Bar */}
-      <footer className="sticky bottom-0 -mx-4 px-6 md:px-10 py-5 bg-white/90 backdrop-blur-xl border-t border-slate-100 z-40 animate-slide-up shadow-[0_-10px_30px_rgba(0,0,0,0.05)] mt-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-10">
-           <div className="flex-1 space-y-2">
-              <div className="flex justify-between items-end">
-                 <p className="text-xs font-bold text-slate-800 uppercase tracking-widest">Inspection Progress</p>
-                 <p className="text-[10px] font-black">{passedCount} of 12 ✓ <span className="text-slate-300 mx-1">—</span> Report Finalized</p>
-              </div>
-              <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                 <div 
-                   className={`h-full transition-all duration-1000 ease-out shadow-lg ${isComplete ? 'bg-emerald-500' : 'bg-blue-500 shadow-blue-500/20'}`} 
-                   style={{ width: `${(passedCount / totalCount) * 100}%` }} 
-                 />
-              </div>
-           </div>
-
-           <button 
-             disabled={!isComplete}
-             onClick={() => { setIsFinishing(true); setTimeout(() => window.location.href = "/", 2000); }}
-             className={`px-10 py-4 rounded-2xl font-bold text-sm tracking-widest uppercase transition-all flex items-center gap-3 ${
-               isComplete 
-                 ? 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 shadow-xl shadow-slate-900/20 active:scale-95' 
-                 : 'bg-slate-100 text-slate-300 cursor-not-allowed'
-             }`}
-           >
-              {isFinishing ? (
-                <>
-                  <RefreshCw className="animate-spin" size={18} />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <ArrowRight size={18} />
-                  Complete Inspection
-                </>
-              )}
-           </button>
-        </div>
-      </footer>
 
       {/* Fix Recovery UI (Mini-Camera Simulation) */}
       {fixingId && (
