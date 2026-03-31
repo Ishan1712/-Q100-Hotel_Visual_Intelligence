@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { 
   Bed, AlertTriangle, Clock, Users, TrendingUp, ChevronRight, 
-  Crown, Star, MessageSquare, Eye, X, Send, Building2, MapPin
+  Crown, Star, MessageSquare, Eye, X, Send, Search
 } from 'lucide-react';
 
 /* ── Dummy Data ── */
@@ -31,7 +31,7 @@ const vipArrivals = [
 
 /* ── Donut Chart ── */
 const DonutChart = ({ ready, inProgress, flagged, notStarted, total }: { ready: number; inProgress: number; flagged: number; notStarted: number; total: number }) => {
-  const radius = 70;
+  const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const segments = [
     { value: ready, color: '#10b981' },
@@ -43,8 +43,8 @@ const DonutChart = ({ ready, inProgress, flagged, notStarted, total }: { ready: 
   let offset = 0;
 
   return (
-    <div className="relative flex items-center justify-center w-[200px] h-[200px]">
-      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+    <div className="relative flex items-center justify-center w-[160px] h-[160px]">
+      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
         {segments.map((seg, i) => {
           const dashLength = (seg.value / total) * circumference;
           const dashOffset = -offset;
@@ -52,10 +52,10 @@ const DonutChart = ({ ready, inProgress, flagged, notStarted, total }: { ready: 
           return (
             <circle
               key={i}
-              cx="100" cy="100" r={radius}
+              cx="70" cy="70" r={radius}
               fill="transparent"
               stroke={seg.color}
-              strokeWidth="18"
+              strokeWidth="16"
               strokeDasharray={`${dashLength} ${circumference - dashLength}`}
               strokeDashoffset={dashOffset}
               className="transition-all duration-700"
@@ -64,8 +64,8 @@ const DonutChart = ({ ready, inProgress, flagged, notStarted, total }: { ready: 
         })}
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-black text-slate-900">{ready}</span>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold mt-1">of {total} Ready</span>
+        <span className="text-3xl font-black text-slate-900">{ready}</span>
+        <span className="text-[9px] uppercase tracking-[0.2em] text-slate-400 font-bold mt-0.5">of {total} Ready</span>
       </div>
     </div>
   );
@@ -75,15 +75,15 @@ const DonutChart = ({ ready, inProgress, flagged, notStarted, total }: { ready: 
 const FloorBar = ({ data }: { data: typeof floorData[0] }) => {
   const pct = (v: number) => `${(v / data.total) * 100}%`;
   return (
-    <div className="flex items-center gap-4 group">
+    <div className="flex items-center gap-3 group">
       <span className="text-sm font-bold text-slate-500 w-16 shrink-0">Floor {data.floor}</span>
-      <div className="flex-1 h-8 bg-slate-100 rounded-xl overflow-hidden flex">
+      <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden flex">
         <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: pct(data.ready) }} />
         <div className="bg-amber-400 h-full transition-all duration-500" style={{ width: pct(data.inProgress) }} />
         <div className="bg-rose-500 h-full transition-all duration-500" style={{ width: pct(data.flagged) }} />
         <div className="bg-slate-200 h-full transition-all duration-500" style={{ width: pct(data.notStarted) }} />
       </div>
-      <span className="text-sm font-black text-slate-700 w-16 text-right">{data.ready}/{data.total}</span>
+      <span className="text-sm font-black text-slate-700 w-14 text-right">{data.ready}/{data.total}</span>
     </div>
   );
 };
@@ -102,18 +102,18 @@ const AlertCard = ({ alert }: { alert: typeof criticalAlerts[0] }) => {
   };
 
   return (
-    <div className={`p-4 rounded-2xl border ${severityStyles[alert.severity]} transition-all hover:shadow-md`}>
+    <div className={`p-4 rounded-xl border ${severityStyles[alert.severity]} transition-all hover:shadow-md`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white rounded-xl shadow-sm">
-            <AlertTriangle size={18} className="text-rose-500" />
+          <div className="p-2 bg-white rounded-lg shadow-sm">
+            <AlertTriangle size={16} className="text-rose-500" />
           </div>
           <div>
             <h4 className="text-sm font-bold text-slate-900">Room {alert.room}</h4>
             <p className="text-xs text-slate-500 mt-0.5">{alert.issue}</p>
           </div>
         </div>
-        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${badgeStyles[alert.severity]}`}>
+        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${badgeStyles[alert.severity]}`}>
           {alert.severity}
         </span>
       </div>
@@ -140,19 +140,19 @@ const VIPCard = ({ guest }: { guest: typeof vipArrivals[0] }) => {
   const GuestIcon = guest.type.includes('Presidential') ? Crown : guest.type.includes('Heritage') ? Star : Bed;
 
   return (
-    <div className="kpi-card p-5 rounded-2xl flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-400">
-          <GuestIcon size={22} />
+    <div className="kpi-card p-4 rounded-xl flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-400">
+          <GuestIcon size={18} />
         </div>
         <div>
           <h4 className="text-sm font-bold text-slate-900">{guest.name}</h4>
           <p className="text-xs text-slate-400 mt-0.5">Room {guest.room} · {guest.type}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <span className="text-xs font-bold text-slate-500">{guest.time}</span>
-        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${statusStyle[guest.status]}`}>
+        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${statusStyle[guest.status]}`}>
           {statusLabel[guest.status]}
         </span>
       </div>
@@ -188,12 +188,8 @@ const MessageFloorModal = ({ open, onClose }: { open: boolean; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
-      
-      {/* Modal */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-fade-in-up">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-50 rounded-xl">
@@ -210,7 +206,6 @@ const MessageFloorModal = ({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
 
         {sent ? (
-          /* Success State */
           <div className="px-6 py-12 text-center">
             <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Send size={28} className="text-emerald-500" />
@@ -219,9 +214,7 @@ const MessageFloorModal = ({ open, onClose }: { open: boolean; onClose: () => vo
             <p className="text-sm text-slate-400 mt-1">Notification delivered to Floor {selectedFloor} team</p>
           </div>
         ) : (
-          /* Form */
           <div className="px-6 py-5 space-y-5">
-            {/* Floor Selector */}
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-3">Select Floor</label>
               <div className="flex items-center gap-2 flex-wrap">
@@ -246,8 +239,6 @@ const MessageFloorModal = ({ open, onClose }: { open: boolean; onClose: () => vo
                 </p>
               )}
             </div>
-
-            {/* Message Input */}
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-3">Message</label>
               <textarea
@@ -257,8 +248,6 @@ const MessageFloorModal = ({ open, onClose }: { open: boolean; onClose: () => vo
                 className="w-full h-28 bg-slate-50 border border-slate-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-sm font-medium resize-none"
               />
             </div>
-
-            {/* Quick Messages */}
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-2">Quick Messages</label>
               <div className="flex flex-wrap gap-2">
@@ -281,7 +270,6 @@ const MessageFloorModal = ({ open, onClose }: { open: boolean; onClose: () => vo
           </div>
         )}
 
-        {/* Footer */}
         {!sent && (
           <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3">
             <button onClick={handleClose} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-all">
@@ -307,63 +295,52 @@ export default function ManagerDashboard() {
   const [messageModalOpen, setMessageModalOpen] = useState(false);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20">
-      {/* Message Floor Modal */}
+    <div className="space-y-6 pb-12">
       <MessageFloorModal open={messageModalOpen} onClose={() => setMessageModalOpen(false)} />
 
-      {/* Hotel Banner */}
-      <div className="glass-card rounded-2xl p-5 flex items-center justify-between animate-fade-in-up relative overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-l-2xl" />
-        <div className="flex items-center gap-4 pl-3">
-          <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-            <Building2 size={24} className="text-blue-600" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Taj Mahal Palace, Mumbai</h2>
-            <div className="flex items-center gap-2 mt-0.5">
-              <MapPin size={12} className="text-slate-400" />
-              <span className="text-xs text-slate-400 font-medium">Apollo Bunder, Colaba, Mumbai 400 001</span>
-            </div>
-          </div>
-        </div>
-        <span className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-black border border-blue-100 uppercase tracking-wider">142 Rooms · 7 Floors</span>
-      </div>
-
-      {/* Page Title */}
+      {/* Page Title + Search */}
       <div className="flex items-center justify-between animate-fade-in-up">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Morning Readiness</h1>
-          <p className="text-slate-400 font-medium mt-1">Wednesday, 25 March 2026</p>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Dashboard</h1>
+          <p className="text-sm text-slate-400 font-medium mt-0.5">Wednesday, 25 March 2026</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search rooms, staff..." 
+              className="pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-300 transition-all w-52"
+            />
+          </div>
           <button 
             onClick={() => setMessageModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold border border-blue-100 hover:bg-blue-100 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold border border-blue-100 hover:bg-blue-100 transition-all"
           >
-            <MessageSquare size={16} />
+            <MessageSquare size={15} />
             Message Floor Team
           </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
-            <Eye size={16} />
+          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
+            <Eye size={15} />
             View All Flagged
           </button>
         </div>
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 animate-fade-in-up stagger-1">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up stagger-1">
         {[
           { label: 'Guest-Ready', value: '87', sub: 'of 142 rooms', color: 'emerald', icon: Bed },
           { label: 'In Progress', value: '32', sub: 'rooms being cleaned', color: 'amber', icon: Clock },
           { label: 'Flagged', value: '8', sub: 'need attention', color: 'rose', icon: AlertTriangle },
-          { label: 'Today\'s Staff', value: '8', sub: 'housekeepers on shift', color: 'blue', icon: Users },
+          { label: "Today's Staff", value: '8', sub: 'housekeepers on shift', color: 'blue', icon: Users },
         ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card p-6 rounded-2xl">
+          <div key={kpi.label} className="kpi-card p-5 rounded-2xl">
             <div className="flex items-center justify-between mb-3">
-              <div className={`p-2.5 rounded-xl bg-${kpi.color === 'blue' ? 'blue' : kpi.color}-50`}>
-                <kpi.icon size={20} className={`text-${kpi.color === 'blue' ? 'blue' : kpi.color}-500`} />
+              <div className={`p-2 rounded-lg bg-${kpi.color === 'blue' ? 'blue' : kpi.color}-50`}>
+                <kpi.icon size={18} className={`text-${kpi.color === 'blue' ? 'blue' : kpi.color}-500`} />
               </div>
-              <TrendingUp size={16} className="text-emerald-500" />
+              <TrendingUp size={15} className="text-emerald-500" />
             </div>
             <h3 className="text-3xl font-black text-slate-900">{kpi.value}</h3>
             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">{kpi.label}</p>
@@ -373,22 +350,22 @@ export default function ManagerDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left: Donut + Floor Bars */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-5">
           {/* Readiness Donut */}
-          <div className="glass-card rounded-3xl p-8 animate-fade-in-up stagger-2">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Property Readiness</h2>
-            <div className="flex items-center gap-12">
+          <div className="glass-card rounded-2xl p-6 animate-fade-in-up stagger-2">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Property Readiness</h2>
+            <div className="flex items-center gap-10">
               <DonutChart ready={87} inProgress={32} flagged={8} notStarted={15} total={142} />
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-2.5">
                 {[
                   { label: 'Ready', count: 87, color: 'bg-emerald-500' },
                   { label: 'In Progress', count: 32, color: 'bg-amber-400' },
                   { label: 'Flagged', count: 8, color: 'bg-rose-500' },
                   { label: 'Not Started', count: 15, color: 'bg-slate-300' },
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
+                  <div key={item.label} className="flex items-center gap-2.5">
                     <div className={`w-3 h-3 rounded-full ${item.color}`} />
                     <span className="text-sm text-slate-600 font-medium flex-1">{item.label}</span>
                     <span className="text-sm font-bold text-slate-900">{item.count}</span>
@@ -399,21 +376,21 @@ export default function ManagerDashboard() {
           </div>
 
           {/* Floor-by-Floor Bars */}
-          <div className="glass-card rounded-3xl p-8 animate-fade-in-up stagger-3">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Floor-by-Floor Readiness</h2>
-            <div className="space-y-4">
+          <div className="glass-card rounded-2xl p-6 animate-fade-in-up stagger-3">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Floor-by-Floor Readiness</h2>
+            <div className="space-y-3">
               {floorData.map((floor) => (
                 <FloorBar key={floor.floor} data={floor} />
               ))}
             </div>
-            <div className="flex items-center gap-6 mt-6 pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-5 mt-5 pt-4 border-t border-slate-100">
               {[
                 { label: 'Ready', color: 'bg-emerald-500' },
                 { label: 'In Progress', color: 'bg-amber-400' },
                 { label: 'Flagged', color: 'bg-rose-500' },
                 { label: 'Not Started', color: 'bg-slate-200' },
               ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
+                <div key={item.label} className="flex items-center gap-1.5">
                   <div className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
                   <span className="text-xs text-slate-400 font-medium">{item.label}</span>
                 </div>
@@ -423,10 +400,10 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Right Column: Alerts + VIP */}
-        <div className="space-y-8">
+        <div className="space-y-5">
           {/* Critical Alerts */}
-          <div className="glass-card rounded-3xl p-6 animate-fade-in-up stagger-2">
-            <div className="flex items-center justify-between mb-5">
+          <div className="glass-card rounded-2xl p-5 animate-fade-in-up stagger-2">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Critical Alerts</h2>
               <span className="w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center text-xs font-black">3</span>
             </div>
@@ -438,8 +415,8 @@ export default function ManagerDashboard() {
           </div>
 
           {/* VIP Arrivals */}
-          <div className="glass-card rounded-3xl p-6 animate-fade-in-up stagger-3">
-            <div className="flex items-center justify-between mb-5">
+          <div className="glass-card rounded-2xl p-5 animate-fade-in-up stagger-3">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">VIP Arrivals Today</h2>
               <Crown size={18} className="text-amber-400" />
             </div>
