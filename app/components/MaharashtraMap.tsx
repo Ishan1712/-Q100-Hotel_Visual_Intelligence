@@ -76,7 +76,7 @@ export default function MaharashtraMap() {
   const [hoveredProperty, setHoveredProperty] = React.useState<PropertyPin | null>(null);
 
   return (
-    <div className="relative w-full aspect-[4/3] bg-slate-900/40 rounded-3xl border border-white/5 overflow-hidden group/map backdrop-blur-sm">
+    <div className="relative w-full aspect-[4/3] bg-slate-50 rounded-3xl border border-slate-200 overflow-hidden group/map backdrop-blur-sm">
       {/* Abstract Maharashtra SVG Path */}
       <svg 
         viewBox="0 0 100 100" 
@@ -92,16 +92,16 @@ export default function MaharashtraMap() {
         <path 
           d="M20,40 L35,30 L55,25 L75,20 L90,30 L95,50 L85,70 L70,85 L50,80 L30,85 L15,75 L10,55 Z" 
           fill="url(#mapGradient)"
-          stroke="#475569"
+          stroke="#cbd5e1"
           strokeWidth="0.5"
         />
         {/* Grid Lines */}
-        <path d="M0,25 L100,25" stroke="#ffffff10" strokeWidth="0.1" />
-        <path d="M0,50 L100,50" stroke="#ffffff10" strokeWidth="0.1" />
-        <path d="M0,75 L100,75" stroke="#ffffff10" strokeWidth="0.1" />
-        <path d="M25,0 L25,100" stroke="#ffffff10" strokeWidth="0.1" />
-        <path d="M50,0 L50,100" stroke="#ffffff10" strokeWidth="0.1" />
-        <path d="M75,0 L75,100" stroke="#ffffff10" strokeWidth="0.1" />
+        <path d="M0,25 L100,25" stroke="#00000005" strokeWidth="0.1" />
+        <path d="M0,50 L100,50" stroke="#00000005" strokeWidth="0.1" />
+        <path d="M0,75 L100,75" stroke="#00000005" strokeWidth="0.1" />
+        <path d="M25,0 L25,100" stroke="#00000005" strokeWidth="0.1" />
+        <path d="M50,0 L50,100" stroke="#00000005" strokeWidth="0.1" />
+        <path d="M75,0 L75,100" stroke="#00000005" strokeWidth="0.1" />
       </svg>
 
       {/* Property Pins */}
@@ -132,7 +132,7 @@ export default function MaharashtraMap() {
             </div>
 
             {/* Label */}
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/95 backdrop-blur-md px-2 py-0.5 rounded border border-slate-200 text-[10px] font-bold text-slate-900 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
               {prop.city}
             </div>
           </div>
@@ -142,14 +142,14 @@ export default function MaharashtraMap() {
       {/* Tooltip */}
       {hoveredProperty && (
         <motion.div
-          className="absolute bottom-6 right-6 w-64 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-4 z-20 pointer-events-none"
+          className="absolute bottom-6 right-6 w-64 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-4 z-20 pointer-events-none"
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
         >
           <div className="flex justify-between items-start mb-3">
             <div>
-              <h4 className="text-white font-bold text-sm">{hoveredProperty.name}</h4>
-              <p className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold">{hoveredProperty.city}</p>
+              <h4 className="text-slate-900 font-bold text-sm">{hoveredProperty.name}</h4>
+              <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold">{hoveredProperty.city}</p>
             </div>
             <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
               hoveredProperty.performance === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -162,39 +162,39 @@ export default function MaharashtraMap() {
           </div>
           
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/5 rounded-lg p-2">
+            <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
               <p className="text-slate-500 text-[9px] uppercase font-bold mb-0.5">Pass Rate</p>
-              <p className="text-white text-sm font-bold">{hoveredProperty.stats.passRate}</p>
+              <p className="text-slate-900 text-sm font-bold">{hoveredProperty.stats.passRate}</p>
             </div>
-            <div className="bg-white/5 rounded-lg p-2">
+            <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
               <p className="text-slate-500 text-[9px] uppercase font-bold mb-0.5">Res. Time</p>
-              <p className="text-white text-sm font-bold">{hoveredProperty.stats.resolution}</p>
+              <p className="text-slate-900 text-sm font-bold">{hoveredProperty.stats.resolution}</p>
             </div>
-            <div className="bg-white/5 rounded-lg p-2">
+            <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
               <p className="text-slate-500 text-[9px] uppercase font-bold mb-0.5">Rooms</p>
-              <p className="text-white text-sm font-bold">{hoveredProperty.stats.rooms}</p>
+              <p className="text-slate-900 text-sm font-bold">{hoveredProperty.stats.rooms}</p>
             </div>
-            <div className="bg-white/5 rounded-lg p-2">
+            <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
               <p className="text-slate-500 text-[9px] uppercase font-bold mb-0.5">GSI Score</p>
-              <p className="text-emerald-400 text-sm font-bold">{hoveredProperty.stats.gsi}</p>
+              <p className="text-emerald-600 text-sm font-bold">{hoveredProperty.stats.gsi}</p>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 p-3 bg-slate-900/60 backdrop-blur-md rounded-xl border border-white/5 space-y-2">
+      <div className="absolute bottom-4 left-4 p-3 bg-white/80 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm space-y-2">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500" />
-          <span className="text-[10px] font-bold text-slate-300">Target Met ({'>'}85)</span>
+          <span className="text-[10px] font-bold text-slate-600">Target Met ({'>'}85)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-[10px] font-bold text-slate-300">Nearing Target (75-85)</span>
+          <span className="text-[10px] font-bold text-slate-600">Nearing Target (75-85)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-rose-500" />
-          <span className="text-[10px] font-bold text-slate-300">Intervention Needed ({'<'}75)</span>
+          <span className="text-[10px] font-bold text-slate-600">Intervention Needed ({'<'}75)</span>
         </div>
       </div>
     </div>

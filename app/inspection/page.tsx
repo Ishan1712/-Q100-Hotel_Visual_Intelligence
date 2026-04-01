@@ -620,7 +620,7 @@ export default function InspectionFlowPage() {
                         className="w-full h-12 md:h-14 bg-slate-900 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-slate-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
                       >
                          <FastForward size={18} className="group-hover:translate-x-1 transition-transform shrink-0" />
-                         <span className="truncate">Skip</span>
+                         <span className="truncate">Next</span>
                       </button>
                     </>
                   ) : (

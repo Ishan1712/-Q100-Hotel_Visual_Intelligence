@@ -64,22 +64,22 @@ export default function ReportGenerator() {
         
         {/* Configuration Panel (Left) */}
         <div className="lg:col-span-4 space-y-8 flex flex-col">
-          <div className="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-white/5 p-8 shadow-xl flex-1 flex flex-col">
+          <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm flex-1 flex flex-col">
             <div className="flex items-center gap-3 mb-8">
-                <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
+                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
                     <Settings2 size={20} />
                 </div>
-                <h4 className="text-xl font-bold text-white tracking-tight leading-none">Configuration</h4>
+                <h4 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Configuration</h4>
             </div>
 
             <div className="space-y-8 flex-1">
                 {/* Period Selection */}
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Period</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Period</label>
                     <div className="grid grid-cols-3 gap-2">
                         {['Week', 'Month', 'Quarter'].map((p) => (
                             <button key={p} className={`py-2 px-3 rounded-xl border text-[11px] font-bold transition-all ${
-                                p === 'Month' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                                p === 'Month' ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
                             }`}>
                                 {p}
                             </button>
@@ -89,18 +89,18 @@ export default function ReportGenerator() {
 
                 {/* Property Selection */}
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Properties</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Properties</label>
                     <div className="relative">
-                        <button className="w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/5 rounded-2xl text-[13px] font-bold text-white group">
+                        <button className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-[13px] font-bold text-slate-900 group">
                             <span>{selectedProperties.join(', ')}</span>
-                            <ChevronRight size={16} className="text-slate-500 group-hover:translate-x-0.5 transition-transform" />
+                            <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                         </button>
                     </div>
                 </div>
 
                 {/* Metrics Selection */}
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Included Metrics</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Included Metrics</label>
                     <div className="grid grid-cols-1 gap-2">
                         {metricsList.map((m) => (
                             <button 
@@ -108,8 +108,8 @@ export default function ReportGenerator() {
                                 onClick={() => toggleMetric(m.id)}
                                 className={`flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${
                                     selectedMetrics.includes(m.id) 
-                                        ? 'bg-blue-500/5 border-blue-500/20 text-white' 
-                                        : 'bg-transparent border-white/5 text-slate-500'
+                                        ? 'bg-blue-50 border-blue-100 text-blue-600' 
+                                        : 'bg-transparent border-slate-100 text-slate-400 hover:bg-slate-50'
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export default function ReportGenerator() {
                 <button 
                     onClick={handleGenerate}
                     disabled={isGenerating}
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-2xl text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-900/30 transition-all flex items-center justify-center gap-3"
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-2xl text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-3"
                 >
                     {isGenerating ? (
                         <>
@@ -142,12 +142,12 @@ export default function ReportGenerator() {
                     )}
                 </button>
                 <div className="flex gap-2">
-                    <button className="flex-1 py-3 bg-white/5 border border-white/5 hover:bg-white/10 rounded-2xl text-slate-400 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group">
-                        <Mail size={14} className="group-hover:text-blue-400" />
+                    <button className="flex-1 py-3 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded-2xl text-slate-500 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group">
+                        <Mail size={14} className="group-hover:text-blue-600" />
                         Schedule
                     </button>
-                    <button className="flex-1 py-3 bg-white/5 border border-white/5 hover:bg-white/10 rounded-2xl text-slate-400 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group">
-                        <Copy size={14} className="group-hover:text-blue-400" />
+                    <button className="flex-1 py-3 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded-2xl text-slate-500 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group">
+                        <Copy size={14} className="group-hover:text-blue-600" />
                         Template
                     </button>
                 </div>
@@ -157,30 +157,30 @@ export default function ReportGenerator() {
 
         {/* Live Preview (Right) */}
         <div className="lg:col-span-8 space-y-8">
-          <div className="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-white/5 shadow-2xl flex flex-col h-[800px] overflow-hidden relative group">
-            <div className="absolute top-0 inset-x-0 h-1 bg-blue-600/20">
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-sm flex flex-col h-[800px] overflow-hidden relative group">
+            <div className="absolute top-0 inset-x-0 h-1 bg-blue-100">
                 <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: isGenerating ? '100%' : '0%' }}
                     transition={{ duration: 2 }}
-                    className="h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]"
+                    className="h-full bg-blue-600 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                 />
             </div>
 
             {/* Preview Header */}
-            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#0f172a]/80 backdrop-blur-md">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-white/80 backdrop-blur-md">
                 <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                         <Eye size={16} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Live Preview</p>
-                      <p className="text-xs font-bold text-white">{templates.find(t => t.id === selectedTemplate)?.name}.pdf</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Live Preview</p>
+                      <p className="text-xs font-bold text-slate-900">{templates.find(t => t.id === selectedTemplate)?.name}.pdf</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-[10px] font-bold hover:bg-white/10">1 / 6 Pages</button>
-                    <button className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-all shadow-lg shadow-blue-900/20">
+                    <button className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-[10px] font-bold hover:bg-slate-200">1 / 6 Pages</button>
+                    <button className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-all shadow-lg shadow-blue-100">
                         <Download size={16} />
                     </button>
                 </div>
@@ -276,17 +276,17 @@ export default function ReportGenerator() {
                     onClick={() => setSelectedTemplate(t.id)}
                     className={`p-4 rounded-3xl border transition-all text-left flex flex-col relative overflow-hidden group ${
                         selectedTemplate === t.id 
-                            ? 'bg-blue-600/10 border-blue-500/50 shadow-lg' 
-                            : 'bg-slate-900/40 border-white/5 hover:border-white/10'
+                            ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                            : 'bg-white border-slate-100 hover:border-slate-200'
                     }`}
                   >
                     <div className={`p-2.5 rounded-xl mb-3 w-fit ${
-                        selectedTemplate === t.id ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-400'
+                        selectedTemplate === t.id ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-400'
                     }`}>
                         <t.icon size={16} />
                     </div>
-                    <span className={`text-xs font-bold leading-tight ${selectedTemplate === t.id ? 'text-white' : 'text-slate-400'}`}>{t.name}</span>
-                    <div className={`absolute bottom-0 right-0 p-2 opacity-5 scale-150 transition-transform ${selectedTemplate === t.id ? 'text-blue-500' : 'text-white'}`}>
+                    <span className={`text-xs font-bold leading-tight ${selectedTemplate === t.id ? 'text-slate-900' : 'text-slate-500'}`}>{t.name}</span>
+                    <div className={`absolute bottom-0 right-0 p-2 opacity-5 scale-150 transition-transform ${selectedTemplate === t.id ? 'text-blue-600' : 'text-slate-200'}`}>
                         <t.icon size={48} />
                     </div>
                   </button>

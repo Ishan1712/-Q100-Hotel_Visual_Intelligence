@@ -44,11 +44,11 @@ const categoryTrends: Record<string, 'up' | 'down' | 'neutral'> = {
 };
 
 const getCellColor = (val: number) => {
-  if (val >= 90) return 'bg-emerald-500 text-white';
-  if (val >= 80) return 'bg-emerald-400/30 text-emerald-400 border-emerald-500/20';
-  if (val >= 70) return 'bg-amber-400/20 text-amber-500 border-amber-500/20';
-  if (val >= 60) return 'bg-orange-500/20 text-orange-500 border-orange-500/20';
-  return 'bg-rose-500/20 text-rose-500 border-rose-500/20';
+  if (val >= 90) return 'bg-emerald-500 text-white border-emerald-600';
+  if (val >= 80) return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+  if (val >= 70) return 'bg-amber-50 text-amber-700 border-amber-100';
+  if (val >= 60) return 'bg-orange-50 text-orange-700 border-orange-100';
+  return 'bg-rose-50 text-rose-700 border-rose-100';
 };
 
 export default function BrandHeatmap() {
@@ -68,24 +68,24 @@ export default function BrandHeatmap() {
         
         {/* Main Heatmap Grid */}
         <div className="lg:col-span-12">
-          <div className="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-white/5 p-8 shadow-xl overflow-hidden">
+          <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm overflow-hidden">
             <div className="flex justify-between items-center mb-8">
                 <div className="space-y-1">
-                    <h4 className="text-xl font-bold text-white tracking-tight">Compliance Matrix</h4>
-                    <p className="text-slate-500 text-[11px] font-medium uppercase tracking-widest leading-none">Property × Quality Category Analysis</p>
+                    <h4 className="text-xl font-bold text-slate-900 tracking-tight">Compliance Matrix</h4>
+                    <p className="text-slate-400 text-[11px] font-medium uppercase tracking-widest leading-none">Property × Quality Category Analysis</p>
                 </div>
-                <div className="flex items-center gap-6 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
+                <div className="flex items-center gap-6 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">90%+</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">90%+</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">75-89%</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">75-89%</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{'<'}75%</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{'<'}75%</span>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@ export default function BrandHeatmap() {
                     <div className="grid grid-cols-9 gap-4 mb-4">
                         <div className="col-span-1" />
                         {categories.map((cat, i) => (
-                            <div key={cat} className="flex flex-col items-center justify-end h-16 pb-2 border-b border-white/10">
+                            <div key={cat} className="flex flex-col items-center justify-end h-16 pb-2 border-b border-slate-100">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{cat}</span>
                                 {categoryTrends[i] === 'up' && <TrendingUp size={12} className="text-emerald-500 mt-1" />}
                                 {categoryTrends[i] === 'down' && <TrendingDown size={12} className="text-rose-500 mt-1" />}
@@ -107,7 +107,7 @@ export default function BrandHeatmap() {
                         {properties.map((prop) => (
                             <div key={prop} className="grid grid-cols-9 gap-4 items-center">
                                 <div className="col-span-1 py-4">
-                                    <span className="text-sm font-bold text-white tracking-tight">{prop}</span>
+                                    <span className="text-sm font-bold text-slate-900 tracking-tight">{prop}</span>
                                 </div>
                                 {heatmapData[prop].map((val, catIdx) => (
                                     <motion.button
@@ -126,14 +126,14 @@ export default function BrandHeatmap() {
                     </div>
 
                     {/* Footer Row - Averages */}
-                    <div className="grid grid-cols-9 gap-4 mt-12 pt-8 border-t border-white/10">
+                    <div className="grid grid-cols-9 gap-4 mt-12 pt-8 border-t border-slate-100">
                         <div className="col-span-1">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Cat. Risk Score</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Cat. Risk Score</span>
                         </div>
                         {avgByCategory.map((avg, i) => (
-                            <div key={i} className="flex flex-col items-center justify-center p-4 rounded-3xl bg-white/5 border border-white/5 shadow-inner">
+                            <div key={i} className="flex flex-col items-center justify-center p-4 rounded-3xl bg-slate-50 border border-slate-100">
                                 <span className={`text-base font-black tracking-tighter ${
-                                    avg < 75 ? 'text-rose-500' : 'text-slate-300'
+                                    avg < 75 ? 'text-rose-600' : 'text-slate-600'
                                 }`}>{avg}%</span>
                                 {avg < 75 && (
                                     <AlertTriangle size={12} className="text-rose-500 mt-1 animate-pulse" />
@@ -155,18 +155,18 @@ export default function BrandHeatmap() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-blue-500/20 p-8 shadow-2xl h-full flex flex-col"
+                        className="bg-white border border-blue-100 rounded-3xl p-8 shadow-sm h-full flex flex-col"
                     >
                         <div className="flex justify-between items-start mb-8">
                             <div className="space-y-1">
-                                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.2em]">Evidence Drill-Down</span>
-                                <h4 className="text-2xl font-black text-white tracking-tight leading-none uppercase">
+                                <span className="text-blue-600 text-[10px] font-black uppercase tracking-[0.2em]">Evidence Drill-Down</span>
+                                <h4 className="text-2xl font-black text-slate-900 tracking-tight leading-none uppercase">
                                     {properties[properties.indexOf(selectedCell.property)]} — {categories[selectedCell.catIndex]}
                                 </h4>
                             </div>
                             <button 
                                 onClick={() => setSelectedCell(null)}
-                                className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-500 hover:text-white"
+                                className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600"
                             >
                                 <RotateCcw size={18} />
                             </button>
@@ -175,43 +175,43 @@ export default function BrandHeatmap() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
                             {/* Failed Rooms List */}
                             <div className="space-y-3">
-                                <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Reported Failures (Last 30 Days)</h5>
+                                <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Reported Failures (Last 30 Days)</h5>
                                 {[402, 315, 208, 112].map((room) => (
-                                    <div key={room} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group/room hover:bg-rose-500/5 hover:border-rose-500/20 transition-all cursor-pointer">
+                                    <div key={room} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group/room hover:bg-rose-50 hover:border-rose-200 transition-all cursor-pointer">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold border border-orange-500/20">
+                                            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold border border-orange-100">
                                                 {room}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-white leading-none mb-1">Standard Violation</p>
+                                                <p className="text-sm font-bold text-slate-900 leading-none mb-1">Standard Violation</p>
                                                 <p className="text-[10px] text-slate-500 font-medium">Captured 2h ago</p>
                                             </div>
                                         </div>
-                                        <Camera size={16} className="text-slate-600 group-hover/room:text-rose-400" />
+                                        <Camera size={16} className="text-slate-300 group-hover/room:text-rose-500" />
                                     </div>
                                 ))}
                             </div>
 
                             {/* Captured Evidence Section */}
-                            <div className="bg-slate-950/50 rounded-3xl border border-white/5 p-6 flex flex-col">
+                            <div className="bg-slate-100 rounded-3xl border border-slate-200 p-6 flex flex-col">
                                 <div className="flex justify-between items-center mb-6">
-                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Image Evidence</span>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Image Evidence</span>
                                     <div className="flex gap-1">
-                                        <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 text-[8px] font-bold uppercase tracking-widest">Failed</span>
+                                        <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-[8px] font-bold uppercase tracking-widest">Failed</span>
                                     </div>
                                 </div>
-                                <div className="flex-1 rounded-2xl bg-white/5 border border-dashed border-white/10 flex items-center justify-center overflow-hidden relative group">
+                                <div className="flex-1 rounded-2xl bg-white border border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group shadow-inner">
                                     <img 
                                         src={`https://images.unsplash.com/photo-1544124499-58912cbddaad?w=500&auto=format&fit=crop&q=60`} 
                                         alt="Evidence" 
-                                        className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
+                                        className="w-full h-full object-cover opacity-80 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
                                     />
-                                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
                                         <p className="text-white text-[10px] font-bold leading-tight">Property: Monarch {selectedCell.property}</p>
-                                        <p className="text-slate-400 text-[9px] font-medium italic">Detection: Improper Arrangement</p>
+                                        <p className="text-slate-200 text-[9px] font-medium italic">Detection: Improper Arrangement</p>
                                     </div>
                                 </div>
-                                <button className="mt-6 w-full py-3 bg-blue-600 rounded-xl text-white text-[11px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/30">
+                                <button className="mt-6 w-full py-3 bg-blue-600 rounded-xl text-white text-[11px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
                                     Open Detailed AI Report
                                 </button>
                             </div>
@@ -222,13 +222,13 @@ export default function BrandHeatmap() {
                         key="placeholder"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="bg-slate-900/40 border border-dashed border-white/10 rounded-3xl h-full flex flex-col items-center justify-center p-12 text-center"
+                        className="bg-white border border-dashed border-slate-200 rounded-3xl h-full flex flex-col items-center justify-center p-12 text-center"
                     >
-                        <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-slate-600 mb-6">
+                        <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-300 mb-6">
                             <Info size={32} />
                         </div>
                         <h4 className="text-lg font-bold text-slate-400 mb-2 tracking-tight">Interactive Insight Panel</h4>
-                        <p className="text-sm text-slate-500 max-w-[300px] leading-relaxed font-medium">Click on any property category cell above to drill down into specific room failures and photo evidence capture by Q100 AI.</p>
+                        <p className="text-sm text-slate-400 max-w-[300px] leading-relaxed font-medium">Click on any property category cell above to drill down into specific room failures and photo evidence capture by Q100 AI.</p>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -236,56 +236,56 @@ export default function BrandHeatmap() {
 
         {/* Alerts & Risk row (Right Half) */}
         <div className="lg:col-span-4 space-y-8">
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-rose-500/20 p-8 shadow-xl relative overflow-hidden group">
+            <div className="bg-white border border-rose-100 p-8 rounded-3xl shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                     <Sparkles size={80} className="text-rose-500" />
                 </div>
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-rose-500/10 text-rose-500 rounded-xl">
+                    <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
                         <AlertTriangle size={20} />
                     </div>
                     <div className="space-y-0.5">
-                        <h5 className="text-sm font-black text-white uppercase tracking-wider">Standard Refresh Alert</h5>
-                        <p className="text-rose-400/60 text-[9px] font-bold uppercase tracking-widest">Urgent Intervention</p>
+                        <h5 className="text-sm font-black text-slate-900 uppercase tracking-wider">Standard Refresh Alert</h5>
+                        <p className="text-rose-600/60 text-[9px] font-bold uppercase tracking-widest">Urgent Intervention</p>
                     </div>
                 </div>
                 <div className="space-y-4">
-                    <p className="text-slate-300 text-[13px] leading-relaxed">
-                        <strong className="text-rose-400">Minibar placement</strong> has fallen below 75% target at 4 of 5 properties for 3 consecutive months.
+                    <p className="text-slate-600 text-[13px] leading-relaxed">
+                        <strong className="text-rose-600">Minibar placement</strong> has fallen below 75% target at 4 of 5 properties for 3 consecutive months.
                     </p>
-                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
-                        <p className="text-white text-[11px] font-bold mb-2 uppercase tracking-widest">Recommendation:</p>
-                        <p className="text-slate-500 text-[11px] leading-relaxed italic">
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <p className="text-slate-900 text-[11px] font-bold mb-2 uppercase tracking-widest">Recommendation:</p>
+                        <p className="text-slate-500 text-[11px] leading-relaxed italic font-medium">
                            Update the Minibar Master image to reflect the Thums Up agreement. Current images still feature legacy inventory.
                         </p>
                     </div>
-                    <button className="flex items-center gap-2 group text-blue-400 text-[11px] font-black uppercase tracking-widest hover:gap-3 transition-all pt-2">
+                    <button className="flex items-center gap-2 group text-blue-600 text-[11px] font-black uppercase tracking-widest hover:gap-3 transition-all pt-2">
                         Update Brand Guideline
                         <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-white/5 p-8 shadow-xl overflow-hidden relative">
+            <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm overflow-hidden relative">
                 <div className="flex justify-between items-center mb-6">
-                    <h5 className="text-sm font-black text-white uppercase tracking-wider">Strengths & Risks</h5>
+                    <h5 className="text-sm font-black text-slate-900 uppercase tracking-wider">Strengths & Risks</h5>
                 </div>
                 <div className="space-y-4">
-                    <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Brand Strength</span>
-                            <CheckCircle2 size={14} className="text-emerald-500" />
+                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Brand Strength</span>
+                            <CheckCircle2 size={14} className="text-emerald-600" />
                         </div>
-                        <p className="text-white text-xs font-bold leading-none mb-1">Entrance & Closet Accuracy</p>
-                        <p className="text-slate-500 text-[10px] leading-relaxed">84.8% avg. efficiency across portfolio. Pune leading at 90%.</p>
+                        <p className="text-slate-900 text-xs font-bold leading-none mb-1">Entrance & Closet Accuracy</p>
+                        <p className="text-slate-500 text-[10px] leading-relaxed font-medium">84.8% avg. efficiency across portfolio. Pune leading at 90%.</p>
                     </div>
-                    <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl">
+                    <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Brand Risk</span>
-                            <AlertTriangle size={14} className="text-rose-500" />
+                            <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Brand Risk</span>
+                            <AlertTriangle size={14} className="text-rose-600" />
                         </div>
-                        <p className="text-white text-xs font-bold leading-none mb-1">Minibar Inventory Audit</p>
-                        <p className="text-slate-500 text-[10px] leading-relaxed">66.4% average compliance. Flagged for immediate retraining.</p>
+                        <p className="text-slate-900 text-xs font-bold leading-none mb-1">Minibar Inventory Audit</p>
+                        <p className="text-slate-500 text-[10px] leading-relaxed font-medium">66.4% average compliance. Flagged for immediate retraining.</p>
                     </div>
                 </div>
             </div>
