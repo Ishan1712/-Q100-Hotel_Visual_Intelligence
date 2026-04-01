@@ -25,12 +25,12 @@ export default function DailyReport() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center justify-between animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Daily Operations Report</h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">Wednesday, 25 March 2026 · Taj Mahal Palace, Mumbai</p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
             <Printer size={15} /> Print
           </button>

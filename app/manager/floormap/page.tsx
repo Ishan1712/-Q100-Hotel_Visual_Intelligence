@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   User, AlertTriangle, Clock, MapPin, XCircle, CheckCircle,
   Building2, ArrowUpDown, Wifi, Eye, Shield, Activity,
@@ -11,13 +12,24 @@ import {
 const generateFloorData = (floor: number) => {
   const base = floor * 100;
   const count = floor === 8 ? 18 : floor <= 4 ? 22 : 20;
+  // Per-floor thresholds so each floor has distinct percentages
+  const thresholds: Record<number, [number, number, number]> = {
+    2: [82, 90, 96],   // 82% ready, 8% in-progress, 6% flagged, 4% not-started
+    3: [64, 82, 91],   // 64% ready, 18% in-progress, 9% flagged
+    4: [86, 95, 98],   // 86% ready — nearly done
+    5: [55, 75, 88],   // 55% ready — mid-morning
+    6: [73, 85, 93],   // 73% ready
+    7: [40, 62, 80],   // 40% ready — early stage
+    8: [0, 0, 0],      // all not-started
+  };
+  const [readyT, ipT, flagT] = thresholds[floor] || [55, 75, 90];
   const rooms = Array.from({ length: count }, (_, i) => {
     const num = base + i + 1;
-    const rng = (num * 31 + 17) % 100;
+    const rng = ((num * 37 + floor * 13 + 7) * 53) % 100;
     const status = floor === 8 ? 'not-started' as const
-      : rng < 55 ? 'ready' as const
-      : rng < 75 ? 'in-progress' as const
-      : rng < 90 ? 'flagged' as const
+      : rng < readyT ? 'ready' as const
+      : rng < ipT ? 'in-progress' as const
+      : rng < flagT ? 'flagged' as const
       : 'not-started' as const;
     
     const typeRng = num % 15;
@@ -46,6 +58,123 @@ const statusConfig: Record<string, { bg: string; border: string; text: string; l
   'not-started': { bg: 'bg-slate-300',    border: 'border-slate-200',    text: 'text-slate-500',    label: 'Not Started', dot: 'bg-slate-400',    glow: 'shadow-slate-100',    cardBg: 'from-slate-50 to-slate-100/50' },
 };
 
+const panelShellClass =
+  'group relative overflow-hidden rounded-[2rem] border border-white/80 backdrop-blur-sm shadow-[0_24px_60px_-34px_rgba(15,23,42,0.18)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_34px_90px_-38px_rgba(15,23,42,0.24)]';
+
+const statCardStyles: Record<string, { surface: string; border: string; iconSurface: string; shadow: string }> = {
+  'ready': {
+    surface: 'from-[#eefcf5] via-white to-[#effbf7]',
+    border: 'border-emerald-200/80',
+    iconSurface: 'from-emerald-100 to-emerald-50 text-emerald-600',
+    shadow: 'shadow-emerald-200/55',
+  },
+  'in-progress': {
+    surface: 'from-[#fff8eb] via-white to-[#fff4de]',
+    border: 'border-amber-200/80',
+    iconSurface: 'from-amber-100 to-amber-50 text-amber-600',
+    shadow: 'shadow-amber-200/55',
+  },
+  'flagged': {
+    surface: 'from-[#fff1f4] via-white to-[#ffecef]',
+    border: 'border-rose-200/80',
+    iconSurface: 'from-rose-100 to-rose-50 text-rose-600',
+    shadow: 'shadow-rose-200/55',
+  },
+  'not-started': {
+    surface: 'from-[#f5f9ff] via-white to-[#f2f6fb]',
+    border: 'border-slate-200/85',
+    iconSurface: 'from-slate-100 to-slate-50 text-slate-500',
+    shadow: 'shadow-slate-200/55',
+  },
+};
+
+const getPageTone = (percent: number) => {
+  if (percent >= 80) {
+    return {
+      heroBg: 'from-[#ecfdf5] via-[#f9fcff] to-[#edf8ff]',
+      heroOverlay: 'bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.22)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.16)_0,transparent_44%)]',
+      selectorBg: 'from-[#f2fdf7] via-[#fcfffe] to-[#eef8ff]',
+      selectorOverlay: 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.14)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.10)_0,transparent_42%)]',
+      layoutBg: 'from-[#f4fffa] via-[#ffffff] to-[#eef8ff]',
+      layoutOverlay: 'bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.10)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08)_0,transparent_42%)]',
+      staffBg: 'from-[#f2fbff] via-[#ffffff] to-[#eefcf6]',
+      staffOverlay: 'bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.08)_0,transparent_40%)]',
+      glowPrimary: 'bg-emerald-200/28',
+      glowSecondary: 'bg-sky-200/20',
+      accentSurface: 'border-emerald-200/80 bg-emerald-50/90 text-emerald-700',
+      accentText: 'text-emerald-600',
+    };
+  }
+
+  if (percent >= 50) {
+    return {
+      heroBg: 'from-[#fff8eb] via-[#fffdf8] to-[#edf8ff]',
+      heroOverlay: 'bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.22)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14)_0,transparent_44%)]',
+      selectorBg: 'from-[#fff9ef] via-[#ffffff] to-[#eef6ff]',
+      selectorOverlay: 'bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.14)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.09)_0,transparent_42%)]',
+      layoutBg: 'from-[#fffbf1] via-[#ffffff] to-[#f3f8ff]',
+      layoutOverlay: 'bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.10)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.07)_0,transparent_42%)]',
+      staffBg: 'from-[#f8fbff] via-[#ffffff] to-[#fff9ef]',
+      staffOverlay: 'bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.11)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.08)_0,transparent_40%)]',
+      glowPrimary: 'bg-amber-200/30',
+      glowSecondary: 'bg-sky-200/18',
+      accentSurface: 'border-amber-200/80 bg-amber-50/90 text-amber-700',
+      accentText: 'text-amber-600',
+    };
+  }
+
+  return {
+    heroBg: 'from-[#fff1f4] via-[#fffdf8] to-[#f1f7ff]',
+    heroOverlay: 'bg-[radial-gradient(circle_at_top_left,rgba(244,63,94,0.22)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14)_0,transparent_44%)]',
+    selectorBg: 'from-[#fff4f6] via-[#ffffff] to-[#eef6ff]',
+    selectorOverlay: 'bg-[radial-gradient(circle_at_top_right,rgba(244,63,94,0.14)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.09)_0,transparent_42%)]',
+    layoutBg: 'from-[#fff7f8] via-[#ffffff] to-[#f3f8ff]',
+    layoutOverlay: 'bg-[radial-gradient(circle_at_top_left,rgba(244,63,94,0.10)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.07)_0,transparent_42%)]',
+    staffBg: 'from-[#fff7fa] via-[#ffffff] to-[#f3f8ff]',
+    staffOverlay: 'bg-[radial-gradient(circle_at_top_right,rgba(244,63,94,0.10)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.08)_0,transparent_40%)]',
+    glowPrimary: 'bg-rose-200/26',
+    glowSecondary: 'bg-sky-200/18',
+    accentSurface: 'border-rose-200/80 bg-rose-50/90 text-rose-700',
+    accentText: 'text-rose-600',
+  };
+};
+
+const getFloorCardTone = (percent: number) => {
+  if (percent >= 80) {
+    return {
+      active: 'from-emerald-500 to-cyan-600 shadow-emerald-200/80',
+      rail: 'bg-emerald-400',
+      badge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+      mutedText: 'text-emerald-600',
+    };
+  }
+
+  if (percent >= 50) {
+    return {
+      active: 'from-amber-500 to-orange-600 shadow-amber-200/80',
+      rail: 'bg-amber-400',
+      badge: 'border-amber-200 bg-amber-50 text-amber-700',
+      mutedText: 'text-amber-600',
+    };
+  }
+
+  if (percent > 0) {
+    return {
+      active: 'from-rose-500 to-pink-600 shadow-rose-200/80',
+      rail: 'bg-rose-400',
+      badge: 'border-rose-200 bg-rose-50 text-rose-700',
+      mutedText: 'text-rose-600',
+    };
+  }
+
+  return {
+    active: 'from-slate-400 to-slate-600 shadow-slate-200/80',
+    rail: 'bg-slate-300',
+    badge: 'border-slate-200 bg-slate-50 text-slate-600',
+    mutedText: 'text-slate-500',
+  };
+};
+
 /* ── Progress Ring ── */
 const ProgressRing = ({ percent, size = 64, stroke = 6 }: { percent: number; size?: number; stroke?: number }) => {
   const radius = (size - stroke) / 2;
@@ -62,13 +191,14 @@ const ProgressRing = ({ percent, size = 64, stroke = 6 }: { percent: number; siz
 };
 
 /* ── Room Card Component ── */
-const RoomCard = ({ room, selectedFloor, hoveredRoom, setHoveredRoom, roomIndex, colCount = 3 }: { 
+const RoomCard = ({ room, selectedFloor, hoveredRoom, setHoveredRoom, roomIndex, colCount = 3, onRoomClick }: { 
   room: ReturnType<typeof generateFloorData>[0]; 
   selectedFloor: number;
   hoveredRoom: string | null; 
   setHoveredRoom: (r: string | null) => void;
   roomIndex: number;
   colCount?: number;
+  onRoomClick: (roomNumber: string, floor: number) => void;
 }) => {
   const cfg = statusConfig[room.status];
   const isHovered = hoveredRoom === room.number;
@@ -90,6 +220,7 @@ const RoomCard = ({ room, selectedFloor, hoveredRoom, setHoveredRoom, roomIndex,
       className={`relative group cursor-pointer transition-all duration-300 ${isHovered ? 'z-30 scale-105' : 'hover:scale-[1.03]'}`}
       onMouseEnter={() => setHoveredRoom(room.number)}
       onMouseLeave={() => setHoveredRoom(null)}
+      onClick={() => onRoomClick(room.number, selectedFloor)}
     >
       {/* Card */}
       <div className={`relative overflow-hidden rounded-[1.25rem] border ${cfg.border} bg-gradient-to-br ${cfg.cardBg} p-3 aspect-square transition-all duration-300 flex flex-col ${isHovered ? `shadow-xl ${cfg.glow}` : 'shadow-sm hover:shadow-md'}`}>
@@ -173,8 +304,13 @@ const RoomCard = ({ room, selectedFloor, hoveredRoom, setHoveredRoom, roomIndex,
 
 
 export default function LiveFloorMap() {
+  const router = useRouter();
   const [selectedFloor, setSelectedFloor] = useState(2);
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
+
+  const handleRoomClick = (roomNumber: string, floor: number) => {
+    router.push(`/manager/inspection?floor=${floor}&room=${roomNumber}`);
+  };
   
   const rooms = useMemo(() => generateFloorData(selectedFloor), [selectedFloor]);
 
@@ -202,131 +338,219 @@ export default function LiveFloorMap() {
   }), []);
 
   const activeHousekeepers = rooms.filter(r => r.housekeeper);
+  const pageTone = getPageTone(readyPercent);
 
   return (
     <div className="space-y-6 pb-12">
-      {/* ═══ Header ═══ */}
-      <div className="flex items-center justify-between animate-fade-in-up">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">Live Floor Map</h1>
-          <p className="text-sm text-slate-400 font-medium mt-0.5">Real-time spatial view of room readiness</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3.5 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200">
-            <div className="relative">
-              <Wifi size={13} />
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+      {/* ═══ Header Hero ═══ */}
+      <div className={`${panelShellClass} animate-fade-in-up bg-gradient-to-br ${pageTone.heroBg}`}>
+        <div className={`pointer-events-none absolute inset-0 ${pageTone.heroOverlay}`} />
+        <div className={`pointer-events-none absolute -right-14 -top-4 h-44 w-44 rounded-full blur-3xl transition-transform duration-500 group-hover:scale-110 group-hover:-translate-x-2 ${pageTone.glowPrimary}`} />
+        <div className={`pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full blur-3xl transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1 ${pageTone.glowSecondary}`} />
+        <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+
+        <div className="relative p-6 md:p-7">
+          <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+            <div className="space-y-5">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <div className={`px-3.5 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-[0.24em] shadow-sm ${pageTone.accentSurface}`}>
+                  Live Operations
+                </div>
+                <div className="px-3.5 py-1.5 rounded-full border border-white/80 bg-white/70 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500 shadow-sm">
+                  Spatial Readiness View
+                </div>
+              </div>
+
+              <div>
+                <h1 className="text-3xl md:text-[2.2rem] font-black tracking-tight text-slate-900">Live Floor Map</h1>
+                <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-500 font-medium">
+                  Real-time room readiness, issue pressure, and active housekeeping movement across Floor {selectedFloor}.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: 'Guest Ready', value: `${counts.ready}/${total}`, icon: CheckCircle, chip: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                  { label: 'In Progress', value: `${counts.inProgress}`, icon: Activity, chip: 'bg-amber-50 text-amber-700 border-amber-200' },
+                  { label: 'Flagged', value: `${counts.flagged}`, icon: AlertTriangle, chip: 'bg-rose-50 text-rose-700 border-rose-200' },
+                  { label: 'Active Team', value: `${activeHousekeepers.length}`, icon: User, chip: 'bg-blue-50 text-blue-700 border-blue-200' },
+                ].map((metric) => (
+                  <div key={metric.label} className="rounded-[1.35rem] border border-white/75 bg-white/68 p-4 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.2)] backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <div className={`w-10 h-10 rounded-2xl border bg-white/80 flex items-center justify-center shadow-sm ${metric.chip}`}>
+                        <metric.icon size={16} />
+                      </div>
+                      <div className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-[0.18em] ${metric.chip}`}>
+                        {metric.label}
+                      </div>
+                    </div>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-slate-900">{metric.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span className="text-xs font-bold">Live</span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <MapPin size={14} className="text-blue-500" />
-            <span className="text-sm font-bold text-slate-600">Floor {selectedFloor} · {total} rooms</span>
+
+            <div className="flex flex-wrap xl:flex-col gap-3 xl:items-end">
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-white/75 border border-white/80 rounded-2xl shadow-sm backdrop-blur-sm">
+                <div className="relative">
+                  <Wifi size={14} className="text-emerald-600" />
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                </div>
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Live Feed</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-white/75 border border-white/80 rounded-2xl shadow-sm backdrop-blur-sm">
+                <MapPin size={14} className="text-blue-500" />
+                <span className="text-sm font-bold text-slate-700">Floor {selectedFloor} · {total} rooms</span>
+              </div>
+              <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border shadow-sm backdrop-blur-sm ${pageTone.accentSurface}`}>
+                <TrendingUp size={14} />
+                <span className="text-sm font-black">{readyPercent}% Ready</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ═══ Floor Selector - Horizontal with Progress ═══ */}
-      <div className="glass-card rounded-2xl p-5 animate-fade-in-up stagger-1">
-        <div className="flex items-center gap-3 mb-4">
-          <Building2 size={15} className="text-slate-400" />
-          <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Select Floor</span>
+      <div className={`${panelShellClass} animate-fade-in-up stagger-1 bg-gradient-to-br ${pageTone.selectorBg} p-5`}>
+        <div className={`pointer-events-none absolute inset-0 ${pageTone.selectorOverlay}`} />
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-white/80 border border-white/80 flex items-center justify-center shadow-sm">
+              <Building2 size={16} className="text-slate-500" />
+            </div>
+            <div>
+              <span className="text-xs font-black text-slate-400 uppercase tracking-[0.24em]">Select Floor</span>
+              <p className="text-xs text-slate-400 font-medium mt-1">Swap between live readiness states and bottlenecks</p>
+            </div>
+          </div>
+          <div className="px-3.5 py-1.5 rounded-full border border-white/80 bg-white/70 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 shadow-sm">
+            Live Floor Routing
+          </div>
         </div>
-        <div className="grid grid-cols-8 gap-2.5">
-          {floorProgress.map((fp) => (
-            <button
-              key={fp.floor}
-              onClick={() => setSelectedFloor(fp.floor)}
-              className={`relative rounded-xl p-3 transition-all duration-300 ${
-                selectedFloor === fp.floor
-                  ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-200 scale-[1.03]'
-                  : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-black">F{fp.floor}</span>
-                {fp.floor === 8 && <span className="text-[10px] opacity-70">★</span>}
-                {fp.flagged > 0 && selectedFloor !== fp.floor && (
-                  <div className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse" />
-                )}
-              </div>
-              {/* Mini Progress Bar */}
-              <div className={`w-full h-1.5 rounded-full ${selectedFloor === fp.floor ? 'bg-white/20' : 'bg-slate-200'}`}>
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    selectedFloor === fp.floor ? 'bg-white/80' 
-                    : fp.percent >= 80 ? 'bg-emerald-400' 
-                    : fp.percent >= 50 ? 'bg-amber-400' 
-                    : 'bg-rose-400'
-                  }`} 
-                  style={{ width: `${fp.percent}%` }} 
-                />
-              </div>
-              <span className={`text-[10px] font-bold mt-1.5 block ${selectedFloor === fp.floor ? 'text-white/70' : 'text-slate-400'}`}>
-                {fp.percent}% ready
-              </span>
-            </button>
-          ))}
+
+        <div className="relative grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
+          {floorProgress.map((fp) => {
+            const tone = getFloorCardTone(fp.percent);
+            return (
+              <button
+                key={fp.floor}
+                onClick={() => setSelectedFloor(fp.floor)}
+                className={`relative overflow-hidden rounded-[1.35rem] p-3.5 transition-all duration-300 ${
+                  selectedFloor === fp.floor
+                    ? `bg-gradient-to-br ${tone.active} text-white shadow-xl scale-[1.02]`
+                    : 'bg-white/72 border border-white/80 text-slate-600 shadow-sm hover:bg-white hover:shadow-lg hover:-translate-y-0.5'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-lg font-black">F{fp.floor}</span>
+                  <div className="flex items-center gap-1.5">
+                    {fp.floor === 8 && <span className={`text-[10px] ${selectedFloor === fp.floor ? 'text-white/70' : 'text-slate-300'}`}>★</span>}
+                    {fp.flagged > 0 && (
+                      <div className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${selectedFloor === fp.floor ? 'bg-white/15 text-white' : `border ${tone.badge}`}`}>
+                        {fp.flagged}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className={`w-full h-1.5 rounded-full ${selectedFloor === fp.floor ? 'bg-white/18' : 'bg-slate-200/80'}`}>
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${selectedFloor === fp.floor ? 'bg-white/85' : tone.rail}`}
+                    style={{ width: `${fp.percent}%` }}
+                  />
+                </div>
+                <div className="mt-2.5 flex items-center justify-between">
+                  <span className={`text-[10px] font-black uppercase tracking-[0.14em] ${selectedFloor === fp.floor ? 'text-white/70' : tone.mutedText}`}>
+                    {fp.percent}% ready
+                  </span>
+                  <span className={`text-[10px] font-bold ${selectedFloor === fp.floor ? 'text-white/60' : 'text-slate-400'}`}>
+                    {fp.total} rooms
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ═══ Stats Row ═══ */}
-      <div className="grid grid-cols-5 gap-4 animate-fade-in-up stagger-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 animate-fade-in-up stagger-2">
         {/* Progress Ring Card */}
-        <div className="glass-card rounded-2xl p-5 flex items-center gap-5">
-          <div className="relative shrink-0">
-            <ProgressRing percent={readyPercent} />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-base font-black text-slate-900">{readyPercent}%</span>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Floor Ready</p>
-            <p className="text-lg font-black text-slate-900 mt-0.5">{counts.ready}<span className="text-sm text-slate-400 font-medium"> / {total}</span></p>
-          </div>
-        </div>
-        
-        {/* Status Cards */}
-        {[
-          { label: 'Ready', count: counts.ready, config: statusConfig['ready'], icon: CheckCircle },
-          { label: 'In Progress', count: counts.inProgress, config: statusConfig['in-progress'], icon: Activity },
-          { label: 'Flagged', count: counts.flagged, config: statusConfig['flagged'], icon: AlertTriangle },
-          { label: 'Not Started', count: counts.notStarted, config: statusConfig['not-started'], icon: Clock },
-        ].map((stat) => (
-          <div key={stat.label} className={`glass-card rounded-2xl p-5 flex items-center gap-4 border-l-4 ${stat.config.border} hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5`}>
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.config.cardBg} flex items-center justify-center shrink-0`}>
-              <stat.icon size={18} className={stat.config.text} />
+        <div className={`${panelShellClass} bg-gradient-to-br from-[#eefcf5] via-[#ffffff] to-[#eef8ff] p-5`}>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08)_0,transparent_42%)]" />
+          <div className="relative flex items-center gap-5">
+            <div className="relative shrink-0">
+              <ProgressRing percent={readyPercent} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-base font-black text-slate-900">{readyPercent}%</span>
+              </div>
             </div>
             <div>
-              <span className="text-2xl font-black text-slate-900">{stat.count}</span>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{stat.label}</p>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.24em]">Floor Ready</p>
+              <p className="text-[1.6rem] font-black tracking-tight text-slate-900 mt-1">{counts.ready}<span className="text-sm text-slate-400 font-medium"> / {total}</span></p>
+              <div className={`inline-flex items-center gap-1.5 mt-3 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-[0.16em] ${pageTone.accentSurface}`}>
+                <TrendingUp size={12} />
+                Live Snapshot
+              </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Status Cards */}
+        {[
+          { key: 'ready', label: 'Ready', count: counts.ready, config: statusConfig['ready'], icon: CheckCircle },
+          { key: 'in-progress', label: 'In Progress', count: counts.inProgress, config: statusConfig['in-progress'], icon: Activity },
+          { key: 'flagged', label: 'Flagged', count: counts.flagged, config: statusConfig['flagged'], icon: AlertTriangle },
+          { key: 'not-started', label: 'Not Started', count: counts.notStarted, config: statusConfig['not-started'], icon: Clock },
+        ].map((stat) => {
+          const style = statCardStyles[stat.key];
+          return (
+            <div key={stat.label} className={`${panelShellClass} border ${style.border} bg-gradient-to-br ${style.surface} p-5`}>
+              <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+              <div className="relative flex items-center gap-4">
+                <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${style.iconSurface} flex items-center justify-center shrink-0 shadow-lg ${style.shadow}`}>
+                  <stat.icon size={18} className={stat.config.text} />
+                </div>
+                <div className="flex-1">
+                  <span className="text-3xl font-black tracking-tight text-slate-900">{stat.count}</span>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.22em] mt-1">{stat.label}</p>
+                </div>
+                <div className="rounded-full border border-white/80 bg-white/70 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 shadow-sm">
+                  {Math.round((stat.count / total) * 100)}%
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* ═══ Bottleneck Alert ═══ */}
       {isBottleneck && (
-        <div className="p-5 bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-200 rounded-2xl flex items-center gap-5 animate-fade-in-up shadow-sm">
+        <div className={`${panelShellClass} bg-gradient-to-r from-rose-50 via-orange-50 to-amber-50 p-5 flex items-center gap-5 animate-fade-in-up border border-rose-200/80`}>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,63,94,0.14)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.10)_0,transparent_42%)]" />
           <div className="p-3 bg-rose-100 rounded-2xl shrink-0">
             <Zap size={20} className="text-rose-600" />
           </div>
-          <div className="flex-1">
+          <div className="relative flex-1">
             <h4 className="text-sm font-bold text-rose-800">Bottleneck Detected — Floor {selectedFloor}</h4>
             <p className="text-xs text-rose-600 mt-0.5">Only {readyPercent}% ready with {counts.flagged} flagged rooms. Consider reassigning housekeepers.</p>
           </div>
-          <button className="px-5 py-2.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all shadow-md hover:shadow-lg shrink-0">
+          <button className="relative px-5 py-2.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 shrink-0">
             Reassign Staff
           </button>
         </div>
       )}
 
       {/* ═══ Room Layout ═══ */}
-      <div className="glass-card rounded-2xl overflow-hidden animate-fade-in-up stagger-3">
+      <div className={`${panelShellClass} overflow-hidden animate-fade-in-up stagger-3 bg-gradient-to-br ${pageTone.layoutBg}`}>
+        <div className={`pointer-events-none absolute inset-0 ${pageTone.layoutOverlay}`} />
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
         {/* Layout Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex items-center justify-between">
+        <div className="relative px-6 py-5 bg-white/72 border-b border-white/80 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-white/85 border border-white/90 rounded-2xl flex items-center justify-center shadow-sm">
               <Eye size={16} className="text-blue-600" />
             </div>
             <div>
@@ -334,9 +558,9 @@ export default function LiveFloorMap() {
               <p className="text-[10px] text-slate-400 font-medium">Hover rooms for details</p>
             </div>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-3 md:gap-5">
             {Object.entries(statusConfig).map(([key, cfg]) => (
-              <div key={key} className="flex items-center gap-2">
+              <div key={key} className="flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1.5 shadow-sm">
                 <div className={`w-3 h-3 rounded-md ${cfg.bg} shadow-sm`} />
                 <span className="text-xs text-slate-500 font-medium">{cfg.label}</span>
               </div>
@@ -345,28 +569,28 @@ export default function LiveFloorMap() {
         </div>
 
         {/* Room Grid Layout */}
-        <div className="p-6">
-          <div className="flex gap-4">
+        <div className="relative p-6">
+          <div className="flex flex-col md:flex-row gap-4">
             {/* West Wing */}
             <div className="flex-1">
               <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] text-center mb-3 flex items-center gap-2 justify-center">
-                <div className="flex-1 h-px bg-slate-100" />
+                <div className="flex-1 h-px bg-white/80" />
                 <span>West Wing</span>
-                <div className="flex-1 h-px bg-slate-100" />
+                <div className="flex-1 h-px bg-white/80" />
               </div>
-              <div className="grid grid-cols-3 gap-2.5 overflow-visible">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 overflow-visible">
                 {leftRooms.map((room, idx) => (
-                  <RoomCard key={room.number} room={room} selectedFloor={selectedFloor} hoveredRoom={hoveredRoom} setHoveredRoom={setHoveredRoom} roomIndex={idx} colCount={3} />
+                  <RoomCard key={room.number} room={room} selectedFloor={selectedFloor} hoveredRoom={hoveredRoom} setHoveredRoom={setHoveredRoom} roomIndex={idx} colCount={3} onRoomClick={handleRoomClick} />
                 ))}
               </div>
             </div>
 
             {/* Corridor */}
-            <div className="flex flex-col items-center w-14 shrink-0">
-              <div className="w-full px-2 py-2 bg-slate-100 rounded-t-xl border border-slate-200 border-b-0 flex items-center justify-center">
+            <div className="hidden md:flex flex-col items-center w-14 shrink-0">
+              <div className="w-full px-2 py-2 bg-white/85 rounded-t-xl border border-white/90 border-b-0 flex items-center justify-center shadow-sm">
                 <span className="text-[7px] font-black text-slate-400 uppercase tracking-wider">Stairs</span>
               </div>
-              <div className="w-full flex-1 bg-gradient-to-b from-slate-50 via-slate-100/50 to-slate-50 border-x border-slate-200 flex items-center justify-center relative min-h-[200px]">
+              <div className="w-full flex-1 bg-gradient-to-b from-white/90 via-slate-100/55 to-white/90 border-x border-white/90 flex items-center justify-center relative min-h-[200px]">
                 <div className="absolute inset-0 flex flex-col items-center justify-evenly py-4 opacity-30">
                   {Array.from({ length: 6 }, (_, i) => (
                     <div key={i} className="w-6 h-px bg-slate-300" />
@@ -376,12 +600,12 @@ export default function LiveFloorMap() {
                   Corridor
                 </span>
               </div>
-              <div className="w-full py-3 bg-blue-50 border border-blue-200 flex flex-col items-center justify-center gap-0.5">
+              <div className="w-full py-3 bg-blue-50/95 border border-blue-200/80 flex flex-col items-center justify-center gap-0.5 shadow-sm">
                 <ArrowUpDown size={12} className="text-blue-400" />
                 <span className="text-[7px] font-black text-blue-500 uppercase">Lift</span>
               </div>
-              <div className="w-full flex-1 bg-gradient-to-b from-slate-50 via-slate-100/50 to-slate-50 border-x border-slate-200 min-h-[80px]" />
-              <div className="w-full px-2 py-2 bg-slate-100 rounded-b-xl border border-slate-200 border-t-0 flex items-center justify-center">
+              <div className="w-full flex-1 bg-gradient-to-b from-white/90 via-slate-100/55 to-white/90 border-x border-white/90 min-h-[80px]" />
+              <div className="w-full px-2 py-2 bg-white/85 rounded-b-xl border border-white/90 border-t-0 flex items-center justify-center shadow-sm">
                 <span className="text-[7px] font-black text-slate-400 uppercase tracking-wider">Exit</span>
               </div>
             </div>
@@ -389,13 +613,13 @@ export default function LiveFloorMap() {
             {/* East Wing */}
             <div className="flex-1">
               <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] text-center mb-3 flex items-center gap-2 justify-center">
-                <div className="flex-1 h-px bg-slate-100" />
+                <div className="flex-1 h-px bg-white/80" />
                 <span>East Wing</span>
-                <div className="flex-1 h-px bg-slate-100" />
+                <div className="flex-1 h-px bg-white/80" />
               </div>
-              <div className="grid grid-cols-3 gap-2.5 overflow-visible">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 overflow-visible">
                 {rightRooms.map((room, idx) => (
-                  <RoomCard key={room.number} room={room} selectedFloor={selectedFloor} hoveredRoom={hoveredRoom} setHoveredRoom={setHoveredRoom} roomIndex={idx} colCount={3} />
+                  <RoomCard key={room.number} room={room} selectedFloor={selectedFloor} hoveredRoom={hoveredRoom} setHoveredRoom={setHoveredRoom} roomIndex={idx} colCount={3} onRoomClick={handleRoomClick} />
                 ))}
               </div>
             </div>
@@ -404,9 +628,11 @@ export default function LiveFloorMap() {
       </div>
 
       {/* ═══ Active Housekeepers ═══ */}
-      <div className="glass-card rounded-2xl overflow-hidden animate-fade-in-up stagger-4">
-        <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+      <div className={`${panelShellClass} overflow-hidden animate-fade-in-up stagger-4 bg-gradient-to-br ${pageTone.staffBg}`}>
+        <div className={`pointer-events-none absolute inset-0 ${pageTone.staffOverlay}`} />
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+        <div className="relative px-6 py-5 bg-white/72 border-b border-white/80 flex items-center gap-3">
+          <div className="w-9 h-9 bg-white/85 border border-white/90 rounded-2xl flex items-center justify-center shadow-sm">
             <Shield size={16} className="text-blue-600" />
           </div>
           <div>
@@ -414,13 +640,13 @@ export default function LiveFloorMap() {
             <p className="text-[10px] text-slate-400 font-medium">{activeHousekeepers.length} currently assigned</p>
           </div>
           {activeHousekeepers.length > 0 && (
-            <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
+            <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white/80 text-blue-600 rounded-full border border-white/90 shadow-sm">
               <TrendingUp size={12} />
               <span className="text-xs font-bold">{activeHousekeepers.length} Active</span>
             </div>
           )}
         </div>
-        <div className="p-6">
+        <div className="relative p-6">
           {activeHousekeepers.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {activeHousekeepers.map((room) => (

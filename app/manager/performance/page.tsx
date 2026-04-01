@@ -72,7 +72,7 @@ export default function StaffPerformance() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center justify-between animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Staff Performance</h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">Taj Mahal Palace, Mumbai — 8 housekeepers on shift</p>
@@ -92,7 +92,7 @@ export default function StaffPerformance() {
       {/* Top Performer Spotlight */}
       <div className="bg-gradient-to-br from-amber-50/60 via-white to-orange-50/30 rounded-[1.5rem] p-7 border border-amber-200/60 relative overflow-hidden animate-fade-in-up stagger-1 shadow-sm hover:shadow-lg transition-all duration-300">
         <div className="absolute top-0 right-0 w-72 h-72 bg-[radial-gradient(circle_at_80%_20%,rgba(245,158,11,0.12)_0,transparent_60%)] pointer-events-none" />
-        <div className="flex items-center gap-7 relative z-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 md:gap-7 relative z-10">
           <div className="w-18 h-18 rounded-[1.25rem] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl shadow-amber-200/60 p-5">
             <Trophy size={32} className="text-white" />
           </div>
@@ -208,7 +208,7 @@ export default function StaffPerformance() {
                               </div>
                             ))}
                           </div>
-                          <div className="grid grid-cols-4 gap-3">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {Array.from({ length: parseInt(staff.rooms.split('/')[0]) }, (_, j) => (
                               <div key={j} className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border transition-all hover:shadow-sm ${
                                 j < parseInt(staff.rooms.split('/')[0]) * (staff.passRate / 100) 
