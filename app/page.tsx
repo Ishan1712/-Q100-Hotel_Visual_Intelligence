@@ -131,10 +131,15 @@ export default function HousekeeperDashboard() {
     { number: "432", type: "VIP", status: "not-started" },
   ] as const;
 
-  const filteredRooms = rooms.filter(room => 
-    room.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    room.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const statusOrder = { 'not-started': 0, 'in-progress': 1, 'flagged': 2, 'done': 3 } as const;
+
+  const filteredRooms = rooms
+    .filter(room =>
+      room.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      room.type.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .slice()
+    .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-10 px-4 md:px-6">

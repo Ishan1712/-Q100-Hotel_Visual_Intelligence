@@ -20,7 +20,8 @@ import {
   XCircle,
   Upload
 } from 'lucide-react';
-import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage } from '../lib/comparison';
+import Link from 'next/link';
+import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage, AIProvider } from '../lib/comparison';
 
 // --- Types & Dummy Data ---
 
@@ -77,8 +78,10 @@ export default function InspectionFlowPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [analysisReason, setAnalysisReason] = useState<string | null>(null);
+
   const [capturedImages, setCapturedImages] = useState<Record<number, string>>({});
   const [viewingCheckpointId, setViewingCheckpointId] = useState<number | null>(null);
+  const [aiProvider, setAiProvider] = useState<AIProvider>('google');
 
   const toImageSrc = (value?: string | null) => {
     if (!value) return null;
@@ -123,7 +126,7 @@ export default function InspectionFlowPage() {
         throw new Error("Reference image not loaded. Please contact support.");
       }
 
-      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref);
+      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref, aiProvider);
 
       setComparing(false);
       setAnalysisReason(result.reason);
@@ -142,14 +145,14 @@ export default function InspectionFlowPage() {
           } else {
             setPhase('report');
           }
-        }, 1500);
+        }, 6000);
       }
     } catch (err: any) {
       setComparing(false);
       setAnalysisReason(err.message || "Error processing image.");
       setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'fail' }));
     }
-  }, [currentStep]);
+  }, [currentStep, checkpoints, aiProvider]);
 
   const handlePhotoModeCapture = React.useCallback(async () => {
     let insB64 = "";
@@ -352,7 +355,7 @@ export default function InspectionFlowPage() {
                 className={`group border p-5 rounded-[2rem] transition-all duration-300 text-left shadow-2xl hover:scale-[1.02] active:scale-95 relative overflow-hidden flex flex-col items-stretch ${styles}`}
               >
                 <div className={`absolute top-0 left-0 right-0 h-1 ${room.type === 'Standard' ? 'bg-blue-500' :
-                    room.type === 'Suite' ? 'bg-indigo-500' : 'bg-amber-500'
+                  room.type === 'Suite' ? 'bg-indigo-500' : 'bg-amber-500'
                   }`} />
 
                 <div className="flex justify-between items-start mb-6">
@@ -373,7 +376,7 @@ export default function InspectionFlowPage() {
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Room {room.number}</h3>
                     <div className="flex items-center gap-2 mt-2">
                       <div className={`w-2 h-2 rounded-full transition-all duration-500 group-hover:scale-125 ${room.type === 'Standard' ? "bg-blue-400" :
-                          room.type === 'Suite' ? "bg-indigo-400" : "bg-amber-400"
+                        room.type === 'Suite' ? "bg-indigo-400" : "bg-amber-400"
                         }`} />
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Awaiting Inspection</span>
                     </div>
@@ -487,8 +490,8 @@ export default function InspectionFlowPage() {
                 key={step.id}
                 onClick={() => setCurrentStep(idx)}
                 className={`w-2 md:w-2.5 h-2 md:h-2.5 rounded-full transition-all duration-300 ${idx === currentStep ? "bg-blue-600 scale-110 ring-2 ring-blue-600/20" :
-                    results[step.id] === 'pass' ? "bg-emerald-500" :
-                      results[step.id] === 'fail' ? "bg-rose-500" : "bg-slate-200"
+                  results[step.id] === 'pass' ? "bg-emerald-500" :
+                    results[step.id] === 'fail' ? "bg-rose-500" : "bg-slate-200"
                   }`}
               />
             ))}
@@ -828,10 +831,10 @@ export default function InspectionFlowPage() {
               <div
                 key={cp.id}
                 className={`relative bg-white p-4 md:p-5 lg:p-6 rounded-2xl md:rounded-3xl border shadow-sm flex flex-col items-center justify-between gap-3 md:gap-4 transition-all group hover:shadow-lg hover:-translate-y-1 ${status === 'fail'
-                    ? 'border-rose-400 hover:border-rose-500 hover:shadow-rose-500/20'
-                    : status === 'pass'
-                      ? 'border-emerald-400 border-[1.5px] shadow-emerald-500/10 hover:border-emerald-500'
-                      : 'border-slate-100 hover:border-slate-200'
+                  ? 'border-rose-400 hover:border-rose-500 hover:shadow-rose-500/20'
+                  : status === 'pass'
+                    ? 'border-emerald-400 border-[1.5px] shadow-emerald-500/10 hover:border-emerald-500'
+                    : 'border-slate-100 hover:border-slate-200'
                   }`}
               >
                 {/* View Images Camera Icon */}
@@ -876,8 +879,8 @@ export default function InspectionFlowPage() {
                   ) : (
                     <div
                       className={`w-full py-2.5 rounded-xl text-[8px] md:text-[9px] font-bold uppercase tracking-widest text-center border ${status === 'pass'
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                          : "bg-slate-50 text-slate-400 border-slate-200"
+                        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                        : "bg-slate-50 text-slate-400 border-slate-200"
                         }`}
                     >
                       {status === 'pass' ? 'Pass' : 'Queued'}
@@ -927,7 +930,7 @@ export default function InspectionFlowPage() {
                     } else if (keyValue.length < 4) setKeyValue(prev => prev + d);
                   }}
                   className={`h-14 md:h-16 rounded-xl md:rounded-2xl text-lg md:text-xl font-black transition-all active:scale-95 shadow-sm ${d === 'OK' ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" :
-                      d === 'C' ? "bg-rose-50 text-rose-500 border border-rose-100" : "bg-white text-slate-900 border border-slate-100 hover:bg-slate-50"
+                    d === 'C' ? "bg-rose-50 text-rose-500 border border-rose-100" : "bg-white text-slate-900 border border-slate-100 hover:bg-slate-50"
                     }`}
                 >
                   {d}

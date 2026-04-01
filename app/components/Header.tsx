@@ -25,7 +25,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
           <div className="flex flex-col">
             <span className="text-xs md:text-sm font-bold text-slate-900 leading-none truncate max-w-[120px] md:max-w-none">JW Marriott</span>
-            <span className="text-[8px] md:text-[10px] font-bold text-blue-500 mt-0.5 md:mt-1 uppercase tracking-widest hidden xs:block">Premium Estate</span>
+            <span className="text-[8px] md:text-[10px] font-bold text-blue-500 mt-0.5 uppercase tracking-widest hidden xs:block">Premium Estate</span>
+            <span className="text-[7px] md:text-[9px] font-medium text-slate-400 truncate max-w-[100px] md:max-w-none">Pune, Maharashtra</span>
           </div>
         </div>
       </div>
