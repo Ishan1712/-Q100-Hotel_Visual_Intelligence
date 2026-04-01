@@ -414,11 +414,11 @@ export default function ManagerDashboard() {
           {/* Readiness + Shift Overview Row */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
             {/* Readiness Donut */}
-            <div className={`${dashboardPanelBaseClass} md:col-span-3 bg-gradient-to-br from-[#edf8ff] via-[#fbfeff] to-[#edfdf4] p-6 animate-fade-in-up stagger-2 flex flex-col`}>
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22)_0,transparent_36%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.18)_0,transparent_34%)] opacity-95 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="pointer-events-none absolute -right-12 -top-4 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl transition-transform duration-500 group-hover:scale-110 group-hover:-translate-x-2" />
-              <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-emerald-200/25 blur-3xl transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1" />
-              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+            <div className={`${dashboardPanelBaseClass} md:col-span-3 bg-white p-6 animate-fade-in-up stagger-2 flex flex-col`}>
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.95)_0,transparent_42%),radial-gradient(circle_at_bottom_right,rgba(148,163,184,0.08)_0,transparent_34%)] opacity-100" />
+              <div className="pointer-events-none absolute -right-12 -top-4 h-40 w-40 rounded-full bg-slate-100/70 blur-3xl transition-transform duration-500 group-hover:scale-110 group-hover:-translate-x-2" />
+              <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-slate-100/60 blur-3xl transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1" />
+              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent opacity-100" />
               <div className="relative flex items-start justify-between gap-3 mb-5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-[1.1rem] bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center shadow-sm shadow-blue-200/70">
@@ -467,11 +467,11 @@ export default function ManagerDashboard() {
             </div>
 
             {/* Shift Overview — fills right side */}
-            <div className={`${dashboardPanelBaseClass} md:col-span-2 bg-gradient-to-br from-[#f2f3ff] via-[#fcfcff] to-[#edf8ff] p-5 animate-fade-in-up stagger-2`}>
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.14)_0,transparent_42%)] opacity-95 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="pointer-events-none absolute -right-10 -top-6 h-36 w-36 rounded-full bg-indigo-200/28 blur-3xl transition-transform duration-500 group-hover:scale-110 group-hover:-translate-x-2" />
-              <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-sky-200/20 blur-3xl transition-transform duration-500 group-hover:scale-110" />
-              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+            <div className={`${dashboardPanelBaseClass} md:col-span-2 bg-white p-5 animate-fade-in-up stagger-2`}>
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.96)_0,transparent_38%),radial-gradient(circle_at_bottom_left,rgba(148,163,184,0.08)_0,transparent_42%)] opacity-100" />
+              <div className="pointer-events-none absolute -right-10 -top-6 h-36 w-36 rounded-full bg-slate-100/70 blur-3xl transition-transform duration-500 group-hover:scale-110 group-hover:-translate-x-2" />
+              <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-slate-100/55 blur-3xl transition-transform duration-500 group-hover:scale-110" />
+              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent opacity-100" />
               <div className="relative flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center shadow-sm shadow-indigo-200/70">
                   <Activity size={16} className="text-indigo-600" />
@@ -511,11 +511,11 @@ export default function ManagerDashboard() {
           </div>
 
           {/* Floor-by-Floor Bars */}
-          <div className={`${dashboardPanelBaseClass} bg-gradient-to-br from-[#eef3ff] via-[#fbfcff] to-[#f2f8ff] p-7 animate-fade-in-up stagger-3`}>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.18)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12)_0,transparent_40%)] opacity-95 transition-opacity duration-500 group-hover:opacity-100" />
-            <div className="pointer-events-none absolute -right-8 -top-6 h-36 w-36 rounded-full bg-indigo-200/25 blur-3xl transition-transform duration-500 group-hover:scale-110" />
-            <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-sky-200/20 blur-3xl transition-transform duration-500 group-hover:-translate-y-1" />
-            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+          <div className={`${dashboardPanelBaseClass} bg-white p-7 animate-fade-in-up stagger-3`}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.96)_0,transparent_38%),radial-gradient(circle_at_bottom_right,rgba(148,163,184,0.08)_0,transparent_40%)] opacity-100" />
+            <div className="pointer-events-none absolute -right-8 -top-6 h-36 w-36 rounded-full bg-slate-100/70 blur-3xl transition-transform duration-500 group-hover:scale-110" />
+            <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-slate-100/55 blur-3xl transition-transform duration-500 group-hover:-translate-y-1" />
+            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent opacity-100" />
             <div className="relative flex items-center gap-3 mb-5">
               <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center shadow-sm shadow-indigo-200/70">
                 <Zap size={16} className="text-indigo-600" />
@@ -546,11 +546,11 @@ export default function ManagerDashboard() {
         {/* Right Column: Alerts + VIP */}
         <div className="space-y-5">
           {/* Critical Alerts */}
-          <div className={`${dashboardPanelBaseClass} bg-gradient-to-br from-[#fff4f6] via-[#fffdfa] to-[#fff6eb] p-6 animate-fade-in-up stagger-2`}>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(244,63,94,0.18)_0,transparent_32%),radial-gradient(circle_at_bottom_left,rgba(251,191,36,0.12)_0,transparent_44%)] opacity-95 transition-opacity duration-500 group-hover:opacity-100" />
-            <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-rose-200/25 blur-3xl transition-transform duration-500 group-hover:scale-110" />
-            <div className="pointer-events-none absolute -left-8 bottom-0 h-24 w-24 rounded-full bg-amber-200/20 blur-3xl transition-transform duration-500 group-hover:-translate-y-1" />
-            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+          <div className={`${dashboardPanelBaseClass} bg-white p-6 animate-fade-in-up stagger-2`}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.96)_0,transparent_34%),radial-gradient(circle_at_bottom_left,rgba(148,163,184,0.08)_0,transparent_44%)] opacity-100" />
+            <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-slate-100/70 blur-3xl transition-transform duration-500 group-hover:scale-110" />
+            <div className="pointer-events-none absolute -left-8 bottom-0 h-24 w-24 rounded-full bg-slate-100/55 blur-3xl transition-transform duration-500 group-hover:-translate-y-1" />
+            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent opacity-100" />
             <div className="relative flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center shadow-sm shadow-rose-200/70">
@@ -568,11 +568,11 @@ export default function ManagerDashboard() {
           </div>
 
           {/* VIP Arrivals */}
-          <div className={`${dashboardPanelBaseClass} bg-gradient-to-br from-[#fff9ef] via-[#fffdf8] to-[#f1f8ff] p-6 animate-fade-in-up stagger-3`}>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.18)_0,transparent_32%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12)_0,transparent_42%)] opacity-95 transition-opacity duration-500 group-hover:opacity-100" />
-            <div className="pointer-events-none absolute -left-8 -top-6 h-28 w-28 rounded-full bg-amber-200/25 blur-3xl transition-transform duration-500 group-hover:scale-110" />
-            <div className="pointer-events-none absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-sky-200/18 blur-3xl transition-transform duration-500 group-hover:-translate-y-1" />
-            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+          <div className={`${dashboardPanelBaseClass} bg-white p-6 animate-fade-in-up stagger-3`}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.96)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(148,163,184,0.08)_0,transparent_42%)] opacity-100" />
+            <div className="pointer-events-none absolute -left-8 -top-6 h-28 w-28 rounded-full bg-slate-100/70 blur-3xl transition-transform duration-500 group-hover:scale-110" />
+            <div className="pointer-events-none absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-slate-100/55 blur-3xl transition-transform duration-500 group-hover:-translate-y-1" />
+            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent opacity-100" />
             <div className="relative flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shadow-sm shadow-amber-200/70">

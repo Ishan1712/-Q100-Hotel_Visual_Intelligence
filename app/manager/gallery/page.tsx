@@ -386,11 +386,20 @@ const ReportModal = ({ room, onClose }: { room: ReturnType<typeof generateFloorR
 const imageCategories = ["Absence / Presence Check", "Defect Detection", "Orientation / Alignment Check", "Barcode / QR Code Verification"];
 
 /* ═══ Custom Image Type ═══ */
-type CustomImage = { name: string; code: string; image: string; categories: string[] };
+type CustomImage = {
+  name: string;
+  description?: string;
+  code: string;
+  image: string;
+  categories: string[];
+  roomTypeName?: string;
+  roomNumber?: string;
+};
 
 /* ═══ Add Image Modal (2-step) ═══ */
 const AddImageModal = ({ sectionType, onClose, onSave }: { sectionType: 'zone' | 'product'; onClose: () => void; onSave: (data: CustomImage) => void }) => {
   const [itemName, setItemName] = useState('');
+  const [itemDescription, setItemDescription] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -433,7 +442,13 @@ const AddImageModal = ({ sectionType, onClose, onSave }: { sectionType: 'zone' |
   const handleClose = () => { stopCamera(); onClose(); };
 
   const handleSave = () => {
-    onSave({ name: itemName, code: '', image: imagePreview || '', categories: [] });
+    onSave({
+      name: itemName.trim(),
+      description: itemDescription.trim() || undefined,
+      code: '',
+      image: imagePreview || '',
+      categories: [],
+    });
     handleClose();
   };
 
@@ -467,6 +482,19 @@ const AddImageModal = ({ sectionType, onClose, onSave }: { sectionType: 'zone' |
             <input type="text" value={itemName} onChange={e => setItemName(e.target.value)}
               placeholder={sectionType === 'zone' ? 'e.g., Bed Area' : 'e.g., Pillow Set'}
               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-300 transition-all" />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-2">
+              Description
+            </label>
+            <textarea
+              value={itemDescription}
+              onChange={(e) => setItemDescription(e.target.value)}
+              placeholder={sectionType === 'zone' ? 'e.g., Vanity setup close-up for amenity placement' : 'e.g., Keep label visible and centered in the frame'}
+              rows={3}
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10"
+            />
           </div>
 
           {/* Image Upload/Capture */}
@@ -708,24 +736,33 @@ export default function MasterGallery() {
   const [editingCard, setEditingCard] = useState<{ section: 'zone' | 'product' | 'room-zone' | 'room-product'; index: number; isCustom: boolean } | null>(null);
   const [editCardName, setEditCardName] = useState('');
   const [editCardImage, setEditCardImage] = useState<string | null>(null);
-  const [expandedChecklistItem, setExpandedChecklistItem] = useState<number | null>(null);
-
   const defaultZones = ["Bed Area", "Bathroom", "Desk Area", "Minibar", "Entrance"];
   const defaultProducts = ["Pillow Set", "Bath Towels", "Soap Bar", "Shampoo", "Dental Kit", "Minibar Bottles", "Welcome Card", "TV Remote"];
 
   const floorRooms = useMemo(() => generateFloorRooms(selectedFloor), [selectedFloor]);
   const allFloorRooms = useMemo(() => {
     const custom = customRooms.filter(r => r.floor === selectedFloor);
-    return [...floorRooms, ...custom];
+    return [...floorRooms, ...custom].sort((a, b) => Number(a.number) - Number(b.number));
   }, [floorRooms, customRooms, selectedFloor]);
   const filteredRooms = allFloorRooms.filter(r =>
     r.number.includes(roomSearch) || r.type.toLowerCase().includes(roomSearch.toLowerCase())
   );
   const activeRoom = allFloorRooms.find(r => r.number === selectedRoom);
-  const activeChecklist = selectedRoom ? generateChecklist(selectedRoom) : [];
   const selectedRoomTypeData = selectedType !== null ? roomTypes[selectedType] : null;
   const selectedRoomTypeColors = selectedRoomTypeData ? colorMap[selectedRoomTypeData.color] || colorMap.blue : colorMap.blue;
   const selectedRoomTypeTheme = selectedRoomTypeData ? expandedTypeThemes[selectedRoomTypeData.color] || expandedTypeThemes.blue : expandedTypeThemes.blue;
+  const activeTypeCustomZones = useMemo(() => {
+    if (!selectedRoomTypeData) return [];
+    return customZoneImages
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.roomTypeName === selectedRoomTypeData.name);
+  }, [customZoneImages, selectedRoomTypeData]);
+  const activeRoomCustomZones = useMemo(() => {
+    if (!activeRoom) return [];
+    return customRoomZones
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.roomNumber === activeRoom.number);
+  }, [activeRoom, customRoomZones]);
 
 
   const handleToggleCheckpoint = (idx: number) => {
@@ -776,7 +813,9 @@ export default function MasterGallery() {
   };
 
   const handleSaveImage = (type: 'zone' | 'product', data: CustomImage) => {
-    if (type === 'zone') setCustomZoneImages(prev => [...prev, data]);
+    if (type === 'zone') {
+      setCustomZoneImages(prev => [...prev, { ...data, roomTypeName: selectedRoomTypeData?.name }]);
+    }
     else setCustomProductImages(prev => [...prev, data]);
   };
 
@@ -793,14 +832,29 @@ export default function MasterGallery() {
   const handleRemoveCustomZone = (idx: number) => setCustomZoneImages(prev => prev.filter((_, i) => i !== idx));
   const handleRemoveCustomProduct = (idx: number) => setCustomProductImages(prev => prev.filter((_, i) => i !== idx));
 
-  const handleAddRoom = (room: CustomRoom) => setCustomRooms(prev => [...prev, room]);
+  const handleAddRoom = (room: CustomRoom) => {
+    setCustomRooms(prev => {
+      const next = prev.some((existingRoom) => existingRoom.floor === room.floor && existingRoom.number === room.number)
+        ? prev.map((existingRoom) =>
+            existingRoom.floor === room.floor && existingRoom.number === room.number ? room : existingRoom
+          )
+        : [...prev, room];
+      return next.sort((a, b) => Number(a.number) - Number(b.number));
+    });
+    setViewMode('rooms');
+    setSelectedFloor(room.floor);
+    setSelectedRoom(room.number);
+    setRoomSearch('');
+  };
 
   const handleRemoveRoomZone = (roomNum: string, zone: string) => {
     setRemovedRoomZones(prev => { const next = new Set(prev); next.add(`${roomNum}::${zone}`); return next; });
   };
 
   const handleSaveRoomItem = (type: 'zone' | 'product', data: CustomImage) => {
-    if (type === 'zone') setCustomRoomZones(prev => [...prev, data]);
+    if (type === 'zone') {
+      setCustomRoomZones(prev => [...prev, { ...data, roomNumber: activeRoom?.number }]);
+    }
     else setCustomRoomProducts(prev => [...prev, data]);
   };
 
@@ -1018,7 +1072,7 @@ export default function MasterGallery() {
                         );
                       })}
                       {/* Custom added zone images */}
-                      {customZoneImages.map((ci, ciIdx) => (
+                      {activeTypeCustomZones.map(({ item: ci, index: ciIdx }) => (
                         <div key={`custom-zone-${ciIdx}`} className="aspect-square rounded-2xl flex items-center justify-center flex-col gap-1.5 transition-all duration-300 relative group overflow-hidden border-2 border-emerald-200 bg-emerald-50 hover:shadow-lg hover:-translate-y-0.5 cursor-default">
                           {ci.image ? (
                             <img src={ci.image} alt={ci.name} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
@@ -1229,7 +1283,7 @@ export default function MasterGallery() {
                       <span className="text-sm font-bold text-slate-900">Zone Images</span>
                     </div>
                     <span className="text-xs text-slate-400 font-medium">
-                      {defaultZones.filter(z => !removedRoomZones.has(`${activeRoom.number}::${z}`)).length + customRoomZones.length} items
+                      {defaultZones.filter(z => !removedRoomZones.has(`${activeRoom.number}::${z}`)).length + activeRoomCustomZones.length} items
                     </span>
                   </div>
 
@@ -1282,7 +1336,7 @@ export default function MasterGallery() {
                             </div>
                           );
                         })}
-                        {customRoomZones.map((item, idx) => (
+                        {activeRoomCustomZones.map(({ item, index: idx }) => (
                           <div key={`custom-rz-${idx}`} className="aspect-square rounded-xl border-2 border-emerald-200 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer relative group">
                             <button onClick={() => handleRemoveCustomRoomZone(idx)} className="absolute top-1.5 left-1.5 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-rose-600" title="Remove">
                               <X size={10} className="text-white" />
@@ -1309,68 +1363,6 @@ export default function MasterGallery() {
                     </>
                   )}
 
-                </div>
-
-                {/* ═══ Inspection Checklist (Interactive) ═══ */}
-                <div className="glass-card rounded-2xl p-6">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Inspection Checklist</h3>
-                  <div className="space-y-2">
-                    {activeChecklist.map((item, j) => {
-                      const isExpanded = expandedChecklistItem === j;
-                      const alreadyInProducts = defaultProducts.some(p => p.toLowerCase() === item.name.toLowerCase() && !removedRoomProducts.has(`${activeRoom.number}::${p}`)) || customRoomProducts.some(p => p.name.toLowerCase() === item.name.toLowerCase());
-                      return (
-                        <div key={j}>
-                          <div
-                            onClick={() => setExpandedChecklistItem(isExpanded ? null : j)}
-                            className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${item.status === 'pass' ? 'bg-emerald-50/50 hover:bg-emerald-50' : 'bg-rose-50/50 hover:bg-rose-50'}`}
-                          >
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${item.status === 'pass' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
-                              {item.status === 'pass' ? <CheckCircle size={14} className="text-emerald-600" /> : <XCircle size={14} className="text-rose-600" />}
-                            </div>
-                            <span className="text-sm font-medium text-slate-700 flex-1">{item.name}</span>
-                            <span className={`text-[10px] font-black uppercase ${item.status === 'pass' ? 'text-emerald-600' : 'text-rose-600'}`}>{item.status === 'pass' ? 'Pass' : 'Fail'}</span>
-                            <ChevronRight size={14} className={`text-slate-300 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                          </div>
-                          {isExpanded && (
-                            <div className="ml-10 mt-1 mb-2 flex items-center gap-2">
-                              {alreadyInProducts ? (
-                                <button
-                                  onClick={() => {
-                                    // Remove from products
-                                    const defaultMatch = defaultProducts.find(p => p.toLowerCase() === item.name.toLowerCase());
-                                    if (defaultMatch) {
-                                      handleRemoveRoomProduct(activeRoom.number, defaultMatch);
-                                    } else {
-                                      const customIdx = customRoomProducts.findIndex(p => p.name.toLowerCase() === item.name.toLowerCase());
-                                      if (customIdx >= 0) handleRemoveCustomRoomProduct(customIdx);
-                                    }
-                                    setExpandedChecklistItem(null);
-                                  }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100 transition-all active:scale-95"
-                                >
-                                  <X size={12} /> Remove from Products
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => {
-                                    setCustomRoomProducts(prev => [...prev, { name: item.name, code: `CHK-${j}`, image: '', categories: [] }]);
-                                    setExpandedChecklistItem(null);
-                                    setRoomDetailTab('products');
-                                  }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all active:scale-95"
-                                >
-                                  <Plus size={12} /> Add to Products
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 text-sm text-slate-400">
-                    <strong className="text-slate-700">{activeChecklist.filter(c => c.status === 'pass').length}</strong> of {activeChecklist.length} passed
-                  </div>
                 </div>
               </div>
             )}

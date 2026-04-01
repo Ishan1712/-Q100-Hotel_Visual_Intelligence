@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { 
   AlertTriangle, CheckCircle, 
   XCircle, Eye, Clock, IndianRupee, RotateCcw, Ban, User, ScanSearch,
-  Shield, Sparkles, ArrowRight, Upload, X, Image as ImageIcon, Play,
+  Shield, Sparkles, ArrowRight,
   Building2, Search
 } from 'lucide-react';
 
@@ -196,10 +196,6 @@ function AIInspectionDetailContent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [initialRoomNum, isRoomDropdownOpen, selectedRoomNum]);
 
-  // Image upload state
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const floorRooms = useMemo(() => generateFloorRooms(selectedFloor), [selectedFloor]);
   
   // Default to first room if none selected
@@ -228,13 +224,11 @@ function AIInspectionDetailContent() {
         : 'Awaiting a fresh scan to complete the comparison.';
   const scanImageSrc = showAfter
     ? '/master/08_Bathroom_Amenities_master.png'
-    : capturedImage || '/master/08_Bathroom_Ammenties_Missing.png';
-  const scanTitle = showAfter ? 'Re-Scan (After Fix)' : capturedImage ? 'Uploaded Re-Scan' : "Housekeeper's Scan";
+    : '/master/08_Bathroom_Ammenties_Missing.png';
+  const scanTitle = showAfter ? 'Re-Scan (After Fix)' : "Housekeeper's Scan";
   const scanSubtitle = showAfter
     ? 'Corrected scan with all visible issues resolved.'
-    : capturedImage
-      ? 'Newly uploaded capture ready for AI comparison.'
-      : 'Original flagged scan from housekeeping.';
+    : 'Original flagged scan from housekeeping.';
   const normalizedRoomSearch = roomSearchQuery.trim().toLowerCase();
   const filteredRooms = useMemo(() => {
     if (!normalizedRoomSearch || normalizedRoomSearch === room.number.toLowerCase()) return floorRooms;
@@ -255,7 +249,6 @@ function AIInspectionDetailContent() {
     setSelectedRoomNum(firstRoom);
     setRoomSearchQuery(firstRoom || '');
     setShowAfter(false);
-    setCapturedImage(null);
     setIsRoomDropdownOpen(false);
   };
 
@@ -263,26 +256,12 @@ function AIInspectionDetailContent() {
     setSelectedRoomNum(roomNum);
     setRoomSearchQuery(roomNum);
     setShowAfter(false);
-    setCapturedImage(null);
     setIsRoomDropdownOpen(false);
   };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => { if (ev.target?.result) setCapturedImage(ev.target.result as string); };
-    reader.readAsDataURL(file);
-  };
-
-  const removeImage = () => { setCapturedImage(null); };
 
   return (
     <div className="relative space-y-6 pb-12">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[1080px] bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08)_0,transparent_38%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.07)_0,transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.86)_0%,rgba(248,250,252,0)_78%)]" />
-
-      {/* Hidden file input */}
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
 
       {/* Inspection Header */}
       <div className={`${panelShellClass} isolate animate-fade-in-up border-slate-200/70 bg-gradient-to-br ${pageTone.heroBg} p-5 lg:p-6 ${isRoomDropdownOpen ? 'z-50 overflow-visible' : ''}`}>
@@ -500,26 +479,6 @@ function AIInspectionDetailContent() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {!showAfter && (
-                  <>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/80 bg-white/85 px-3 py-2 text-xs font-bold text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:text-slate-900 hover:shadow-md"
-                    >
-                      <Upload size={12} />
-                      Upload Scan
-                    </button>
-                    {capturedImage && (
-                      <button
-                        onClick={removeImage}
-                        className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50/90 px-3 py-2 text-xs font-bold text-rose-600 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-                      >
-                        <X size={12} />
-                        Clear
-                      </button>
-                    )}
-                  </>
-                )}
                 <button
                   onClick={() => setShowAfter(!showAfter)}
                   className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm transition-all active:scale-95 ${
@@ -539,7 +498,7 @@ function AIInspectionDetailContent() {
               <div className="w-full h-full relative overflow-hidden">
                 <img
                   src={scanImageSrc}
-                  alt={capturedImage ? 'Uploaded inspection scan' : "Housekeeper's Scan — Issues Detected"}
+                  alt="Housekeeper's Scan — Issues Detected"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
@@ -557,12 +516,6 @@ function AIInspectionDetailContent() {
                       </div>
                     )}
                   </>
-                )}
-                {capturedImage && (
-                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-xl bg-slate-900/70 px-3 py-1.5 backdrop-blur-sm">
-                    <ImageIcon size={10} className="text-white" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white">Uploaded capture</span>
-                  </div>
                 )}
                 <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-xl bg-rose-500/90 px-3 py-1.5 backdrop-blur-sm">
                   <AlertTriangle size={10} className="text-white" />
@@ -641,15 +594,6 @@ function AIInspectionDetailContent() {
           </div>
         </div>
       </div>
-
-      {/* Start Analysis Button */}
-      {capturedImage && !showAfter && (
-        <div className="flex justify-center animate-fade-in-up">
-          <button className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-sm font-bold hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 shadow-lg shadow-blue-200">
-            <Play size={18} /> Start Analysis
-          </button>
-        </div>
-      )}
 
       {/* Discrepancy List + Impact Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -763,7 +707,7 @@ function AIInspectionDetailContent() {
                       Latest Scan
                     </div>
                     <p className="mt-3 text-lg font-black text-slate-900">{room.lastScan}</p>
-                    <p className="mt-1 text-xs text-slate-400">{capturedImage ? 'Includes an uploaded re-check image.' : 'Current scan in manager review queue.'}</p>
+                    <p className="mt-1 text-xs text-slate-400">Current scan in manager review queue.</p>
                   </div>
                 </div>
 
