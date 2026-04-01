@@ -252,7 +252,7 @@ export default function RevenueImpact() {
                       tickFormatter={(v) => `₹${v}L`}
                     />
                     <Tooltip
-                      formatter={(value: number) => [`+₹${value}L`, "Revenue Impact"]}
+                      formatter={(value: any) => [`+₹${value}L`, "Revenue Impact"]}
                       contentStyle={{
                         borderRadius: 16,
                         border: "none",
