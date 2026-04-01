@@ -1,255 +1,372 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  TrendingUp, 
-  Target, 
-  Zap, 
-  AlertTriangle,
-  Lightbulb,
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
   ArrowUpRight,
-  ChevronDown,
-  Info
-} from 'lucide-react';
-import { 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  PolarRadiusAxis, 
-  Radar, 
-  ResponsiveContainer, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend 
-} from 'recharts';
-import OwnerDashboardLayout from '@/app/components/OwnerDashboardLayout';
+  AlertCircle,
+  History,
+  Target,
+  ThumbsUp,
+  TrendingDown,
+  TrendingUp,
+  ChevronRight,
+  Zap,
+} from "lucide-react";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ReferenceLine,
+  ComposedChart,
+  Line,
+} from "recharts";
+import OwnerDashboardLayout from "@/app/components/OwnerDashboardLayout";
 
 const radarData = [
-  { metric: 'Pass Rate', Mumbai: 76, Pune: 82, Nashik: 74, Aurangabad: 72, Nagpur: 68 },
-  { metric: 'Resolution Speed', Mumbai: 78, Pune: 88, Nashik: 74, Aurangabad: 70, Nagpur: 62 },
-  { metric: 'Staff Efficiency', Mumbai: 80, Pune: 85, Nashik: 78, Aurangabad: 75, Nagpur: 72 },
-  { metric: 'Guest Satisfaction', Mumbai: 91, Pune: 93, Nashik: 89, Aurangabad: 87, Nagpur: 83 },
-  { metric: 'Brand Consistency', Mumbai: 82, Pune: 88, Nashik: 79, Aurangabad: 76, Nagpur: 71 },
-  { metric: 'Issue Recurrence', Mumbai: 72, Pune: 80, Nashik: 68, Aurangabad: 65, Nagpur: 58 },
+  { metric: "Customer Reviews", Mumbai: 76, Pune: 92, Nashik: 74, Aurangabad: 72, Nagpur: 68, Average: 75 },
+  { metric: "Complaint Rate", Mumbai: 78, Pune: 88, Nashik: 74, Aurangabad: 70, Nagpur: 62, Average: 70 },
+  { metric: "Revenue per Room", Mumbai: 80, Pune: 85, Nashik: 78, Aurangabad: 75, Nagpur: 72, Average: 75 },
+  { metric: "Guest Retention", Mumbai: 91, Pune: 93, Nashik: 89, Aurangabad: 87, Nagpur: 83, Average: 80 },
+  { metric: "Staff Efficiency", Mumbai: 82, Pune: 88, Nashik: 79, Aurangabad: 76, Nagpur: 71, Average: 78 },
+  { metric: "Occupancy Rate", Mumbai: 72, Pune: 80, Nashik: 68, Aurangabad: 65, Nagpur: 58, Average: 72 },
 ];
 
-const trendData = [
-  { name: 'Oct', Mumbai: 58, Pune: 62, Nashik: 55, Aurangabad: 52, Nagpur: 51 },
-  { name: 'Nov', Mumbai: 63, Pune: 68, Nashik: 60, Aurangabad: 57, Nagpur: 54 },
-  { name: 'Dec', Mumbai: 68, Pune: 74, Nashik: 66, Aurangabad: 63, Nagpur: 59 },
-  { name: 'Jan', Mumbai: 71, Pune: 77, Nashik: 70, Aurangabad: 67, Nagpur: 63 },
-  { name: 'Feb', Mumbai: 74, Pune: 80, Nashik: 72, Aurangabad: 70, Nagpur: 66 },
-  { name: 'Mar', Mumbai: 76, Pune: 82, Nashik: 74, Aurangabad: 72, Nagpur: 68 },
+const impactTrendData = [
+  { month: "Oct", reviews: 4.1, complaints: 88 },
+  { month: "Nov", reviews: 4.0, complaints: 92 },
+  { month: "Dec", reviews: 4.1, complaints: 90 },
+  { month: "Jan", reviews: 4.2, complaints: 85 },
+  { month: "Feb", reviews: 4.1, complaints: 89 },
+  { month: "Mar", reviews: 4.2, complaints: 86 },
+  { month: "Apr", reviews: 4.3, complaints: 64 },
+  { month: "May", reviews: 4.4, complaints: 48 },
+  { month: "Jun", reviews: 4.5, complaints: 38 },
+  { month: "Jul", reviews: 4.5, complaints: 32 },
+  { month: "Aug", reviews: 4.6, complaints: 28 },
+  { month: "Sep", reviews: 4.6, complaints: 26 },
 ];
 
 const properties = [
-  { name: 'Mumbai', color: '#3b82f6' },
-  { name: 'Pune', color: '#10b981' },
-  { name: 'Nashik', color: '#fbbf24' },
-  { name: 'Aurangabad', color: '#8b5cf6' },
-  { name: 'Nagpur', color: '#f43f5e' },
+  { name: "Mumbai", color: "#3b82f6" },
+  { name: "Pune", color: "#10b981" },
+  { name: "Nashik", color: "#f59e0b" },
+  { name: "Aurangabad", color: "#8b5cf6" },
+  { name: "Nagpur", color: "#f43f5e" },
 ];
 
-export default function ComparisonDashboard() {
-  const [selectedMetric, setSelectedMetric] = useState('Pass Rate');
-  const [activeProperties, setActiveProperties] = useState(properties.map(p => p.name));
+const workingItems = [
+  {
+    hotel: "Monarch Grand, Pune",
+    metric: "Guest review score hit 4.8",
+    value: "Highest in portfolio",
+    tone: "emerald",
+  },
+  {
+    hotel: "Monarch Palace, Mumbai",
+    metric: "Complaints reduced by 82%",
+    value: "Strong Q100 impact",
+    tone: "blue",
+  },
+  {
+    hotel: "Monarch Heritage, Nashik",
+    metric: "Staff efficiency up 1.4x",
+    value: "34 more rooms daily",
+    tone: "indigo",
+  },
+];
 
-  const toggleProperty = (name: string) => {
-    setActiveProperties(prev => 
-      prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]
-    );
-  };
+const attentionItems = [
+  {
+    hotel: "Monarch Central, Nagpur",
+    issue: "Reviews dropped 0.2 stars",
+    impact: "₹3.2L/mo loss",
+    detail: "12 complaints about room cleanliness this week",
+  },
+  {
+    hotel: "Monarch Gateway, Aurangabad",
+    issue: "Guest retention fell 12%",
+    impact: "₹1.8L/mo risk",
+    detail: "Issues with VIP check-in consistency",
+  },
+  {
+    hotel: "Monarch Heritage, Nashik",
+    issue: "Complaint rate spike (8%)",
+    impact: "₹1.1L/mo loss",
+    detail: "Bathroom amenity image misalignment",
+  },
+];
 
+function SectionCard({
+  title,
+  subtitle,
+  icon,
+  children,
+  className = "",
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <OwnerDashboardLayout 
-      title="Property Benchmarking" 
-      subtitle="Cross-property performance analysis and comparative metrics"
+    <motion.div 
+      whileHover={{ y: -5 }}
+      className={`rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md ${className}`}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Radar Chart (Left Column) */}
-        <div className="lg:col-span-6">
-          <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm h-full flex flex-col">
-            <div className="flex justify-between items-start mb-8">
-              <div className="space-y-1">
-                <h4 className="text-xl font-bold text-slate-900 tracking-tight">Portfolio Profile</h4>
-                <p className="text-slate-400 text-[11px] font-medium uppercase tracking-widest leading-none">6-Axis Performance Distribution</p>
-              </div>
-              <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl">
-                <Target size={20} />
-              </div>
-            </div>
+      <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div>
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
+          {subtitle ? <p className="mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p> : null}
+        </div>
+        {icon ? <div className="rounded-xl bg-slate-50 border border-slate-100 p-2 text-slate-600 shadow-inner">{icon}</div> : null}
+      </div>
+      <div className="p-5">{children}</div>
+    </motion.div>
+  );
+}
 
-            <div className="flex-1 min-h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                  <PolarGrid stroke="#e2e8f0" strokeWidth={0.5} />
-                  <PolarAngleAxis 
-                    dataKey="metric" 
-                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} 
-                  />
-                  <PolarRadiusAxis 
-                    angle={30} 
-                    domain={[0, 100]} 
-                    tick={false} 
-                    axisLine={false} 
-                  />
-                  {properties.map((prop) => (
-                    activeProperties.includes(prop.name) && (
-                      <Radar
-                        key={prop.name}
-                        name={prop.name}
-                        dataKey={prop.name}
-                        stroke={prop.color}
-                        fill={prop.color}
-                        fillOpacity={0.1}
-                        strokeWidth={2}
-                      />
-                    )
-                  ))}
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ fontSize: '10px', fontWeight: 'bold' }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+export default function HotelPerformance() {
+  return (
+    <OwnerDashboardLayout
+      title="Hotel Performance"
+      subtitle="How are your hotels performing — and how has Q100 changed things?"
+    >
+      <div className="space-y-5">
+        {/* Row 1 */}
+        <SectionCard
+          title="Portfolio Impact Velocity"
+          subtitle="12-month performance trend delta tracking"
+          icon={<History size={18} />}
+          className="overflow-hidden bg-gradient-to-br from-white via-white to-slate-50/50"
+        >
+          <div className="mb-6 flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100">
+              <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+              <span className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Review Score</span>
             </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-100">
+              <div className="h-2 w-2 rounded-full bg-rose-500" />
+              <span className="text-[10px] font-black text-rose-700 uppercase tracking-widest">Complaints</span>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-5 gap-2 mt-8">
-              {properties.map((prop) => (
-                <button
-                  key={prop.name}
-                  onClick={() => toggleProperty(prop.name)}
-                  className={`flex items-center gap-1.5 px-2 py-2 rounded-xl border transition-all ${
-                    activeProperties.includes(prop.name)
-                      ? 'bg-slate-50 border-slate-100 text-slate-700 shadow-sm'
-                      : 'bg-transparent border-transparent text-slate-300'
-                  }`}
+          <div className="h-[320px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={impactTrendData} margin={{ top: 16, right: 12, left: 0, bottom: 6 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: "bold" }}
+                />
+                <YAxis
+                  yAxisId="left"
+                  domain={[3.5, 5]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#2563eb", fontSize: 10, fontWeight: "bold" }}
+                  tickFormatter={(val) => `${val}★`}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  domain={[0, 100]}
+                  reversed
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#e11d48", fontSize: 10, fontWeight: "bold" }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "none",
+                    borderRadius: "16px",
+                    boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.15)",
+                  }}
+                  itemStyle={{ fontWeight: "bold", fontSize: "11px" }}
+                />
+                <ReferenceLine
+                  x="Mar"
+                  stroke="#0f172a"
+                  strokeDasharray="5 5"
+                  label={{ value: "Q100 Deployed", position: "top", fill: "#0f172a", fontSize: 10, fontWeight: "bold" }}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="reviews"
+                  stroke="#2563eb"
+                  strokeWidth={4}
+                  dot={{ r: 4, fill: "#fff", stroke: "#2563eb", strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                  animationDuration={2000}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="complaints"
+                  stroke="#e11d48"
+                  strokeWidth={4}
+                  dot={{ r: 4, fill: "#fff", stroke: "#e11d48", strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                  animationDuration={1500}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 md:grid-cols-4">
+            {[
+                { label: "Reviews", val: "+0.4 stars", icon: ArrowUpRight, color: "emerald" },
+                { label: "Complaints", val: "-70%", icon: TrendingDown, color: "emerald" },
+                { label: "Monthly Revenue", val: "₹18.4L", icon: TrendingUp, color: "emerald" },
+            ].map((stat, i) => (
+                <div key={i} className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white px-5 py-3 shadow-sm">
+                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{stat.label}</p>
+                  <div className="mt-1 flex items-center gap-2 text-xl font-black text-emerald-800 tracking-tighter">
+                    <stat.icon size={18} /> {stat.val}
+                  </div>
+                </div>
+            ))}
+
+            <div className="flex items-center">
+              <button className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 active:scale-95">
+                Download Impact Ledger
+              </button>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* Row 2 */}
+        <SectionCard
+          title="Portfolio Yield Radar"
+          subtitle="Comparative metrics across all properties"
+          icon={<Target size={18} />}
+        >
+          <div className="h-[340px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                <PolarGrid stroke="#f1f5f9" />
+                <PolarAngleAxis dataKey="metric" tick={{ fill: "#64748b", fontSize: 10, fontWeight: "bold" }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                {properties.map((prop) => (
+                  <Radar
+                    key={prop.name}
+                    name={prop.name}
+                    dataKey={prop.name}
+                    stroke={prop.color}
+                    fill={prop.color}
+                    fillOpacity={0.05}
+                    strokeWidth={3}
+                    animationDuration={1500}
+                  />
+                ))}
+                <Radar
+                  name="Industry Average"
+                  dataKey="Average"
+                  stroke="#94a3b8"
+                  fill="transparent"
+                  strokeWidth={2}
+                  strokeDasharray="6 6"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "none",
+                    borderRadius: "16px",
+                    boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.15)",
+                  }}
+                  itemStyle={{ fontWeight: "bold", fontSize: "11px" }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: "20px", fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em" }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </SectionCard>
+
+        {/* Row 3 */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+          {/* LEFT: What’s Working */}
+          <SectionCard
+            title="Portfolio Breakthroughs"
+            subtitle="Benchmark performance to replicate"
+            icon={<ThumbsUp size={18} />}
+          >
+            <div className="space-y-3">
+              {workingItems.map((item, i) => (
+                <motion.div
+                  key={item.hotel}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ x: 5 }}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-5 shadow-sm group hover:border-emerald-200 transition-colors"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: prop.color }} />
-                  <span className="text-[10px] font-bold uppercase truncate">{prop.name}</span>
-                </button>
+                  <div className="flex-1">
+                    <div className="flex flex-col">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.hotel}</p>
+                        <p className="mt-1 text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">{item.metric}</p>
+                        <div className="mt-2 text-[10px] font-black uppercase tracking-[0.15em] text-emerald-600 bg-emerald-50 self-start px-2 py-1 rounded-md">
+                          {item.value}
+                        </div>
+                    </div>
+                  </div>
+
+                  <button className="whitespace-nowrap px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 active:scale-95">
+                    Roll Out Global
+                  </button>
+                </motion.div>
               ))}
             </div>
-          </div>
-        </div>
+          </SectionCard>
 
-        {/* Drill-Down & Insights (Right Column) */}
-        <div className="lg:col-span-6 space-y-8 flex flex-col">
-          {/* Line Chart Drill-Down */}
-          <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm flex-1 flex flex-col">
-            <div className="flex justify-between items-center mb-10">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-xl font-bold text-slate-900 tracking-tight">Timeline Drill-Down</h4>
-                  <div className="px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-100 text-[9px] font-bold text-blue-600 uppercase tracking-widest">Live Integration</div>
-                </div>
-                <p className="text-slate-400 text-[11px] font-medium uppercase tracking-widest leading-none">Trend Convergence (6 MO)</p>
-              </div>
-              <div className="relative group">
-                <button className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-slate-700 text-[11px] font-bold hover:bg-slate-100 transition-all">
-                  {selectedMetric}
-                  <ChevronDown size={14} className="text-blue-500" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} 
-                    dx={-10}
-                    domain={['auto', 'auto']}
-                  />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ fontSize: '11px', fontWeight: 'bold' }}
-                  />
-                  {properties.map((prop) => (
-                    activeProperties.includes(prop.name) && (
-                      <Line
-                        key={prop.name}
-                        type="monotone"
-                        dataKey={prop.name}
-                        stroke={prop.color}
-                        strokeWidth={3}
-                        dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                    )
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="mt-8 flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
-                <Info size={18} className="text-blue-600 shrink-0" />
-                <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
-                   <strong className="text-slate-900">Analysis:</strong> All properties trending upward, but 
-                   <span className="text-rose-600 font-black ml-1">Nagpur's</span> slope is flattening — intervention recommended for Q2.
-                </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Best Practice Spotlight */}
-            <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm relative overflow-hidden group">
-                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Lightbulb size={120} className="text-amber-500" />
-                </div>
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                        <Lightbulb size={18} />
+          {/* RIGHT: Needs Attention */}
+          <SectionCard
+            title="Portfolio Yield Risks"
+            subtitle="Critical revenue interventions required"
+            icon={<AlertCircle size={18} />}
+          >
+            <div className="space-y-3">
+              {attentionItems.map((item, i) => (
+                <motion.div
+                  key={item.hotel}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ x: -5 }}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/30 to-white p-5 shadow-sm group hover:border-rose-300 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.hotel}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900 group-hover:text-rose-700 transition-colors">{item.issue}</p>
+                    <div className="mt-2 flex flex-col gap-1">
+                       <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">
+                         Revenue Leak: {item.impact}
+                       </span>
+                       <p className="text-[11px] font-medium italic text-slate-500 line-clamp-1">"{item.detail}"</p>
                     </div>
-                    <h5 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Best Practice</h5>
-                </div>
-                <p className="text-slate-700 text-sm font-bold mb-3 leading-snug">Pune's Amenity Compliance: 94.1%</p>
-                <div className="text-slate-500 text-[11px] leading-relaxed mb-4 font-medium">
-                    Pune outstrips portfolio average by 18 points. Secret: Laminated 'amenity maps' in carts.
-                </div>
-                <button className="flex items-center gap-2 text-amber-600 text-[10px] font-black uppercase tracking-[0.2em] hover:gap-3 transition-all">
-                    Deploy Portfolio-Wide
-                    <ArrowUpRight size={14} />
-                </button>
-            </div>
+                  </div>
 
-            {/* Red Flag Alert */}
-            <div className="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm relative overflow-hidden group">
-                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <AlertTriangle size={120} className="text-rose-500" />
-                </div>
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
-                        <AlertTriangle size={18} />
-                    </div>
-                    <h5 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Red Flag</h5>
-                </div>
-                <p className="text-slate-700 text-sm font-bold mb-3 leading-snug">Nagpur Quality Drop-Off</p>
-                <div className="text-slate-500 text-[11px] leading-relaxed mb-4 font-medium">
-                    Issue recurrence increased for 4 weeks (38% → 48%). Linked to 3 new hires in February.
-                </div>
-                <button className="flex items-center gap-2 text-rose-600 text-[10px] font-black uppercase tracking-[0.2em] hover:gap-3 transition-all">
-                    Initiate Audit
-                    <Zap size={14} />
-                </button>
+                  <button className="whitespace-nowrap px-4 py-2.5 bg-rose-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/10 active:scale-95">
+                    Notify Manager
+                  </button>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </SectionCard>
+
         </div>
       </div>
     </OwnerDashboardLayout>

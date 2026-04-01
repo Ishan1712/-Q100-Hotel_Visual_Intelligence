@@ -73,12 +73,11 @@ const roleConfigs = {
     dashboard: '/owner',
     menuItems: [
       { name: "Portfolio Dashboard", href: "/owner", icon: LayoutDashboard },
-      { name: "Property Benchmarking", href: "/owner/comparison", icon: TrendingUp },
-      { name: "Financial ROI", href: "/owner/roi", icon: IndianRupee },
-      { name: "Brand Heatmap", href: "/owner/brand-standards", icon: LayoutGrid },
+      { name: "Hotel Performance", href: "/owner/comparison", icon: TrendingUp },
+      { name: "Room Quality Overview", href: "/owner/brand-standards", icon: LayoutGrid },
+      { name: "Revenue Impact", href: "/owner/roi", icon: IndianRupee },
       { name: "Staff Analytics", href: "/owner/staff", icon: Users },
       { name: "Report Generator", href: "/owner/reports", icon: FileText },
-      { name: "Expansion Simulator", href: "/owner/simulator", icon: Calculator },
     ]
   }
 };
