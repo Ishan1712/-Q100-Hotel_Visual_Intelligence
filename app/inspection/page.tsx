@@ -27,7 +27,7 @@ import {
   Upload
 } from 'lucide-react';
 import Link from 'next/link';
-import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage } from '../lib/comparison';
+import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage, AIProvider } from '../lib/comparison';
 
 // --- Types & Dummy Data ---
 
@@ -84,6 +84,7 @@ export default function InspectionFlowPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [analysisReason, setAnalysisReason] = useState<string | null>(null);
+  const [aiProvider, setAiProvider] = useState<AIProvider>('google');
 
   // --- Helpers (comparison logic imported from lib/comparison.ts) ---
 
@@ -116,7 +117,7 @@ export default function InspectionFlowPage() {
         throw new Error("Reference image not loaded. Please contact support.");
       }
 
-      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref);
+      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref, aiProvider);
       
       setComparing(false);
       setAnalysisReason(result.reason);
@@ -131,14 +132,14 @@ export default function InspectionFlowPage() {
           } else {
             setPhase('report');
           }
-        }, 1500);
+        }, 6000);
       }
     } catch (err: any) {
       setComparing(false);
       setAnalysisReason(err.message || "Error processing image.");
       setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'fail' }));
     }
-  }, [currentStep, checkpoints]);
+  }, [currentStep, checkpoints, aiProvider]);
 
   const handlePhotoModeCapture = React.useCallback(async () => {
     let insB64 = "";
@@ -529,8 +530,13 @@ export default function InspectionFlowPage() {
 
               {comparing && (
                 <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-4 animate-fade-in">
-                   <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
+                   <div className={`w-12 h-12 md:w-16 md:h-16 border-4 border-t-4 rounded-full animate-spin ${
+                     aiProvider === 'google' ? 'border-blue-600/10 border-t-blue-500' : 'border-emerald-600/10 border-t-emerald-500'
+                   }`} />
                    <h2 className="text-base md:text-lg font-bold text-white tracking-widest uppercase">Verifying...</h2>
+                   <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
+                     AI Analyzing
+                   </span>
                 </div>
               )}
 

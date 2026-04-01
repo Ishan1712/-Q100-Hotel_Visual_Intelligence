@@ -1,9 +1,11 @@
 /**
  * Comparison logic for AI-powered image analysis.
- * Handles calling the API route that proxies to OpenAI GPT-4o Vision.
+ * Supports both Google Gemini and OpenAI GPT-4o Vision via toggle.
  */
 
 import { getComparisonPrompt } from './prompts';
+
+export type AIProvider = 'google' | 'openai';
 
 export interface ComparisonResult {
   status: 'pass' | 'fail';
@@ -104,19 +106,21 @@ export async function masterToBase64(path: string): Promise<string> {
 
 /**
  * Sends inspection and master images to the server-side API route for
- * GPT-4o vision comparison. The API key is kept secure on the server.
+ * AI vision comparison (Google Gemini or OpenAI GPT-4o).
  *
  * @param inspectionBase64 - Base64-encoded inspection image
  * @param masterBase64 - Base64-encoded master/reference image
  * @param checkpointName - Name of the checkpoint being verified
  * @param checkpointRef - Reference description for inspection criteria
+ * @param provider - AI provider to use ('google' or 'openai')
  * @returns ComparisonResult with pass/fail status and reason
  */
 export async function analyzeWithGPT4v(
   inspectionBase64: string,
   masterBase64: string,
   checkpointName: string,
-  checkpointRef: string
+  checkpointRef: string,
+  provider?: AIProvider
 ): Promise<ComparisonResult> {
   const prompt = getComparisonPrompt(checkpointName, checkpointRef);
 
@@ -128,6 +132,7 @@ export async function analyzeWithGPT4v(
         prompt,
         inspectionBase64,
         masterBase64,
+        provider,
       }),
     });
 
@@ -139,7 +144,7 @@ export async function analyzeWithGPT4v(
     const data = await response.json();
     return data as ComparisonResult;
   } catch (e) {
-    console.error('GPT Analysis Error:', e);
+    console.error('AI Analysis Error:', e);
     return { status: 'fail', reason: 'AI Analysis failed to connect.' };
   }
 }
