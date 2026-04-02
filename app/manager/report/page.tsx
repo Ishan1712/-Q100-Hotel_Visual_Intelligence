@@ -1,9 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Bed, CheckCircle, Clock, IndianRupee, TrendingUp, TrendingDown, 
-  AlertTriangle, Download, Mail, Printer, Star, Sparkles, Users, Shield, Zap
+  AlertTriangle, Download, Mail, Printer, Star, Sparkles, Users, Shield, Zap, Eye, ChevronDown
 } from 'lucide-react';
 
 /* ── Dummy Data ── */
@@ -21,7 +22,40 @@ const catchesOfTheDay = [
   { room: "612", title: "Curtain tie-back asymmetry", description: "One curtain tie-back on the wrong side — subtle but exactly the detail a luxury guest notices.", impact: "Presidential Suite presentation preserved for ₹45,000/night rate.", severity: "Minor" as const },
 ];
 
+/* ── Room Inspection Data by Floor ── */
+const roomTypes = ['Standard Double', 'Deluxe King', 'Suite', 'Premium Twin', 'Executive', 'Superior'];
+const housekeepers = ['Priya S.', 'Amit K.', 'Meena R.', 'Deepak J.', 'Sunita P.', 'Ravi M.', 'Kavita D.', 'Farhan A.'];
+
+const generateFloorInspections = (floor: number) => {
+  return Array.from({ length: 6 }, (_, i) => {
+    const roomNum = floor * 100 + i + 1;
+    const seed = (roomNum * 37 + floor * 13) % 100;
+    const status = seed < 15 ? 'pending' as const : seed < 40 ? 'fail' as const : 'pass' as const;
+    const passed = status === 'pending' ? 0 : status === 'pass' ? 12 : 12 - ((seed % 4) + 1);
+    const issues = status === 'pass' ? (seed < 55 ? 0 : 1) : status === 'fail' ? (seed % 4) + 1 : 0;
+    const hour = 7 + Math.floor((i + (floor - 2) * 6) / 4);
+    const min = ((i * 13 + floor * 7) % 60);
+    return {
+      room: String(roomNum),
+      floor,
+      time: `${hour}:${min < 10 ? '0' : ''}${min} AM`,
+      status,
+      passed,
+      total: 12,
+      issues,
+      housekeeper: housekeepers[(roomNum + floor) % housekeepers.length],
+      roomType: roomTypes[i % roomTypes.length],
+    };
+  });
+};
+
 export default function DailyReport() {
+  const router = useRouter();
+  const [inspectionFloor, setInspectionFloor] = useState(2);
+  const floorInspections = generateFloorInspections(inspectionFloor);
+  const floorPassed = floorInspections.filter(r => r.status === 'pass').length;
+  const floorIssues = floorInspections.reduce((sum, r) => sum + r.issues, 0);
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
@@ -31,13 +65,13 @@ export default function DailyReport() {
           <p className="text-sm text-slate-400 font-medium mt-0.5">Wednesday, 25 March 2026 · Taj Mahal Palace, Mumbai</p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
+          <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
             <Printer size={15} /> Print
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
+          <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
             <Download size={15} /> PDF
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 hover:-translate-y-0.5">
+          <button onClick={() => { window.location.href = `mailto:?subject=${encodeURIComponent('Daily Operations Report – ' + new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}&body=${encodeURIComponent('Hi,\n\nPlease find the Daily Operations Report summary:\n\n• Rooms Inspected: 142\n• Pass Rate: 76.1%\n• Avg Resolution: 14m\n• Issues Found: 34\n• Hours Saved: 6.2h\n• Estimated Savings: ₹18,600\n\nFor the full report, please log in to the Q100.ai dashboard.\n\nBest regards,\nQ100.ai Hotel Visual Intelligence')}`; }} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 hover:-translate-y-0.5">
             <Mail size={15} /> Email Report
           </button>
         </div>
@@ -60,46 +94,167 @@ export default function DailyReport() {
         ))}
       </div>
 
-      {/* Cost Savings Card */}
-      <div className="bg-gradient-to-br from-white via-emerald-50/30 to-emerald-100/20 rounded-[1.5rem] p-7 border border-emerald-200/60 relative overflow-hidden animate-fade-in-up stagger-2 shadow-sm hover:shadow-lg transition-all duration-300">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-[radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.12)_0,transparent_60%)] pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <Zap size={16} className="text-emerald-600" />
+      {/* Room Inspection Detail Report */}
+      <div className="bg-white rounded-[1.5rem] p-4 sm:p-7 border border-slate-200/60 shadow-sm animate-fade-in-up stagger-2 hover:shadow-lg transition-all duration-300">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <Shield size={16} className="text-indigo-600" />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-600">Estimated Savings Today</p>
-          </div>
-          <div className="flex items-center gap-8">
-            <div className="shrink-0">
-              <div className="flex items-baseline gap-1.5">
-                <IndianRupee size={24} className="text-emerald-600" />
-                <span className="text-5xl font-black text-slate-900">18,600</span>
-              </div>
-              <p className="text-sm text-slate-400 mt-1">Labour reallocation + complaint avoidance</p>
-            </div>
-            <div className="flex items-center gap-4 ml-auto">
-              <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl border border-emerald-200 shadow-sm">
-                <CheckCircle size={16} className="text-emerald-600 shrink-0" />
-                <div>
-                  <span className="text-sm font-bold text-slate-700 whitespace-nowrap">33 of 34</span>
-                  <p className="text-xs text-slate-400 whitespace-nowrap">Issues resolved before check-in</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl border border-blue-200 shadow-sm">
-                <Star size={16} className="text-blue-600 shrink-0" />
-                <div>
-                  <span className="text-sm font-bold text-slate-700">97.1%</span>
-                  <p className="text-xs text-slate-400 whitespace-nowrap">Resolution rate</p>
-                </div>
-              </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Room Inspection Detail</p>
+              <p className="text-xs text-slate-400 mt-0.5">Comprehensive room-by-room breakdown for today</p>
             </div>
           </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <select
+                value={inspectionFloor}
+                onChange={(e) => setInspectionFloor(Number(e.target.value))}
+                className="appearance-none pl-3 pr-8 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 cursor-pointer hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                {[2, 3, 4, 5, 6, 7, 8].map(f => (
+                  <option key={f} value={f}>Floor {f}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 text-xs font-bold text-emerald-600"><CheckCircle size={12} /> {floorPassed} passed</span>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50/80 text-xs font-bold text-rose-600"><AlertTriangle size={12} /> {floorIssues} issues</span>
+          </div>
+        </div>
+
+        {/* ── Scrollable Table — all screen sizes ── */}
+        <div className="overflow-x-auto relative">
+          <table className="w-full" style={{ minWidth: '780px' }}>
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50/30">
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 pl-4 pr-3 sticky left-0 bg-slate-50/95 backdrop-blur-sm z-10 min-w-[60px]">Room</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[60px]">Floor</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[100px]">Inspected At</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[90px]">Status</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[110px]">Room Type</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[60px]">Issues</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[100px]">Housekeeper</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 min-w-[120px]">View AI Inspection</th>
+              </tr>
+            </thead>
+            <tbody>
+              {floorInspections.map((r, i) => (
+                <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                  <td className="py-3.5 pl-4 pr-3 sticky left-0 bg-white/95 backdrop-blur-sm z-10">
+                    <span className="text-sm font-black text-slate-900">{r.room}</span>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-sm shadow-blue-200">
+                      <span className="text-[9px] font-black text-white">F{r.floor}</span>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                      <Clock size={13} className="text-slate-400" />
+                      <span className="font-medium">{r.time}</span>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                      r.status === 'pass' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                      r.status === 'fail' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                      'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                      {r.status === 'pass' ? <CheckCircle size={11} /> : r.status === 'fail' ? <AlertTriangle size={11} /> : <Clock size={11} />}
+                      {r.status === 'pass' ? 'Passed' : r.status === 'fail' ? 'Failed' : 'Pending'}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span className="text-xs font-semibold text-slate-600">{r.roomType}</span>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {r.issues > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-xs font-bold text-rose-600">{r.issues}</span>
+                    ) : (
+                      <span className="text-xs text-slate-300 font-medium">—</span>
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span className="text-sm font-medium text-slate-600">{r.housekeeper}</span>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <button
+                      onClick={() => router.push(`/manager/inspection?floor=${r.floor}&room=${r.room}`)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-bold text-blue-600 hover:bg-blue-100 hover:shadow-sm transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Eye size={12} />
+                      <span>{r.passed}/{r.total}</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
+      {/* Floor-wise Room Ratings */}
+      <div className="bg-white rounded-[1.5rem] p-4 sm:p-7 border border-slate-200/60 relative overflow-hidden animate-fade-in-up stagger-2 shadow-sm hover:shadow-lg transition-all duration-300">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Bed size={16} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Floor-wise Room Ratings</p>
+              <p className="text-xs text-slate-400 mt-0.5">Today&apos;s inspection scores by floor and room</p>
+            </div>
+          </div>
+        </div>
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full" style={{ minWidth: '500px' }}>
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50/30">
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-4 sticky left-0 bg-slate-50/80 backdrop-blur-sm z-10">Floor</th>
+                {Array.from({ length: 6 }, (_, i) => (
+                  <th key={i} className="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 py-3 px-3">Room {i + 1}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[2, 3, 4, 5, 6, 7, 8].map((floor) => (
+                <tr key={floor} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                  <td className="py-3.5 px-4 sticky left-0 bg-white/80 backdrop-blur-sm z-10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-sm shadow-blue-200">
+                        <span className="text-[10px] font-black text-white">F{floor}</span>
+                      </div>
+                      <span className="text-xs font-bold text-slate-600">Floor {floor}</span>
+                    </div>
+                  </td>
+                  {Array.from({ length: 6 }, (_, roomIdx) => {
+                    const roomNum = floor * 100 + roomIdx + 1;
+                    const rating = ((roomNum * 37 + floor * 13) % 5) + 1;
+                    return (
+                      <td key={roomIdx} className="py-3.5 px-3">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-[10px] font-bold text-slate-500">{roomNum}</span>
+                          <div className="flex items-center gap-px">
+                            {Array.from({ length: 5 }, (_, s) => (
+                              <Star key={s} size={12} className={s < rating ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_2px_rgba(251,191,36,0.5)]' : 'text-slate-200 fill-slate-100'} />
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
       {/* Catches of the Day */}
-      <div className="bg-gradient-to-br from-white to-amber-50/20 rounded-[1.5rem] p-7 border border-slate-200/60 shadow-sm animate-fade-in-up stagger-3 hover:shadow-lg transition-all duration-300">
+      <div className="bg-gradient-to-br from-white to-amber-50/20 rounded-[1.5rem] p-7 border border-slate-200/60 shadow-sm animate-fade-in-up stagger-6 hover:shadow-lg transition-all duration-300">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center">
             <Sparkles size={16} className="text-amber-600" />
@@ -128,76 +283,6 @@ export default function DailyReport() {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Trend vs Last Week + Guest Satisfaction */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Trend Comparison */}
-        <div className="bg-gradient-to-br from-white to-slate-50/80 rounded-[1.5rem] p-7 border border-slate-200/60 shadow-sm animate-fade-in-up stagger-4 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
-              <TrendingUp size={16} className="text-indigo-600" />
-            </div>
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Trend vs. Last Week</h2>
-          </div>
-          <div className="space-y-6">
-            {[
-              { label: "Pass Rate", current: 76.1, previous: 68.4 },
-              { label: "Avg Resolution Time", current: 14, previous: 22, unit: "min", lower: true },
-              { label: "Issues Detected", current: 34, previous: 38 },
-            ].map((item) => {
-              const improved = item.lower ? item.current < item.previous : item.current > item.previous;
-              return (
-                <div key={item.label}>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-sm font-bold text-slate-700">{item.label}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${improved ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
-                      {improved ? '↑ Improved' : '↓ Declined'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-3.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                      <div className="h-full bg-slate-300 rounded-full" style={{ width: `${(item.previous / Math.max(item.current, item.previous)) * 100}%` }} />
-                    </div>
-                    <span className="text-xs text-slate-400 w-16 text-right font-medium">{item.previous}{item.unit || '%'}</span>
-                  </div>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <div className="flex-1 h-3.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                      <div className={`h-full rounded-full transition-all duration-700 ${improved ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${(item.current / Math.max(item.current, item.previous)) * 100}%` }} />
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 w-16 text-right">{item.current}{item.unit || '%'}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Guest Satisfaction */}
-        <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-[1.5rem] p-7 border border-slate-200/60 shadow-sm animate-fade-in-up stagger-5 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Shield size={16} className="text-blue-600" />
-            </div>
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Guest Satisfaction Correlation</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="p-6 bg-gradient-to-br from-emerald-50/90 to-emerald-100/50 rounded-2xl border border-emerald-200 shadow-sm hover:shadow-md transition-all">
-              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1.5">Q100-Scanned Rooms</p>
-              <span className="text-4xl font-black text-emerald-700">2.1</span>
-              <p className="text-xs text-emerald-600 mt-1.5">complaints per 100 check-ins</p>
-            </div>
-            <div className="p-6 bg-gradient-to-br from-slate-50/90 to-slate-100/50 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Non-Scanned Rooms</p>
-              <span className="text-4xl font-black text-slate-700">3.2</span>
-              <p className="text-xs text-slate-500 mt-1.5">complaints per 100 check-ins</p>
-            </div>
-            <div className="flex items-center justify-center gap-3 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-sm hover:shadow-md transition-all">
-              <TrendingDown size={22} className="text-blue-600" />
-              <span className="text-xl font-black text-blue-700">34.4% reduction</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

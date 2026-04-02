@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { 
   AlertTriangle, CheckCircle, 
   XCircle, Eye, Clock, IndianRupee, RotateCcw, Ban, User, ScanSearch,
-  Shield, Sparkles, ArrowRight,
-  Building2, Search
+  Camera, Shield, Sparkles, ArrowRight, Upload, X, Image, Play,
+  Building2, ChevronDown, Search
 } from 'lucide-react';
 
 /* ── Floor/Room Data ── */
@@ -179,6 +179,7 @@ function AIInspectionDetailContent() {
   const [selectedRoomNum, setSelectedRoomNum] = useState<string | null>(initialRoomNum);
   const [showAfter, setShowAfter] = useState(false);
   const [hoveredCheckpoint, setHoveredCheckpoint] = useState<number | null>(null);
+  const [selectedCheckpointIdx, setSelectedCheckpointIdx] = useState(7);
   const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
   const [roomSearchQuery, setRoomSearchQuery] = useState(initialRoomNum || '');
   const roomDropdownRef = useRef<HTMLDivElement>(null);
@@ -222,9 +223,9 @@ function AIInspectionDetailContent() {
       : room.status === 'fail'
         ? `${room.issues} discrepancy${room.issues === 1 ? '' : 'ies'} detected and ready for review.`
         : 'Awaiting a fresh scan to complete the comparison.';
-  const scanImageSrc = showAfter
-    ? '/master/08_Bathroom_Amenities_master.png'
-    : '/master/08_Bathroom_Ammenties_Missing.png';
+  const activeCheckpoint = checkpoints[selectedCheckpointIdx] || checkpoints[7];
+  const masterImageSrc = activeCheckpoint.masterImg;
+  const scanImageSrc = showAfter ? activeCheckpoint.masterImg : activeCheckpoint.inspImg;
   const scanTitle = showAfter ? 'Re-Scan (After Fix)' : "Housekeeper's Scan";
   const scanSubtitle = showAfter
     ? 'Corrected scan with all visible issues resolved.'
@@ -313,24 +314,21 @@ function AIInspectionDetailContent() {
             </div>
           </div>
 
-          <div className={`mt-1 rounded-[1.6rem] border border-white/80 bg-gradient-to-br ${pageTone.selectorBg} p-5 shadow-[0_24px_55px_-36px_rgba(15,23,42,0.22)] backdrop-blur-md`}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className={`mt-1 rounded-[1.6rem] border border-white/80 bg-gradient-to-br ${pageTone.selectorBg} p-4 shadow-[0_24px_55px_-36px_rgba(15,23,42,0.22)] backdrop-blur-md`}>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/80 bg-white/84 shadow-sm">
-                  <Building2 size={16} className={pageTone.accentText} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/80 bg-white/84 shadow-sm">
+                  <Building2 size={15} className={pageTone.accentText} />
                 </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.26em] text-slate-400">Select Floor</p>
-                  <p className="mt-1 text-sm font-medium text-slate-500">Use the floor line to jump between live inspections, then search directly inside the same control area.</p>
-                </div>
+                <p className="text-xs font-black uppercase tracking-[0.26em] text-slate-400">Select Floor</p>
               </div>
-              <span className="rounded-full border border-white/80 bg-white/82 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+              <span className="rounded-full border border-white/80 bg-white/82 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
                 Floor {selectedFloor} · {selectedFloorStats.pct}% ready
               </span>
             </div>
 
-            <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr),360px] xl:items-center">
-              <div className="flex gap-3 overflow-x-auto pb-1">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+              <div className="flex gap-3 sm:gap-2.5 overflow-x-auto flex-1 pb-1 -mx-1 px-1 snap-x snap-mandatory">
                 {floorStats.map((fp) => {
                   const tone = getFloorPillTone(fp.pct);
                   const isSelected = selectedFloor === fp.floor;
@@ -339,83 +337,76 @@ function AIInspectionDetailContent() {
                     <button
                       key={fp.floor}
                       onClick={() => handleFloorChange(fp.floor)}
-                      className={`min-w-[102px] rounded-[1.2rem] border px-4 py-3 text-left transition-all duration-300 active:scale-[0.98] ${
+                      className={`min-w-[100px] sm:min-w-[90px] shrink-0 snap-start rounded-[1.1rem] border px-3.5 py-2.5 text-left transition-all duration-300 active:scale-[0.98] ${
                         isSelected
                           ? `border-transparent bg-gradient-to-br ${tone.active} text-white shadow-[0_22px_45px_-28px_rgba(15,23,42,0.35)]`
                           : 'border-white/80 bg-white/82 text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow-lg'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl font-black leading-none">F{fp.floor}</span>
-                        <span className={`text-[10px] font-bold ${isSelected ? 'text-white/80' : tone.muted}`}>{fp.pct}%</span>
+                        <span className="text-lg sm:text-xl font-black leading-none">F{fp.floor}</span>
+                        <span className={`text-[9px] font-bold ${isSelected ? 'text-white/80' : tone.muted}`}>{fp.pct}%</span>
                       </div>
-                      <div className={`mt-3 h-1.5 rounded-full ${isSelected ? 'bg-white/20' : 'bg-slate-100'}`}>
-                        <div className={`h-1.5 rounded-full ${isSelected ? 'bg-white' : tone.rail}`} style={{ width: `${fp.pct}%` }} />
+                      <div className={`mt-2 h-1 rounded-full ${isSelected ? 'bg-white/20' : 'bg-slate-100'}`}>
+                        <div className={`h-1 rounded-full ${isSelected ? 'bg-white' : tone.rail}`} style={{ width: `${fp.pct}%` }} />
                       </div>
-                      <p className={`mt-2 text-[11px] font-semibold ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>{fp.ready}/{fp.total} ready</p>
+                      <p className={`mt-1.5 text-[10px] font-semibold ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>{fp.ready}/{fp.total} ready</p>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="relative min-w-0 xl:self-center" ref={roomDropdownRef}>
-                <div className="rounded-[1.35rem] border border-white/80 bg-white/84 p-4 shadow-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.26em] text-slate-400">Room Search</p>
-                      <p className="mt-1 text-sm font-medium text-slate-500">Find a room by number, type, or housekeeper.</p>
-                    </div>
-                    <span className={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.22em] ${pageTone.accentSurface}`}>
-                      {room.number}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center gap-3 rounded-[1.15rem] border border-slate-200/80 bg-white/92 px-4 py-3 shadow-inner shadow-white/80 transition-all focus-within:border-slate-300">
-                    <Search size={16} className="text-slate-400" />
-                    <input
-                      value={roomSearchQuery}
-                      onChange={(e) => {
-                        setRoomSearchQuery(e.target.value);
-                        setIsRoomDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsRoomDropdownOpen(true)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && filteredRooms[0]) {
-                          handleRoomChange(filteredRooms[0].number);
-                        }
-                      }}
-                      placeholder={`Search rooms on floor ${selectedFloor}`}
-                      className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-                  <p className="mt-2 text-xs font-medium text-slate-400">Default focus stays on the first room of the selected floor.</p>
+              {/* Inline Room Search */}
+              <div className="relative shrink-0 w-full lg:w-64" ref={roomDropdownRef}>
+                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400/70 mb-1.5 text-right">Room</p>
+                <div
+                  className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/92 px-3.5 py-2.5 shadow-sm cursor-text transition-all focus-within:border-slate-300 focus-within:shadow-md"
+                  onClick={() => setIsRoomDropdownOpen(true)}
+                >
+                  <Search size={14} className="text-slate-400 shrink-0" />
+                  <input
+                    value={roomSearchQuery}
+                    onChange={(e) => {
+                      setRoomSearchQuery(e.target.value);
+                      setIsRoomDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsRoomDropdownOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && filteredRooms[0]) {
+                        handleRoomChange(filteredRooms[0].number);
+                      }
+                    }}
+                    placeholder="Find a room"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                  />
+                  <ChevronDown size={14} className="text-slate-300 shrink-0" />
                 </div>
 
                 {isRoomDropdownOpen && (
-                  <div className="absolute left-0 right-0 top-full z-[100] mt-3 max-h-72 overflow-y-auto rounded-[1.45rem] border border-white/80 bg-white/94 p-2 shadow-[0_36px_90px_-40px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                  <div className="absolute left-0 right-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-[1.2rem] border border-white/80 bg-white/96 p-1.5 shadow-[0_36px_90px_-40px_rgba(15,23,42,0.35)] backdrop-blur-xl">
                     {filteredRooms.length > 0 ? (
                       filteredRooms.map((r) => (
                         <button
                           key={r.number}
                           onClick={() => handleRoomChange(r.number)}
-                          className={`flex w-full items-center gap-3 rounded-[1.1rem] px-4 py-3 text-left transition-all hover:bg-slate-50/90 ${
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all hover:bg-slate-50/90 ${
                             r.number === activeRoomNum ? 'bg-slate-50 shadow-sm' : ''
                           }`}
                         >
-                          <div className={`h-2.5 w-2.5 rounded-full ${
+                          <div className={`h-2 w-2 rounded-full ${
                             r.status === 'pass' ? 'bg-emerald-500' : r.status === 'fail' ? 'bg-rose-500' : 'bg-slate-300'
                           }`} />
                           <span className="text-sm font-black text-slate-900">{r.number}</span>
-                          <span className="text-xs font-medium text-slate-500">{r.type}</span>
-                          {r.housekeeper && <span className="ml-auto text-xs font-semibold text-sky-600">{r.housekeeper}</span>}
+                          <span className="text-xs font-medium text-slate-400">{r.type}</span>
                           {r.issues > 0 && (
-                            <span className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-rose-600">
-                              {r.issues} issues
+                            <span className="ml-auto rounded-full border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-600">
+                              {r.issues}
                             </span>
                           )}
                         </button>
                       ))
                     ) : (
-                      <div className="rounded-[1.1rem] px-4 py-5 text-sm font-medium text-slate-500">No rooms match that search on floor {selectedFloor}.</div>
+                      <div className="rounded-xl px-3 py-4 text-sm font-medium text-slate-500">No rooms match.</div>
                     )}
                   </div>
                 )}
@@ -438,14 +429,14 @@ function AIInspectionDetailContent() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900">Master Reference</h3>
-                  <p className="text-[11px] font-medium text-slate-400">{room.type} · Bathroom vanity baseline</p>
+                  <p className="text-[11px] font-medium text-slate-400">{room.type} · {activeCheckpoint.name} — {activeCheckpoint.zone}</p>
                 </div>
               </div>
               <span className="rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-amber-700">Baseline</span>
             </div>
             <div className="relative aspect-[16/10] overflow-hidden">
               <img
-                src="/master/08_Bathroom_Amenities_master.png"
+                src={masterImageSrc}
                 alt="Master Reference — Bathroom Amenities"
                 className="h-full w-full object-cover"
               />
@@ -551,7 +542,7 @@ function AIInspectionDetailContent() {
       </div>
 
       {/* Checkpoint Progress Strip — moved below comparison */}
-      <div className={`${panelShellClass} isolate animate-fade-in-up stagger-3 border-slate-200/70 bg-gradient-to-br ${pageTone.summaryBg} p-6`}>
+      <div className={`${panelShellClass} isolate animate-fade-in-up stagger-3 border-slate-200/70 bg-gradient-to-br ${pageTone.summaryBg} p-6 !overflow-visible`}>
         <div className={`absolute inset-0 ${pageTone.summaryOverlay} opacity-95`} />
         <div className="relative z-10">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -561,7 +552,7 @@ function AIInspectionDetailContent() {
               </div>
               <div>
                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Checkpoint Summary</h2>
-                <p className="mt-1 text-sm font-medium text-slate-500">Hover checkpoints to preview the matching master-zone image.</p>
+                <p className="mt-1 text-sm font-medium text-slate-500">Click a checkpoint to compare its master & scan images above.</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -573,17 +564,18 @@ function AIInspectionDetailContent() {
           {checkpoints.map((cp, i) => (
             <div key={i} className="flex-1 group relative"
               onMouseEnter={() => setHoveredCheckpoint(i)}
-              onMouseLeave={() => setHoveredCheckpoint(null)}>
+              onMouseLeave={() => setHoveredCheckpoint(null)}
+              onClick={() => setSelectedCheckpointIdx(i)}>
               <div className={`h-12 rounded-[1rem] flex items-center justify-center cursor-pointer transition-all duration-200 ${
                 cp.status === 'pass' 
                   ? 'bg-gradient-to-br from-emerald-100 to-emerald-200/70 border border-emerald-200 hover:shadow-md hover:-translate-y-0.5' 
                   : 'bg-gradient-to-br from-rose-100 to-rose-200/70 border border-rose-200 hover:shadow-md hover:-translate-y-0.5'
-              } ${hoveredCheckpoint === i ? 'shadow-lg -translate-y-1.5 scale-[1.04] z-20' : ''}`}>
+              } ${selectedCheckpointIdx === i ? 'ring-2 ring-blue-500 ring-offset-1 shadow-lg -translate-y-1 scale-[1.04] z-20' : ''} ${hoveredCheckpoint === i && selectedCheckpointIdx !== i ? 'shadow-lg -translate-y-1.5 scale-[1.04] z-20' : ''}`}>
                 {cp.status === 'pass' ? <CheckCircle size={14} className="text-emerald-600" /> : <XCircle size={14} className="text-rose-600" />}
               </div>
               <div className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 transition-all duration-200 ${hoveredCheckpoint === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1 pointer-events-none'}`}>
-                <div className="px-3.5 py-2.5 bg-slate-900 text-white rounded-xl text-center shadow-2xl whitespace-nowrap">
-                  <img src={cp.masterImg} alt={cp.name} className="w-20 h-14 object-cover rounded-lg mb-1.5 mx-auto border border-white/20" />
+                <div className="px-3 py-2.5 bg-slate-900 text-white rounded-xl text-center shadow-2xl whitespace-nowrap">
+                  <img src={cp.masterImg} alt={cp.name} className="w-32 h-20 object-contain rounded-lg mb-1.5 mx-auto bg-slate-800" />
                   <p className="text-[10px] font-bold">{cp.name}</p>
                   <p className="text-[8px] text-slate-400 mt-0.5">{cp.zone}</p>
                 </div>
