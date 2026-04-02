@@ -62,7 +62,6 @@ const roleConfigs = {
       { name: "Master Gallery", href: "/manager/gallery", icon: Images },
       { name: "Live Floor Map", href: "/manager/floormap", icon: Map },
       { name: "AI Inspection Detail", href: "/manager/inspection", icon: ScanSearch },
-      { name: "Staff Performance", href: "/manager/performance", icon: Users },
       { name: "Daily Report", href: "/manager/report", icon: FileBarChart },
     ]
   },
