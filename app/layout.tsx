@@ -17,6 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const isLoginPage = pathname === "/login";
@@ -28,14 +29,14 @@ export default function RootLayout({
           <Sidebar 
             collapsed={isSidebarCollapsed} 
             setCollapsed={setIsSidebarCollapsed} 
-            isMobileOpen={false}
-            setIsMobileOpen={() => {}}
+            isMobileOpen={isMobileMenuOpen}
+            setIsMobileOpen={setIsMobileMenuOpen}
           />
         )}
         <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 w-full ${!isLoginPage && isSidebarCollapsed ? 'lg:ml-20' : !isLoginPage ? 'lg:ml-64' : ''}`}>
            {!isLoginPage && (
              <Header 
-               onMenuClick={() => {}} 
+               onMenuClick={() => setIsMobileMenuOpen(true)} 
              />
            )}
            <main className={`flex-1 ${!isLoginPage ? 'p-4 md:p-8 pb-32 lg:pb-8' : ''}`}>

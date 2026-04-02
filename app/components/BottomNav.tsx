@@ -57,9 +57,9 @@ export default function BottomNav() {
       { name: 'History', href: '/history', icon: LucideHistory },
     ],
     manager: [
-      { name: 'Dashboard', href: '/manager', icon: LayoutDashboard },
       { name: 'Gallery', href: '/manager/gallery', icon: Images },
       { name: 'Floor Map', href: '/manager/floormap', icon: Map },
+      { name: 'Dashboard', href: '/manager', icon: LayoutGrid, isCenter: true },
       { name: 'Inspection', href: '/manager/inspection', icon: ScanSearch },
       { name: 'Staff', href: '/manager/performance', icon: Users },
       { name: 'Report', href: '/manager/report', icon: FileBarChart },
@@ -76,8 +76,8 @@ export default function BottomNav() {
   if (!mounted) return null;
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[40]">
-      <div className="bg-white border-t border-slate-100 shadow-[0_-1px_10px_rgba(0,0,0,0.05)] h-[76px] flex items-center justify-around px-2 relative transition-all duration-300">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100]">
+      <div className="bg-white border-t border-slate-100 shadow-[0_-1px_10px_rgba(0,0,0,0.05)] h-[76px] flex items-center justify-around px-1 relative transition-all duration-300">
         {navItems.map((item, idx) => {
           const Icon = item.icon;
           const isActive = item.href ? (
@@ -109,12 +109,12 @@ export default function BottomNav() {
           }
 
           return (
-            <Link key={idx} href={item.href || '#'} className="flex-1 flex flex-col items-center gap-1.5 py-2 transition-all group">
+            <Link key={idx} href={item.href || '#'} className="flex-1 flex flex-col items-center gap-1 py-2 transition-all group min-w-0">
               <div className={`transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-40 group-hover:opacity-100'}`} style={{ color: isActive ? themeColor : '#64748b' }}>
                 <Icon size={role === 'manager' ? 18 : 20} strokeWidth={isActive ? 2.5 : 2} />
               </div>
               <span 
-                className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-widest transition-all duration-300 text-center px-0.5 ${isActive ? 'opacity-100' : 'opacity-40'}`}
+                className={`font-bold uppercase tracking-widest transition-all duration-300 text-center px-0.5 whitespace-nowrap overflow-hidden text-ellipsis w-full ${isActive ? 'opacity-100' : 'opacity-40'} ${role === 'manager' ? 'text-[7.5px]' : 'text-[8.5px] sm:text-[9px]'}`}
                 style={{ color: isActive ? themeColor : '#64748b' }}
               >
                 {item.name}
