@@ -390,11 +390,20 @@ export default function HotelPerformance() {
             subtitle="Comparative metrics across all properties"
             icon={<Target size={18} />}
           >
-            <div className="h-[340px]">
+            <div className="h-[340px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                <RadarChart 
+                  cx="50%" 
+                  cy="50%" 
+                  outerRadius={typeof window !== 'undefined' && window.innerWidth < 640 ? "55%" : "70%"} 
+                  data={radarData}
+                  margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                >
                   <PolarGrid stroke="#f1f5f9" />
-                  <PolarAngleAxis dataKey="metric" tick={{ fill: "#64748b", fontSize: 10, fontWeight: "bold" }} />
+                  <PolarAngleAxis 
+                    dataKey="metric" 
+                    tick={{ fill: "#64748b", fontSize: typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 10, fontWeight: "bold" }} 
+                  />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar
                     name="Aurangabad"

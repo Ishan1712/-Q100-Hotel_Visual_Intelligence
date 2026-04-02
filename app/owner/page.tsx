@@ -282,7 +282,7 @@ export default function PortfolioDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden"
                 >
-                    <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <div className="p-6 md:p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between bg-slate-50/50 gap-4">
                         <div>
                             <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">
                                 Performance Ledger
@@ -292,14 +292,14 @@ export default function PortfolioDashboard() {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                        <div className="flex items-center gap-3 bg-white px-4 py-2.5 md:py-2 rounded-xl border border-slate-100 shadow-sm w-full md:w-auto">
                             <Search size={14} className="text-slate-400" />
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="FILTER ENTITIES..."
-                                className="bg-transparent border-none outline-none text-[9px] font-black focus:ring-0 w-32 uppercase tracking-widest text-slate-700 placeholder:text-slate-400"
+                                className="bg-transparent border-none outline-none text-[10px] font-black focus:ring-0 w-full md:w-32 uppercase tracking-widest text-slate-700 placeholder:text-slate-400"
                             />
                         </div>
                     </div>

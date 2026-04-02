@@ -347,25 +347,25 @@ export default function RoomQualityOverview() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 15 }}
-                className="bg-white border border-slate-200 rounded-2xl shadow-xl p-7"
+                className="bg-white border border-slate-200 rounded-2xl shadow-xl p-4 sm:p-7"
               >
-                <div className="flex items-start justify-between mb-8">
-                  <div className="flex items-center gap-4">
-                     <div className="h-14 w-14 rounded-2xl bg-slate-950 text-white flex items-center justify-center shadow-2xl shadow-slate-900/20">
-                        <Search size={24} />
+                <div className="flex items-start justify-between mb-4 sm:mb-8">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                     <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-slate-950 text-white flex items-center justify-center shadow-2xl shadow-slate-900/20 shrink-0">
+                        <Search size={18} className="sm:w-6 sm:h-6" />
                      </div>
                      <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Property Analysis</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                           {selectedCell.property.split(',')[0]} <span className="mx-2 text-slate-300">·</span> <span className="text-slate-800">{selectedCell.roomType}</span>
+                        <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5 sm:mb-1 leading-none">Property Analysis</p>
+                        <h3 className="text-base sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                           {selectedCell.property.split(',')[0]} <span className="mx-1 sm:mx-2 text-slate-300">·</span> <span className="text-slate-800">{selectedCell.roomType}</span>
                         </h3>
                      </div>
                   </div>
                   <button 
                     onClick={() => setSelectedCell(null)} 
-                    className="p-3 rounded-2xl border border-slate-100 bg-slate-50 text-slate-400 hover:text-slate-900 hover:bg-white transition-all active:scale-90 shadow-sm"
+                    className="p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50 text-slate-400 hover:text-slate-900 hover:bg-white transition-all active:scale-90 shadow-sm shrink-0"
                   >
-                    <RotateCcw size={20} />
+                    <RotateCcw size={16} className="sm:w-5 sm:h-5" />
                   </button>
                 </div>
 
@@ -375,33 +375,33 @@ export default function RoomQualityOverview() {
                          <StatCard label="Inventory" value={`${selectedDetails?.totalRooms ?? 0}`} suffix="rooms" color="slate" />
                          <StatCard label="Failures" value={`${selectedDetails?.issueCount ?? 0}`} suffix="rooms" color="rose" />
                       </div>
-                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/30 p-6">
-                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-5">Failures by Category</h4>
-                         <div className="space-y-2.5">
+                      <div className="rounded-2xl sm:rounded-[2rem] border border-slate-100 bg-slate-50/30 p-4 sm:p-6">
+                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 sm:mb-5">Failures by Category</h4>
+                         <div className="space-y-2">
                             {selectedDetails?.complaints?.map((c, i) => (
-                               <div key={i} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                                  <span className="text-sm font-bold text-slate-700">{c.reason}</span>
-                                  <span className="text-[11px] font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">{c.count}</span>
+                               <div key={i} className="flex items-center justify-between p-3 sm:p-4 bg-white border border-slate-100 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                                  <span className="text-xs sm:text-sm font-bold text-slate-700">{c.reason}</span>
+                                  <span className="text-[10px] sm:text-[11px] font-black text-slate-400 bg-slate-50 px-2 sm:px-3 py-1 rounded-lg border border-slate-100">{c.count}</span>
                                </div>
                             ))}
-                            {!selectedDetails?.complaints?.length && <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest text-center py-6">All Standards Maintained</p>}
+                            {!selectedDetails?.complaints?.length && <p className="text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-widest text-center py-4 sm:py-6">All Standards Maintained</p>}
                          </div>
                       </div>
                    </div>
-                   <div className="space-y-6">
-                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/30 p-6">
-                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-5">Guest Feedback</h4>
-                         <div className="space-y-4">
+                   <div className="space-y-4 sm:space-y-6">
+                      <div className="rounded-2xl sm:rounded-[2rem] border border-slate-100 bg-slate-50/30 p-4 sm:p-6">
+                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 sm:mb-5">Guest Feedback</h4>
+                         <div className="space-y-3 sm:space-y-4">
                             {selectedDetails?.reviews?.map((r, i) => (
-                               <div key={i} className="p-5 bg-white border border-slate-100 rounded-2xl shadow-sm italic text-sm text-slate-600 leading-relaxed relative group">
+                               <div key={i} className="p-4 sm:p-5 bg-white border border-slate-100 rounded-xl sm:rounded-2xl shadow-sm italic text-xs sm:text-sm text-slate-600 leading-relaxed relative group">
                                   <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                                   "{r}"
-                               </div>
+                                </div>
                             ))}
-                            {!selectedDetails?.reviews?.length && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center py-6 opacity-50">No data for selection</p>}
+                            {!selectedDetails?.reviews?.length && <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest text-center py-4 sm:py-6 opacity-50">No data for selection</p>}
                          </div>
                       </div>
-                      <button className="w-full py-5 bg-slate-950 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-slate-900/10 hover:bg-slate-900 hover:shadow-2xl transition-all active:scale-[0.98]">
+                      <button className="w-full py-4 sm:py-5 bg-slate-950 text-white rounded-2xl sm:rounded-3xl text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-slate-900/10 hover:bg-slate-900 hover:shadow-2xl transition-all active:scale-[0.98]">
                         Notify Manager
                       </button>
                    </div>
@@ -501,16 +501,16 @@ function StatCard({ label, value, suffix, color = "slate" }: { label: string; va
   return (
     <motion.div 
       whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.05)" }} 
-      className={`rounded-2xl border p-6 transition-all bg-gradient-to-br ${theme.border} ${theme.bg}`}
+      className={`rounded-xl sm:rounded-2xl border p-4 sm:p-6 transition-all bg-gradient-to-br ${theme.border} ${theme.bg}`}
     >
-      <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${theme.label}`}>{label}</p>
-      <div className="flex items-baseline gap-2">
-        <p className={`text-4xl font-black tracking-tighter ${theme.value}`}>
+      <p className={`text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4 ${theme.label}`}>{label}</p>
+      <div className="flex items-baseline gap-1 sm:gap-2">
+        <p className={`text-2xl sm:text-4xl font-black tracking-tighter ${theme.value}`}>
           {value}
         </p>
-        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{suffix}</span>
+        <span className="text-[9px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">{suffix}</span>
       </div>
-      <div className={`mt-4 h-1 w-8 rounded-full ${theme.line}`} />
+      <div className={`mt-2 sm:mt-4 h-1 w-6 sm:w-8 rounded-full ${theme.line}`} />
     </motion.div>
   );
 }
