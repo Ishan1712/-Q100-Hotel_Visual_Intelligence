@@ -386,11 +386,20 @@ const ReportModal = ({ room, onClose }: { room: ReturnType<typeof generateFloorR
 const imageCategories = ["Absence / Presence Check", "Defect Detection", "Orientation / Alignment Check", "Barcode / QR Code Verification"];
 
 /* ═══ Custom Image Type ═══ */
-type CustomImage = { name: string; code: string; image: string; categories: string[] };
+type CustomImage = {
+  name: string;
+  description?: string;
+  code: string;
+  image: string;
+  categories: string[];
+  roomTypeName?: string;
+  roomNumber?: string;
+};
 
 /* ═══ Add Image Modal (2-step) ═══ */
 const AddImageModal = ({ sectionType, onClose, onSave }: { sectionType: 'zone' | 'product'; onClose: () => void; onSave: (data: CustomImage) => void }) => {
   const [itemName, setItemName] = useState('');
+  const [itemDescription, setItemDescription] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -433,7 +442,13 @@ const AddImageModal = ({ sectionType, onClose, onSave }: { sectionType: 'zone' |
   const handleClose = () => { stopCamera(); onClose(); };
 
   const handleSave = () => {
-    onSave({ name: itemName, code: '', image: imagePreview || '', categories: [] });
+    onSave({
+      name: itemName.trim(),
+      description: itemDescription.trim() || undefined,
+      code: '',
+      image: imagePreview || '',
+      categories: [],
+    });
     handleClose();
   };
 
@@ -467,6 +482,19 @@ const AddImageModal = ({ sectionType, onClose, onSave }: { sectionType: 'zone' |
             <input type="text" value={itemName} onChange={e => setItemName(e.target.value)}
               placeholder={sectionType === 'zone' ? 'e.g., Bed Area' : 'e.g., Pillow Set'}
               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-300 transition-all" />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-2">
+              Description
+            </label>
+            <textarea
+              value={itemDescription}
+              onChange={(e) => setItemDescription(e.target.value)}
+              placeholder={sectionType === 'zone' ? 'e.g., Vanity setup close-up for amenity placement' : 'e.g., Keep label visible and centered in the frame'}
+              rows={3}
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10"
+            />
           </div>
 
           {/* Image Upload/Capture */}
@@ -681,6 +709,7 @@ const AddRoomModal = ({ floor, onClose, onSave }: { floor: number; onClose: () =
 /* ═══════ Main Component ═══════ */
 export default function MasterGallery() {
   const [selectedType, setSelectedType] = useState<number | null>(null);
+  const roomTypeDetailRef = useRef<HTMLDivElement>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [selectedCheckpoints, setSelectedCheckpoints] = useState<Set<number>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>('types');
@@ -708,24 +737,79 @@ export default function MasterGallery() {
   const [editingCard, setEditingCard] = useState<{ section: 'zone' | 'product' | 'room-zone' | 'room-product'; index: number; isCustom: boolean } | null>(null);
   const [editCardName, setEditCardName] = useState('');
   const [editCardImage, setEditCardImage] = useState<string | null>(null);
-  const [expandedChecklistItem, setExpandedChecklistItem] = useState<number | null>(null);
-
+  const [editZoneModal, setEditZoneModal] = useState<{ name: string; image: string | null; description: string; section: string; index: number; isCustom: boolean } | null>(null);
+  const [showAddRoomTypeModal, setShowAddRoomTypeModal] = useState(false);
+  const [newRoomTypeName, setNewRoomTypeName] = useState('');
+  const [newRoomTypeDesc, setNewRoomTypeDesc] = useState('');
+  const [newRoomTypeZones, setNewRoomTypeZones] = useState<{ name: string; image: string | null }[]>([{ name: '', image: null }]);
+  const [customRoomTypes, setCustomRoomTypes] = useState<{ name: string; description: string; zones: { name: string; image: string | null }[]; createdAt: string }[]>([]);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraTargetIdx, setCameraTargetIdx] = useState<number | null>(null);
+  const [cameraContext, setCameraContext] = useState<'addRoomType' | 'editZone'>('addRoomType');
+  const cameraVideoRef = useRef<HTMLVideoElement>(null);
+  const [hiddenRoomTypes, setHiddenRoomTypes] = useState<Set<number>>(new Set());
+  const [selectedCustomType, setSelectedCustomType] = useState<number | null>(null);
   const defaultZones = ["Bed Area", "Bathroom", "Desk Area", "Minibar", "Entrance"];
   const defaultProducts = ["Pillow Set", "Bath Towels", "Soap Bar", "Shampoo", "Dental Kit", "Minibar Bottles", "Welcome Card", "TV Remote"];
 
   const floorRooms = useMemo(() => generateFloorRooms(selectedFloor), [selectedFloor]);
   const allFloorRooms = useMemo(() => {
     const custom = customRooms.filter(r => r.floor === selectedFloor);
-    return [...floorRooms, ...custom];
+    return [...floorRooms, ...custom].sort((a, b) => Number(a.number) - Number(b.number));
   }, [floorRooms, customRooms, selectedFloor]);
   const filteredRooms = allFloorRooms.filter(r =>
     r.number.includes(roomSearch) || r.type.toLowerCase().includes(roomSearch.toLowerCase())
   );
   const activeRoom = allFloorRooms.find(r => r.number === selectedRoom);
-  const activeChecklist = selectedRoom ? generateChecklist(selectedRoom) : [];
-  const selectedRoomTypeData = selectedType !== null ? roomTypes[selectedType] : null;
+
+  // Build allRoomTypes merging original + custom types
+  const allRoomTypes = useMemo(() => {
+    const customs = customRoomTypes.map(crt => ({
+      name: crt.name,
+      count: 0,
+      icon: Bed,
+      lastUpdated: crt.createdAt,
+      detectionPoints: crt.zones.length,
+      color: 'emerald',
+      zones: crt.zones.map(z => z.name),
+      products: [] as string[],
+      checkpoints: crt.zones.map(z => `${z.name} check`),
+      versionHistory: [{ date: crt.createdAt, label: 'Current Version', note: 'Initial setup', active: true }],
+      _isCustom: true,
+      _customZoneImages: crt.zones as { name: string; image: string | null }[],
+    }));
+    return [...roomTypes, ...customs];
+  }, [customRoomTypes]);
+
+  // Build dynamic zone-to-image map including custom zone images
+  const dynamicZoneImages = useMemo(() => {
+    const map = { ...zoneToMasterImage };
+    if (selectedType !== null && selectedType >= roomTypes.length) {
+      const crt = customRoomTypes[selectedType - roomTypes.length];
+      if (crt) {
+        crt.zones.forEach(z => {
+          if (z.image) map[z.name] = z.image;
+        });
+      }
+    }
+    return map;
+  }, [selectedType, customRoomTypes]);
+
+  const selectedRoomTypeData = selectedType !== null ? allRoomTypes[selectedType] : null;
   const selectedRoomTypeColors = selectedRoomTypeData ? colorMap[selectedRoomTypeData.color] || colorMap.blue : colorMap.blue;
   const selectedRoomTypeTheme = selectedRoomTypeData ? expandedTypeThemes[selectedRoomTypeData.color] || expandedTypeThemes.blue : expandedTypeThemes.blue;
+  const activeTypeCustomZones = useMemo(() => {
+    if (!selectedRoomTypeData) return [];
+    return customZoneImages
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.roomTypeName === selectedRoomTypeData.name);
+  }, [customZoneImages, selectedRoomTypeData]);
+  const activeRoomCustomZones = useMemo(() => {
+    if (!activeRoom) return [];
+    return customRoomZones
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.roomNumber === activeRoom.number);
+  }, [activeRoom, customRoomZones]);
 
 
   const handleToggleCheckpoint = (idx: number) => {
@@ -769,14 +853,20 @@ export default function MasterGallery() {
       setSelectedType(null);
     } else {
       setSelectedType(i);
+      setSelectedCustomType(null);
       setSelectedCheckpoints(new Set());
       setSelectedProducts(new Set());
       setShowOverlay(false);
+      setTimeout(() => {
+        roomTypeDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   };
 
   const handleSaveImage = (type: 'zone' | 'product', data: CustomImage) => {
-    if (type === 'zone') setCustomZoneImages(prev => [...prev, data]);
+    if (type === 'zone') {
+      setCustomZoneImages(prev => [...prev, { ...data, roomTypeName: selectedRoomTypeData?.name }]);
+    }
     else setCustomProductImages(prev => [...prev, data]);
   };
 
@@ -793,14 +883,29 @@ export default function MasterGallery() {
   const handleRemoveCustomZone = (idx: number) => setCustomZoneImages(prev => prev.filter((_, i) => i !== idx));
   const handleRemoveCustomProduct = (idx: number) => setCustomProductImages(prev => prev.filter((_, i) => i !== idx));
 
-  const handleAddRoom = (room: CustomRoom) => setCustomRooms(prev => [...prev, room]);
+  const handleAddRoom = (room: CustomRoom) => {
+    setCustomRooms(prev => {
+      const next = prev.some((existingRoom) => existingRoom.floor === room.floor && existingRoom.number === room.number)
+        ? prev.map((existingRoom) =>
+            existingRoom.floor === room.floor && existingRoom.number === room.number ? room : existingRoom
+          )
+        : [...prev, room];
+      return next.sort((a, b) => Number(a.number) - Number(b.number));
+    });
+    setViewMode('rooms');
+    setSelectedFloor(room.floor);
+    setSelectedRoom(room.number);
+    setRoomSearch('');
+  };
 
   const handleRemoveRoomZone = (roomNum: string, zone: string) => {
     setRemovedRoomZones(prev => { const next = new Set(prev); next.add(`${roomNum}::${zone}`); return next; });
   };
 
   const handleSaveRoomItem = (type: 'zone' | 'product', data: CustomImage) => {
-    if (type === 'zone') setCustomRoomZones(prev => [...prev, data]);
+    if (type === 'zone') {
+      setCustomRoomZones(prev => [...prev, { ...data, roomNumber: activeRoom?.number }]);
+    }
     else setCustomRoomProducts(prev => [...prev, data]);
   };
 
@@ -824,6 +929,319 @@ export default function MasterGallery() {
 
       {/* Add Room Item Modal (Zone/Product for individual room) */}
       {addRoomItemModal && <AddImageModal sectionType={addRoomItemModal} onClose={() => setAddRoomItemModal(null)} onSave={(data) => handleSaveRoomItem(addRoomItemModal, data)} />}
+
+      {/* ═══ Edit Zone Image Modal ═══ */}
+      {editZoneModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditZoneModal(null)} />
+          <div className="relative w-full max-w-lg mx-4 bg-white rounded-[2rem] shadow-2xl border border-slate-200/60 overflow-hidden animate-fade-in-up">
+            {/* Header */}
+            <div className="relative px-7 py-5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.15)_0,transparent_50%)] pointer-events-none" />
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Pencil size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">Edit Zone Image</h3>
+                    <p className="text-xs text-blue-200 font-medium mt-0.5">Update photo, name & description</p>
+                  </div>
+                </div>
+                <button onClick={() => setEditZoneModal(null)} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all">
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-7 py-6 space-y-5">
+              {/* Image Upload / Preview */}
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block">Zone Photo</label>
+                {editZoneModal.image ? (
+                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 group">
+                    <img src={editZoneModal.image} alt="Zone preview" className="w-full h-48 object-cover" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                      <button onClick={() => setEditZoneModal({ ...editZoneModal, image: null })}
+                        className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl text-sm font-bold text-rose-600 opacity-0 group-hover:opacity-100 transition-all hover:bg-white shadow-lg">
+                        Remove Photo
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex flex-col items-center justify-center gap-3 py-8 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Upload size={20} className="text-blue-600" />
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm font-bold text-slate-700 block">Upload Photo</span>
+                        <span className="text-[10px] text-slate-400">PNG, JPG up to 10MB</span>
+                      </div>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          const r = new FileReader();
+                          r.onload = (ev) => { if (ev.target?.result) setEditZoneModal({ ...editZoneModal, image: ev.target.result as string }); };
+                          r.readAsDataURL(f);
+                        }
+                      }} />
+                    </label>
+                    <label className="flex flex-col items-center justify-center gap-3 py-8 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Camera size={20} className="text-indigo-600" />
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm font-bold text-slate-700 block">Capture Photo</span>
+                        <span className="text-[10px] text-slate-400">Use device camera</span>
+                      </div>
+                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          const r = new FileReader();
+                          r.onload = (ev) => { if (ev.target?.result) setEditZoneModal({ ...editZoneModal, image: ev.target.result as string }); };
+                          r.readAsDataURL(f);
+                        }
+                      }} />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Zone Name */}
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Zone Name</label>
+                <input
+                  type="text"
+                  value={editZoneModal.name}
+                  onChange={(e) => setEditZoneModal({ ...editZoneModal, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-300 transition-all"
+                  placeholder="e.g. Bed Area, Bathroom..."
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Description</label>
+                <textarea
+                  value={editZoneModal.description}
+                  onChange={(e) => setEditZoneModal({ ...editZoneModal, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-300 transition-all resize-none"
+                  placeholder="Describe what this zone image should capture..."
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <button onClick={() => setEditZoneModal(null)} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95">
+                Cancel
+              </button>
+              <button onClick={() => setEditZoneModal(null)} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 active:scale-95">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Add Room Type Modal ═══ */}
+      {showAddRoomTypeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAddRoomTypeModal(false)} />
+          <div className="relative w-full max-w-2xl mx-4 bg-white rounded-[2rem] shadow-2xl border border-slate-200/60 overflow-hidden animate-fade-in-up max-h-[85vh] flex flex-col">
+            {/* Header */}
+            <div className="relative px-7 py-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 overflow-hidden shrink-0">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.15)_0,transparent_50%)] pointer-events-none" />
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Plus size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">Add Room Type</h3>
+                    <p className="text-xs text-emerald-200 font-medium mt-0.5">Define room type, zones & upload reference images</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddRoomTypeModal(false)} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all">
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="px-7 py-6 space-y-5 overflow-y-auto flex-1">
+              {/* Room Type Name */}
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Room Type Name</label>
+                <input
+                  type="text"
+                  value={newRoomTypeName}
+                  onChange={(e) => setNewRoomTypeName(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-300 transition-all"
+                  placeholder="e.g. Executive Suite, Luxury King..."
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Description</label>
+                <textarea
+                  value={newRoomTypeDesc}
+                  onChange={(e) => setNewRoomTypeDesc(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-300 transition-all resize-none"
+                  placeholder="Brief description of this room type..."
+                />
+              </div>
+
+              {/* Zones */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Zones</label>
+                  <button
+                    onClick={() => setNewRoomTypeZones([...newRoomTypeZones, { name: '', image: null }])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-all active:scale-95"
+                  >
+                    <Plus size={12} /> Add Zone
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {newRoomTypeZones.map((zone, idx) => (
+                    <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Zone {idx + 1}</span>
+                        {newRoomTypeZones.length > 1 && (
+                          <button onClick={() => setNewRoomTypeZones(newRoomTypeZones.filter((_, i) => i !== idx))} className="w-6 h-6 rounded-full bg-rose-50 hover:bg-rose-100 flex items-center justify-center transition-all">
+                            <X size={12} className="text-rose-500" />
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={zone.name}
+                        onChange={(e) => { const z = [...newRoomTypeZones]; z[idx] = { ...z[idx], name: e.target.value }; setNewRoomTypeZones(z); }}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-300 transition-all"
+                        placeholder="Zone name (e.g. Bed Area, Bathroom...)"
+                      />
+                      {zone.image ? (
+                        <div className="relative rounded-xl overflow-hidden border border-slate-200 group">
+                          <img src={zone.image} alt="Zone" className="w-full h-28 object-cover" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                            <button onClick={() => { const z = [...newRoomTypeZones]; z[idx] = { ...z[idx], image: null }; setNewRoomTypeZones(z); }}
+                              className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-lg text-xs font-bold text-rose-600 opacity-0 group-hover:opacity-100 transition-all hover:bg-white shadow-md">
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all">
+                            <Upload size={14} className="text-emerald-600" />
+                            <span className="text-xs font-bold text-slate-600">Upload</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) { const r = new FileReader(); r.onload = (ev) => { if (ev.target?.result) { const z = [...newRoomTypeZones]; z[idx] = { ...z[idx], image: ev.target.result as string }; setNewRoomTypeZones(z); } }; r.readAsDataURL(f); }
+                            }} />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                                setCameraStream(stream);
+                                setCameraTargetIdx(idx);
+                                setCameraContext('addRoomType');
+                              } catch { alert('Camera access denied or unavailable.'); }
+                            }}
+                            className="flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all"
+                          >
+                            <Camera size={14} className="text-indigo-600" />
+                            <span className="text-xs font-bold text-slate-600">Camera</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+              <button onClick={() => setShowAddRoomTypeModal(false)} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95">
+                Cancel
+              </button>
+              <button onClick={() => {
+                if (!newRoomTypeName.trim()) return;
+                const validZones = newRoomTypeZones.filter(z => z.name.trim());
+                setCustomRoomTypes([...customRoomTypes, {
+                  name: newRoomTypeName.trim(),
+                  description: newRoomTypeDesc.trim(),
+                  zones: validZones.length > 0 ? validZones : [{ name: 'Default Zone', image: null }],
+                  createdAt: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+                }]);
+                setShowAddRoomTypeModal(false);
+              }} className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 active:scale-95">
+                Create Room Type
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Live Camera Capture Modal ═══ */}
+      {cameraStream && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { cameraStream.getTracks().forEach(t => t.stop()); setCameraStream(null); setCameraTargetIdx(null); }} />
+          <div className="relative w-full max-w-lg mx-4 bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden animate-fade-in-up">
+            <div className="px-6 py-4 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-blue-600">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-sm font-bold text-white">Camera Live Preview</span>
+              </div>
+              <button onClick={() => { cameraStream.getTracks().forEach(t => t.stop()); setCameraStream(null); setCameraTargetIdx(null); }} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all">
+                <X size={16} className="text-white" />
+              </button>
+            </div>
+            <div className="relative">
+              <video
+                autoPlay
+                playsInline
+                muted
+                className="w-full aspect-[4/3] object-cover bg-black"
+                ref={(el) => { if (el && cameraStream) { el.srcObject = cameraStream; (cameraVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el; } }}
+              />
+              <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center">
+                <button
+                  onClick={() => {
+                    const video = cameraVideoRef.current;
+                    if (!video) return;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d')?.drawImage(video, 0, 0);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    if (cameraContext === 'addRoomType' && cameraTargetIdx !== null) {
+                      const z = [...newRoomTypeZones];
+                      z[cameraTargetIdx] = { ...z[cameraTargetIdx], image: dataUrl };
+                      setNewRoomTypeZones(z);
+                    }
+                    cameraStream.getTracks().forEach(t => t.stop());
+                    setCameraStream(null);
+                    setCameraTargetIdx(null);
+                  }}
+                  className="w-16 h-16 rounded-full bg-white shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95 ring-4 ring-white/30"
+                >
+                  <div className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 transition-colors" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Version History Modal */}
       {showVersionHistory && selectedType !== null && (
@@ -861,14 +1279,42 @@ export default function MasterGallery() {
       {viewMode === 'types' ? (
         /* ═══════ ROOM TYPES VIEW ═══════ */
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in-up stagger-1">
-            {roomTypes.map((type, i) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 animate-fade-in-up stagger-1">
+            {allRoomTypes.map((type, i) => {
+              if (hiddenRoomTypes.has(i)) return null;
               const colors = colorMap[type.color] || colorMap.blue;
               const Icon = type.icon;
+              const isCustom = i >= roomTypes.length;
               return (
                 <div key={type.name} className={`rounded-[1.5rem] overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] border relative group ${selectedType === i ? 'ring-2 ring-blue-500 shadow-xl -translate-y-1' : 'shadow-sm'} bg-gradient-to-br ${colors.bg} ${colors.border || 'border-slate-200'}`} onClick={() => handleSelectType(i)}>
                   {/* Accent bar */}
                   <div className={`absolute top-0 left-0 right-0 h-1.5 ${colors.accent} z-10`} />
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isCustom) {
+                        if (confirm(`Remove "${type.name}"?`)) {
+                          setCustomRoomTypes(customRoomTypes.filter((_, ci) => ci !== i - roomTypes.length));
+                          if (selectedType === i) setSelectedType(null);
+                        }
+                      } else {
+                        if (confirm(`Hide "${type.name}" from the gallery?`)) {
+                          setHiddenRoomTypes(new Set([...hiddenRoomTypes, i]));
+                          if (selectedType === i) setSelectedType(null);
+                        }
+                      }
+                    }}
+                    className="absolute top-3 left-3 z-20 w-7 h-7 rounded-full bg-rose-500 hover:bg-rose-600 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all"
+                    title="Remove room type"
+                  >
+                    <X size={13} className="text-white" />
+                  </button>
+                  {isCustom && (
+                    <div className="absolute top-3 left-12 z-20 px-2 py-0.5 bg-emerald-500 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-all">
+                      <span className="text-[8px] font-black text-white uppercase tracking-wider">New</span>
+                    </div>
+                  )}
                   <div className={`aspect-[16/9] flex items-center justify-center relative`}>
                     <div className="text-center">
                       <div className={`w-14 h-14 rounded-2xl ${colors.iconBg} flex items-center justify-center mx-auto shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-[8deg]`}><Icon size={28} className={colors.text} /></div>
@@ -893,51 +1339,62 @@ export default function MasterGallery() {
                 </div>
               );
             })}
+            {/* Add Room Type Card */}
+            <div
+              onClick={() => { setShowAddRoomTypeModal(true); setNewRoomTypeName(''); setNewRoomTypeDesc(''); setNewRoomTypeZones([{ name: '', image: null }]); }}
+              className="rounded-[1.5rem] overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] border-2 border-dashed border-slate-200 hover:border-blue-400 bg-gradient-to-br from-slate-50 to-white group flex flex-col items-center justify-center min-h-[260px]"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-blue-500 transition-all shadow-sm">
+                <Plus size={28} className="text-blue-600 group-hover:text-white transition-colors" />
+              </div>
+              <p className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors">Add Room Type</p>
+              <p className="text-xs text-slate-400 mt-1">Define zones & upload images</p>
+            </div>
           </div>
 
           {/* ═══ Expanded Type Card — Polished ═══ */}
           {selectedRoomTypeData && (
-            <div className="group rounded-[2rem] overflow-hidden animate-fade-in-up border border-white/80 shadow-[0_28px_80px_-38px_rgba(15,23,42,0.22)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_36px_95px_-38px_rgba(15,23,42,0.28)]">
+            <div ref={roomTypeDetailRef} className="group rounded-[2rem] overflow-hidden animate-fade-in-up border border-white/80 shadow-[0_28px_80px_-38px_rgba(15,23,42,0.22)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_36px_95px_-38px_rgba(15,23,42,0.28)]" style={{ scrollMarginTop: '2rem' }}>
               {/* Gradient header */}
-              <div className={`relative overflow-hidden bg-gradient-to-r ${selectedRoomTypeColors.gradient} px-8 py-6`}>
+              <div className={`relative overflow-hidden bg-gradient-to-r ${selectedRoomTypeColors.gradient} px-5 sm:px-8 py-5 sm:py-6`}>
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_left_top,rgba(255,255,255,0.16)_0,transparent_34%),radial-gradient(circle_at_right_bottom,rgba(255,255,255,0.08)_0,transparent_40%)]" />
                 <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg shadow-black/10">
+                <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg shadow-black/10">
                       {React.createElement(selectedRoomTypeData.icon, { size: 28, className: 'text-white' })}
                     </div>
                     <div>
-                      <h2 className="text-xl font-black text-white">{selectedRoomTypeData.name}</h2>
-                      <p className="text-sm text-white/70 mt-0.5">{selectedRoomTypeData.zones.length} zones · {selectedRoomTypeData.detectionPoints} detection points · {selectedRoomTypeData.count} rooms</p>
+                      <h2 className="text-lg sm:text-xl font-black text-white">{selectedRoomTypeData.name}</h2>
+                      <p className="text-xs sm:text-sm text-white/70 mt-0.5">{selectedRoomTypeData.zones.length} zones · {selectedRoomTypeData.detectionPoints} detection points · {selectedRoomTypeData.count} rooms</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button 
                       onClick={() => { setShowOverlay(!showOverlay); if (!showOverlay) setSelectedCheckpoints(new Set()); }}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${showOverlay ? 'bg-white text-slate-900 shadow-sm' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/10'}`}
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${showOverlay ? 'bg-white text-slate-900 shadow-sm' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/10'}`}
                     >
-                      <Layers size={14} /> Checklist Overlay
+                      <Layers size={14} /> <span className="hidden sm:inline">Checklist</span> Overlay
                     </button>
-                    <button onClick={() => setShowVersionHistory(true)} className="flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-all backdrop-blur-sm border border-white/10">
-                      <History size={14} /> Version History
+                    <button onClick={() => setShowVersionHistory(true)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/20 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-white/30 transition-all backdrop-blur-sm border border-white/10">
+                      <History size={14} /> <span className="hidden sm:inline">Version</span> History
                     </button>
-                    <button onClick={handleRequestUpdate} className="flex items-center gap-2 px-4 py-2.5 bg-white text-amber-600 rounded-xl text-sm font-bold hover:bg-amber-50 transition-all shadow-sm hover:-translate-y-0.5">
-                      <RotateCcw size={14} /> Request Update
+                    <button onClick={handleRequestUpdate} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-amber-600 rounded-xl text-xs sm:text-sm font-bold hover:bg-amber-50 transition-all shadow-sm hover:-translate-y-0.5">
+                      <RotateCcw size={14} /> <span className="hidden sm:inline">Request</span> Update
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Body content */}
-              <div className={`relative overflow-hidden p-8 ${selectedRoomTypeTheme.body}`}>
+              <div className={`relative overflow-hidden p-5 sm:p-8 ${selectedRoomTypeTheme.body}`}>
                 <div className={`pointer-events-none absolute inset-0 ${selectedRoomTypeTheme.overlay} opacity-95 transition-opacity duration-500 group-hover:opacity-100`} />
                 <div className={`pointer-events-none absolute -right-14 -top-6 h-44 w-44 rounded-full blur-3xl transition-transform duration-500 group-hover:scale-110 group-hover:-translate-x-2 ${selectedRoomTypeTheme.glowPrimary}`} />
                 <div className={`pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full blur-3xl transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1 ${selectedRoomTypeTheme.glowSecondary}`} />
                 <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
 
                 <div className="relative space-y-6">
-                  <div className="rounded-[1.9rem] border border-white/75 bg-white/68 p-6 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.2)] backdrop-blur-sm">
+                  <div className="rounded-[1.5rem] sm:rounded-[1.9rem] border border-white/75 bg-white/68 p-4 sm:p-6 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.2)] backdrop-blur-sm">
                     {/* ═══ Master Zones Header ═══ */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -961,14 +1418,13 @@ export default function MasterGallery() {
 
                     {/* ═══ Zones Content ═══ */}
                     <div className="mt-5">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                       {selectedRoomTypeData.zones.map((zone, zoneIdx) => {
                         if (removedZones.has(zoneIdx)) return null;
                         const isSelected = showOverlay && selectedCheckpoints.has(zoneIdx);
-                        const isEditing = editingCard?.section === 'zone' && editingCard.index === zoneIdx && !editingCard.isCustom;
                         return (
-                          <div key={zone} onClick={() => showOverlay && handleToggleCheckpoint(zoneIdx)}
-                            className={`aspect-square rounded-2xl flex items-center justify-center flex-col gap-2 transition-all duration-300 cursor-pointer relative group ${
+                          <div key={zone} onClick={() => showOverlay ? handleToggleCheckpoint(zoneIdx) : setEditZoneModal({ name: zone, image: dynamicZoneImages[zone] || null, description: '', section: 'zone', index: zoneIdx, isCustom: false })}
+                            className={`aspect-square rounded-2xl flex items-center justify-center flex-col gap-2 transition-all duration-300 cursor-pointer relative group overflow-hidden ${
                               isSelected ? 'bg-blue-600 border-2 border-blue-500 shadow-xl shadow-blue-200 -translate-y-1'
                                 : showOverlay ? 'bg-slate-50 border-2 border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-0.5'
                                 : 'bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:shadow-lg hover:border-slate-200 hover:-translate-y-0.5'
@@ -978,47 +1434,28 @@ export default function MasterGallery() {
                               <X size={12} className="text-white" />
                             </button>
                             {!isSelected && (
-                              <button onClick={(e) => { e.stopPropagation(); setEditingCard({ section: 'zone', index: zoneIdx, isCustom: false }); setEditCardName(zone); setEditCardImage(null); }} className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
+                              <button onClick={(e) => { e.stopPropagation(); setEditZoneModal({ name: zone, image: dynamicZoneImages[zone] || null, description: '', section: 'zone', index: zoneIdx, isCustom: false }); }} className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
                                 <Pencil size={11} className="text-white" />
                               </button>
                             )}
-                            {isEditing ? (
-                              <div className="absolute inset-0 bg-white rounded-2xl border-2 border-blue-400 p-3 flex flex-col gap-2 z-30" onClick={(e) => e.stopPropagation()}>
-                                <input type="text" value={editCardName} onChange={(e) => setEditCardName(e.target.value)} className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:ring-1 focus:ring-blue-300" placeholder="Zone name" />
-                                <label className="flex-1 flex items-center justify-center border border-dashed border-slate-200 rounded-lg cursor-pointer hover:bg-blue-50/50 transition-all">
-                                  <div className="text-center">
-                                    <Upload size={16} className="text-slate-300 mx-auto" />
-                                    <span className="text-[9px] text-slate-400 block mt-1">Change Image</span>
-                                  </div>
-                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { if (ev.target?.result) setEditCardImage(ev.target.result as string); }; r.readAsDataURL(f); }}} />
-                                </label>
-                                <div className="flex gap-1.5">
-                                  <button onClick={() => setEditingCard(null)} className="flex-1 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-slate-200 transition-all">Cancel</button>
-                                  <button onClick={() => { setEditingCard(null); }} className="flex-1 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-700 transition-all">Save</button>
-                                </div>
-                              </div>
+                            {dynamicZoneImages[zone] ? (
+                              <>
+                                <img src={dynamicZoneImages[zone]} alt={zone} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-2xl" />
+                                <span className={`absolute bottom-3 left-3 text-sm font-bold drop-shadow-md ${isSelected ? 'text-blue-200' : 'text-white'}`}>{zone}</span>
+                              </>
                             ) : (
-                            <>
-                                {zoneToMasterImage[zone] ? (
-                                  <>
-                                    <img src={zoneToMasterImage[zone]} alt={zone} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-2xl" />
-                                    <span className={`absolute bottom-3 left-3 text-sm font-bold drop-shadow-md ${isSelected ? 'text-blue-200' : 'text-white'}`}>{zone}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Eye size={28} className={isSelected ? 'text-white/80' : 'text-slate-300 group-hover:text-slate-400 transition-colors'} />
-                                    <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-slate-600'}`}>{zone}</span>
-                                  </>
-                                )}
-                                {showOverlay && !isSelected && <span className="text-xs text-white/70 font-medium absolute bottom-1.5 right-3 bg-black/30 px-2 py-0.5 rounded-md backdrop-blur-sm">Click to select</span>}
+                              <>
+                                <Eye size={28} className={isSelected ? 'text-white/80' : 'text-slate-300 group-hover:text-slate-400 transition-colors'} />
+                                <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-slate-600'}`}>{zone}</span>
                               </>
                             )}
+                            {showOverlay && !isSelected && <span className="text-xs text-white/70 font-medium absolute bottom-1.5 right-3 bg-black/30 px-2 py-0.5 rounded-md backdrop-blur-sm">Click to select</span>}
                           </div>
                         );
                       })}
                       {/* Custom added zone images */}
-                      {customZoneImages.map((ci, ciIdx) => (
+                      {activeTypeCustomZones.map(({ item: ci, index: ciIdx }) => (
                         <div key={`custom-zone-${ciIdx}`} className="aspect-square rounded-2xl flex items-center justify-center flex-col gap-1.5 transition-all duration-300 relative group overflow-hidden border-2 border-emerald-200 bg-emerald-50 hover:shadow-lg hover:-translate-y-0.5 cursor-default">
                           {ci.image ? (
                             <img src={ci.image} alt={ci.name} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
@@ -1033,7 +1470,7 @@ export default function MasterGallery() {
                           <button onClick={() => handleRemoveCustomZone(ciIdx)} className="absolute top-2 left-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-rose-600" title="Remove">
                             <X size={12} className="text-white" />
                           </button>
-                          <button onClick={() => { setEditingCard({ section: 'zone', index: ciIdx, isCustom: true }); setEditCardName(ci.name); setEditCardImage(ci.image); }} className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
+                          <button onClick={() => { setEditZoneModal({ name: ci.name, image: ci.image, description: '', section: 'zone', index: ciIdx, isCustom: true }); }} className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
                             <Pencil size={11} className="text-white" />
                           </button>
                         </div>
@@ -1042,25 +1479,7 @@ export default function MasterGallery() {
                     {showOverlay && selectedCheckpoints.size > 0 && (
                       <p className={`text-sm font-medium mt-3 ${selectedRoomTypeTheme.accentText}`}>{selectedCheckpoints.size} of {selectedRoomTypeData.zones.length} zones selected</p>
                     )}
-                    {showOverlay && (
-                      <div className="mt-5 rounded-[1.45rem] border border-white/75 bg-white/72 p-5 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.18)]">
-                        <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Zone Inspection Checklist</h4>
-                        <div className="grid grid-cols-2 gap-2.5">
-                          {selectedRoomTypeData.checkpoints.map((cp, j) => {
-                            const pass = (j * 37 + 11) % 100 < 80;
-                            return (
-                              <div key={j} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:shadow-sm ${pass ? 'bg-emerald-50/60' : 'bg-rose-50/60'}`}>
-                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${pass ? 'bg-emerald-100' : 'bg-rose-100'}`}>
-                                  {pass ? <CheckCircle size={14} className="text-emerald-600" /> : <XCircle size={14} className="text-rose-600" />}
-                                </div>
-                                <span className="text-sm font-medium text-slate-700 flex-1">{cp}</span>
-                                <span className={`text-xs font-black uppercase ${pass ? 'text-emerald-600' : 'text-rose-600'}`}>{pass ? 'Pass' : 'Fail'}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+
                   </div>
                   </div>
 
@@ -1115,24 +1534,11 @@ export default function MasterGallery() {
                   const Icon = iconForType(room.type);
                   const isActive = selectedRoom === room.number;
                   
-                  // Status-based styling inspired by user pages
-                  const statusStyles = {
-                    pass: 'bg-gradient-to-br from-emerald-50/90 to-emerald-100/50 border-emerald-200 shadow-emerald-100/30',
-                    fail: 'bg-gradient-to-br from-rose-50/90 to-rose-100/50 border-rose-200 shadow-rose-100/30',
-                    pending: 'bg-gradient-to-br from-blue-50/70 to-indigo-50/40 border-blue-100 shadow-blue-100/20',
-                  }[room.status] || 'bg-gradient-to-br from-slate-50/70 to-slate-100/40 border-slate-200';
-
                   const iconBgStyles = {
                     pass: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-200',
                     fail: 'bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-lg shadow-rose-200',
                     pending: 'bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg shadow-blue-200',
                   }[room.status] || 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-lg shadow-slate-200';
-
-                  const accentBar = {
-                    pass: 'bg-emerald-500',
-                    fail: 'bg-rose-500',
-                    pending: 'bg-blue-500',
-                  }[room.status] || 'bg-slate-400';
 
                   const dotColor = {
                     pass: 'bg-emerald-400',
@@ -1141,29 +1547,34 @@ export default function MasterGallery() {
                   }[room.status] || 'bg-slate-300';
 
                   return (
-                    <div key={room.number} onClick={() => setSelectedRoom(isActive ? null : room.number)}
-                      className={`rounded-[1.5rem] p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] border relative overflow-hidden group ${statusStyles} ${isActive ? 'ring-2 ring-blue-500 shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-sm'}`}>
-                      {/* Colored top accent bar */}
-                      <div className={`absolute top-0 left-0 right-0 h-1.5 ${accentBar}`} />
+                    <div key={room.number} onClick={() => {
+                      const newRoom = isActive ? null : room.number;
+                      setSelectedRoom(newRoom);
+                      if (newRoom && window.innerWidth < 1024) {
+                        setTimeout(() => {
+                          document.getElementById('room-detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 150);
+                      }
+                    }}
+                      className={`rounded-[1.5rem] p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] border relative overflow-hidden group bg-white border-slate-200/80 ${isActive ? 'ring-2 ring-blue-500 shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-sm hover:border-slate-300'}`}>
                       
-                      <div className="flex items-start justify-between mb-3 mt-1">
+                      <div className="flex items-start justify-between mb-3">
                         <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-[8deg] ${iconBgStyles}`}>
                           <Icon size={20} />
                         </div>
-                        {room.status === 'fail' && <span className="px-2.5 py-1 bg-rose-500 text-white rounded-lg text-[10px] font-black uppercase shadow-md">{room.issues} Issues</span>}
-                        {room.status === 'pass' && <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase border border-emerald-200">Room Ready</span>}
-                        {room.status === 'pending' && <span className="px-2.5 py-1 bg-blue-100/80 text-blue-600 rounded-lg text-[10px] font-black uppercase border border-blue-200">Pending</span>}
+                        <div className="flex items-center gap-1.5">
+                          <Clock size={11} className="text-slate-300" />
+                          <span className="text-[10px] text-slate-400 font-medium">{room.lastScan === 'Not scanned' ? 'Not scanned' : room.lastScan}</span>
+                        </div>
                       </div>
                       <h3 className="text-lg font-black text-slate-900 tracking-tight">{room.number}</h3>
                       <div className="flex items-center gap-2 mt-1.5">
                         <div className={`w-2 h-2 rounded-full transition-all group-hover:scale-125 ${dotColor}`} />
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{room.type}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-200" />
-                        <span className="text-[10px] font-bold text-slate-400">F{room.floor}</span>
                       </div>
-                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-black/5">
-                        <span className="text-[10px] text-slate-400 font-medium">{room.lastScan}</span>
-                        <div className="w-7 h-7 rounded-full bg-white/50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                        <span className="text-[10px] text-slate-400 font-medium">F{room.floor}</span>
+                        <div className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
                           <ChevronRight size={14} />
                         </div>
                       </div>
@@ -1175,7 +1586,7 @@ export default function MasterGallery() {
 
             {/* Room Detail Panel */}
             {selectedRoom && activeRoom && (
-              <div className="lg:col-span-1 space-y-5 animate-fade-in-up">
+              <div id="room-detail-panel" className="lg:col-span-1 space-y-5 animate-fade-in-up" style={{ scrollMarginTop: '2rem' }}>
                 {/* Room Header — Vibrant */}
                 <div className={`rounded-[1.5rem] p-6 border relative overflow-hidden ${
                   activeRoom.status === 'pass' ? 'bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 border-emerald-200/60' :
@@ -1229,7 +1640,7 @@ export default function MasterGallery() {
                       <span className="text-sm font-bold text-slate-900">Zone Images</span>
                     </div>
                     <span className="text-xs text-slate-400 font-medium">
-                      {defaultZones.filter(z => !removedRoomZones.has(`${activeRoom.number}::${z}`)).length + customRoomZones.length} items
+                      {defaultZones.filter(z => !removedRoomZones.has(`${activeRoom.number}::${z}`)).length + activeRoomCustomZones.length} items
                     </span>
                   </div>
 
@@ -1239,55 +1650,36 @@ export default function MasterGallery() {
                       <div className="grid grid-cols-2 gap-3">
                         {defaultZones.map((zone, zIdx) => {
                           if (removedRoomZones.has(`${activeRoom.number}::${zone}`)) return null;
-                          const isEditingThis = editingCard?.section === 'room-zone' && editingCard.index === zIdx && !editingCard.isCustom;
+                          const isEditingThis = false; // editing now happens in modal
                           return (
-                            <div key={zone} className="aspect-square bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl border border-slate-200 flex items-center justify-center flex-col gap-1.5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer relative group">
+                            <div key={zone} className="aspect-square bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl border border-slate-200 flex items-center justify-center flex-col gap-1.5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer relative group overflow-hidden">
                               <button onClick={(e) => { e.stopPropagation(); handleRemoveRoomZone(activeRoom.number, zone); }} className="absolute top-1.5 left-1.5 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-rose-600" title="Remove">
                                 <X size={10} className="text-white" />
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); setEditingCard({ section: 'room-zone', index: zIdx, isCustom: false }); setEditCardName(zone); setEditCardImage(null); }} className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
+                              <button onClick={(e) => { e.stopPropagation(); setEditZoneModal({ name: zone, image: zoneToMasterImage[zone] || null, description: '', section: 'room-zone', index: zIdx, isCustom: false }); }} className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
                                 <Pencil size={9} className="text-white" />
                               </button>
-                              {isEditingThis ? (
-                                <div className="absolute inset-0 bg-white rounded-xl border-2 border-blue-400 p-2.5 flex flex-col gap-1.5 z-30" onClick={(e) => e.stopPropagation()}>
-                                  <input type="text" value={editCardName} onChange={(e) => setEditCardName(e.target.value)} className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-medium outline-none focus:ring-1 focus:ring-blue-300" placeholder="Zone name" />
-                                  <label className="flex-1 flex items-center justify-center border border-dashed border-slate-200 rounded-lg cursor-pointer hover:bg-blue-50/50 transition-all">
-                                    <div className="text-center">
-                                      <Upload size={14} className="text-slate-300 mx-auto" />
-                                      <span className="text-[8px] text-slate-400 block mt-0.5">Change Image</span>
-                                    </div>
-                                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { if (ev.target?.result) setEditCardImage(ev.target.result as string); }; r.readAsDataURL(f); }}} />
-                                  </label>
-                                  <div className="flex gap-1.5">
-                                    <button onClick={() => setEditingCard(null)} className="flex-1 py-1 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-bold">Cancel</button>
-                                    <button onClick={() => setEditingCard(null)} className="flex-1 py-1 bg-blue-600 text-white rounded-lg text-[9px] font-bold">Save</button>
-                                  </div>
-                                </div>
+                              {zoneToMasterImage[zone] ? (
+                                <>
+                                  <img src={zoneToMasterImage[zone]} alt={zone} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-xl" />
+                                  <span className="absolute bottom-2 left-2.5 text-xs font-bold text-white drop-shadow-md">{zone}</span>
+                                </>
                               ) : (
                                 <>
-                                  {zoneToMasterImage[zone] ? (
-                                    <>
-                                      <img src={zoneToMasterImage[zone]} alt={zone} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-xl" />
-                                      <span className="absolute bottom-2 left-2.5 text-xs font-bold text-white drop-shadow-md">{zone}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ScanSearch size={20} className="text-slate-300" />
-                                      <span className="text-xs font-bold text-slate-500">{zone}</span>
-                                    </>
-                                  )}
+                                  <ScanSearch size={20} className="text-slate-300" />
+                                  <span className="text-xs font-bold text-slate-500">{zone}</span>
                                 </>
                               )}
                             </div>
                           );
                         })}
-                        {customRoomZones.map((item, idx) => (
+                        {activeRoomCustomZones.map(({ item, index: idx }) => (
                           <div key={`custom-rz-${idx}`} className="aspect-square rounded-xl border-2 border-emerald-200 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer relative group">
                             <button onClick={() => handleRemoveCustomRoomZone(idx)} className="absolute top-1.5 left-1.5 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-rose-600" title="Remove">
                               <X size={10} className="text-white" />
                             </button>
-                            <button onClick={() => { setEditingCard({ section: 'room-zone', index: idx, isCustom: true }); setEditCardName(item.name); setEditCardImage(item.image); }} className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
+                            <button onClick={() => { setEditZoneModal({ name: item.name, image: item.image, description: '', section: 'room-zone', index: idx, isCustom: true }); }} className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-blue-600" title="Edit">
                               <Pencil size={9} className="text-white" />
                             </button>
                             {item.image ? (
@@ -1309,68 +1701,6 @@ export default function MasterGallery() {
                     </>
                   )}
 
-                </div>
-
-                {/* ═══ Inspection Checklist (Interactive) ═══ */}
-                <div className="glass-card rounded-2xl p-6">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Inspection Checklist</h3>
-                  <div className="space-y-2">
-                    {activeChecklist.map((item, j) => {
-                      const isExpanded = expandedChecklistItem === j;
-                      const alreadyInProducts = defaultProducts.some(p => p.toLowerCase() === item.name.toLowerCase() && !removedRoomProducts.has(`${activeRoom.number}::${p}`)) || customRoomProducts.some(p => p.name.toLowerCase() === item.name.toLowerCase());
-                      return (
-                        <div key={j}>
-                          <div
-                            onClick={() => setExpandedChecklistItem(isExpanded ? null : j)}
-                            className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${item.status === 'pass' ? 'bg-emerald-50/50 hover:bg-emerald-50' : 'bg-rose-50/50 hover:bg-rose-50'}`}
-                          >
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${item.status === 'pass' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
-                              {item.status === 'pass' ? <CheckCircle size={14} className="text-emerald-600" /> : <XCircle size={14} className="text-rose-600" />}
-                            </div>
-                            <span className="text-sm font-medium text-slate-700 flex-1">{item.name}</span>
-                            <span className={`text-[10px] font-black uppercase ${item.status === 'pass' ? 'text-emerald-600' : 'text-rose-600'}`}>{item.status === 'pass' ? 'Pass' : 'Fail'}</span>
-                            <ChevronRight size={14} className={`text-slate-300 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                          </div>
-                          {isExpanded && (
-                            <div className="ml-10 mt-1 mb-2 flex items-center gap-2">
-                              {alreadyInProducts ? (
-                                <button
-                                  onClick={() => {
-                                    // Remove from products
-                                    const defaultMatch = defaultProducts.find(p => p.toLowerCase() === item.name.toLowerCase());
-                                    if (defaultMatch) {
-                                      handleRemoveRoomProduct(activeRoom.number, defaultMatch);
-                                    } else {
-                                      const customIdx = customRoomProducts.findIndex(p => p.name.toLowerCase() === item.name.toLowerCase());
-                                      if (customIdx >= 0) handleRemoveCustomRoomProduct(customIdx);
-                                    }
-                                    setExpandedChecklistItem(null);
-                                  }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100 transition-all active:scale-95"
-                                >
-                                  <X size={12} /> Remove from Products
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => {
-                                    setCustomRoomProducts(prev => [...prev, { name: item.name, code: `CHK-${j}`, image: '', categories: [] }]);
-                                    setExpandedChecklistItem(null);
-                                    setRoomDetailTab('products');
-                                  }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all active:scale-95"
-                                >
-                                  <Plus size={12} /> Add to Products
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 text-sm text-slate-400">
-                    <strong className="text-slate-700">{activeChecklist.filter(c => c.status === 'pass').length}</strong> of {activeChecklist.length} passed
-                  </div>
                 </div>
               </div>
             )}

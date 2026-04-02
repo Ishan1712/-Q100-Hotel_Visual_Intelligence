@@ -61,33 +61,6 @@ const statusConfig: Record<string, { bg: string; border: string; text: string; l
 const panelShellClass =
   'group relative overflow-hidden rounded-[2rem] border border-white/80 backdrop-blur-sm shadow-[0_24px_60px_-34px_rgba(15,23,42,0.18)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_34px_90px_-38px_rgba(15,23,42,0.24)]';
 
-const statCardStyles: Record<string, { surface: string; border: string; iconSurface: string; shadow: string }> = {
-  'ready': {
-    surface: 'from-[#eefcf5] via-white to-[#effbf7]',
-    border: 'border-emerald-200/80',
-    iconSurface: 'from-emerald-100 to-emerald-50 text-emerald-600',
-    shadow: 'shadow-emerald-200/55',
-  },
-  'in-progress': {
-    surface: 'from-[#fff8eb] via-white to-[#fff4de]',
-    border: 'border-amber-200/80',
-    iconSurface: 'from-amber-100 to-amber-50 text-amber-600',
-    shadow: 'shadow-amber-200/55',
-  },
-  'flagged': {
-    surface: 'from-[#fff1f4] via-white to-[#ffecef]',
-    border: 'border-rose-200/80',
-    iconSurface: 'from-rose-100 to-rose-50 text-rose-600',
-    shadow: 'shadow-rose-200/55',
-  },
-  'not-started': {
-    surface: 'from-[#f5f9ff] via-white to-[#f2f6fb]',
-    border: 'border-slate-200/85',
-    iconSurface: 'from-slate-100 to-slate-50 text-slate-500',
-    shadow: 'shadow-slate-200/55',
-  },
-};
-
 const getPageTone = (percent: number) => {
   if (percent >= 80) {
     return {
@@ -173,21 +146,6 @@ const getFloorCardTone = (percent: number) => {
     badge: 'border-slate-200 bg-slate-50 text-slate-600',
     mutedText: 'text-slate-500',
   };
-};
-
-/* ── Progress Ring ── */
-const ProgressRing = ({ percent, size = 64, stroke = 6 }: { percent: number; size?: number; stroke?: number }) => {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-  const color = percent >= 80 ? '#10b981' : percent >= 50 ? '#f59e0b' : '#f43f5e';
-  
-  return (
-    <svg width={size} height={size} className="transform -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={stroke} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
-    </svg>
-  );
 };
 
 /* ── Room Card Component ── */
@@ -474,58 +432,6 @@ export default function LiveFloorMap() {
           })}
         </div>
       </div>
-
-      {/* ═══ Stats Row ═══ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 animate-fade-in-up stagger-2">
-        {/* Progress Ring Card */}
-        <div className={`${panelShellClass} bg-gradient-to-br from-[#eefcf5] via-[#ffffff] to-[#eef8ff] p-5`}>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14)_0,transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08)_0,transparent_42%)]" />
-          <div className="relative flex items-center gap-5">
-            <div className="relative shrink-0">
-              <ProgressRing percent={readyPercent} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-base font-black text-slate-900">{readyPercent}%</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.24em]">Floor Ready</p>
-              <p className="text-[1.6rem] font-black tracking-tight text-slate-900 mt-1">{counts.ready}<span className="text-sm text-slate-400 font-medium"> / {total}</span></p>
-              <div className={`inline-flex items-center gap-1.5 mt-3 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-[0.16em] ${pageTone.accentSurface}`}>
-                <TrendingUp size={12} />
-                Live Snapshot
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Status Cards */}
-        {[
-          { key: 'ready', label: 'Ready', count: counts.ready, config: statusConfig['ready'], icon: CheckCircle },
-          { key: 'in-progress', label: 'In Progress', count: counts.inProgress, config: statusConfig['in-progress'], icon: Activity },
-          { key: 'flagged', label: 'Flagged', count: counts.flagged, config: statusConfig['flagged'], icon: AlertTriangle },
-          { key: 'not-started', label: 'Not Started', count: counts.notStarted, config: statusConfig['not-started'], icon: Clock },
-        ].map((stat) => {
-          const style = statCardStyles[stat.key];
-          return (
-            <div key={stat.label} className={`${panelShellClass} border ${style.border} bg-gradient-to-br ${style.surface} p-5`}>
-              <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
-              <div className="relative flex items-center gap-4">
-                <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${style.iconSurface} flex items-center justify-center shrink-0 shadow-lg ${style.shadow}`}>
-                  <stat.icon size={18} className={stat.config.text} />
-                </div>
-                <div className="flex-1">
-                  <span className="text-3xl font-black tracking-tight text-slate-900">{stat.count}</span>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.22em] mt-1">{stat.label}</p>
-                </div>
-                <div className="rounded-full border border-white/80 bg-white/70 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 shadow-sm">
-                  {Math.round((stat.count / total) * 100)}%
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
       {/* ═══ Bottleneck Alert ═══ */}
       {isBottleneck && (
         <div className={`${panelShellClass} bg-gradient-to-r from-rose-50 via-orange-50 to-amber-50 p-5 flex items-center gap-5 animate-fade-in-up border border-rose-200/80`}>
