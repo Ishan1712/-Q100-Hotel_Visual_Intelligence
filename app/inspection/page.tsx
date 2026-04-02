@@ -605,16 +605,6 @@ export default function InspectionFlowPage() {
                     <Maximize2 size={24} className="text-white drop-shadow-md" />
                   </div>
                 </div>
-
-                <div className="mt-3">
-                  <button
-                    onClick={() => setViewingCheckpointId(cp.id)}
-                    className="w-full h-10 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
-                  >
-                    <Maximize2 size={14} />
-                    View Master
-                  </button>
-                </div>
               </div>
             </div>
 

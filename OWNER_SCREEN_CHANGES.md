@@ -45,7 +45,7 @@
 
 | Column | Description |
 |--------|-------------|
-| Hotel Name | e.g. "Monarch Grand, Pune" |
+| Hotel Name | e.g. "JW Marriott Grand, Pune" |
 | Rooms | Total room count |
 | Google Rating | ⭐ 4.6 (show actual stars) |
 | OTA Score | MakeMyTrip/Booking.com rating |
@@ -65,11 +65,11 @@
 Two side-by-side highlight cards:
 
 **🟢 Best Performing Hotel:**
-- "Monarch Grand, Pune" — 4.8 ⭐ Google Rating, 2,340 bookings this month, only 4 complaints
+- "JW Marriott Grand, Pune" — 4.8 ⭐ Google Rating, 2,340 bookings this month, only 4 complaints
 - _"Highest reviews, most customers"_
 
 **🔴 Needs Attention:**
-- "Monarch Central, Nagpur" — 3.8 ⭐ Google Rating, 890 bookings this month, 28 complaints
+- "JW Marriott Central, Nagpur" — 3.8 ⭐ Google Rating, 890 bookings this month, 28 complaints
 - _"Lowest reviews, fewest customers — review drop costing ~₹3.2L/month in lost bookings"_
 
 This instantly tells the owner: _"Where am I winning? Where am I losing?"_
@@ -142,11 +142,11 @@ This is the most important chart on this screen:
 
 | | Standard | Executive | Suite | VIP Suite | Penthouse |
 |---|---|---|---|---|---|
-| Monarch Grand, Pune | 92% | 88% | 95% | 90% | — |
-| Monarch Palace, Mumbai | 85% | 82% | 88% | 86% | 91% |
-| Monarch Heritage, Nashik | 78% | 75% | 80% | — | — |
-| Monarch Gateway, Aurangabad | 74% | 70% | 76% | — | — |
-| Monarch Central, Nagpur | 68% | 65% | 72% | — | — |
+| JW Marriott Grand, Pune | 92% | 88% | 95% | 90% | — |
+| JW Marriott Palace, Mumbai | 85% | 82% | 88% | 86% | 91% |
+| JW Marriott Heritage, Nashik | 78% | 75% | 80% | — | — |
+| JW Marriott Gateway, Aurangabad | 74% | 70% | 76% | — | — |
+| JW Marriott Central, Nagpur | 68% | 65% | 72% | — | — |
 
 - Percentage = overall room quality score (computed from all checkpoints internally, but owner just sees one number)
 - Color coding: Green (85%+), Yellow (70-84%), Red (<70%)
@@ -223,8 +223,8 @@ Waterfall bars:
 
 | Hotel | Monthly Revenue Before | Monthly Revenue After | Revenue Gain | Review Score |
 |-------|----------------------|----------------------|-------------|-------------|
-| Monarch Grand, Pune | ₹45L | ₹52L | +₹7L | 4.8 ⭐ |
-| Monarch Palace, Mumbai | ₹62L | ₹68L | +₹6L | 4.6 ⭐ |
+| JW Marriott Grand, Pune | ₹45L | ₹52L | +₹7L | 4.8 ⭐ |
+| JW Marriott Palace, Mumbai | ₹62L | ₹68L | +₹6L | 4.6 ⭐ |
 | ... | ... | ... | ... | ... |
 
 ---

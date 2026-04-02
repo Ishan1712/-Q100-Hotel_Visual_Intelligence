@@ -93,35 +93,35 @@ const monthlyRevenueData = [
 
 const hotelRevenueRows = [
     {
-        hotel: "Monarch Grand, Pune",
+        hotel: "JW Marriott Grand, Pune",
         before: "₹45L",
         after: "₹52L",
         gain: "+₹7L",
         score: "4.8 ⭐",
     },
     {
-        hotel: "Monarch Palace, Mumbai",
+        hotel: "JW Marriott Palace, Mumbai",
         before: "₹62L",
         after: "₹68L",
         gain: "+₹6L",
         score: "4.6 ⭐",
     },
     {
-        hotel: "Monarch Heritage, Nashik",
+        hotel: "JW Marriott Heritage, Nashik",
         before: "₹38L",
         after: "₹41L",
         gain: "+₹3L",
         score: "4.4 ⭐",
     },
     {
-        hotel: "Monarch Gateway, Aurangabad",
+        hotel: "JW Marriott Gateway, Aurangabad",
         before: "₹34L",
         after: "₹37L",
         gain: "+₹3L",
         score: "4.3 ⭐",
     },
     {
-        hotel: "Monarch Central, Nagpur",
+        hotel: "JW Marriott Central, Nagpur",
         before: "₹29L",
         after: "₹31.4L",
         gain: "+₹2.4L",
@@ -133,7 +133,6 @@ export default function RevenueImpact() {
     return (
         <OwnerDashboardLayout
             title="Revenue Impact"
-            subtitle="How Q100 is growing your revenue"
         >
             <div className="space-y-5">
                 <motion.section

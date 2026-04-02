@@ -40,7 +40,6 @@ export default function ReportGenerator() {
   return (
     <OwnerDashboardLayout
       title="Intelligence Reports"
-      subtitle="Institutional-grade performance ledgers and executive summaries"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
@@ -72,9 +71,9 @@ export default function ReportGenerator() {
                 onChange={(e) => setHotel(e.target.value)}
               >
                 <option>All Assets (Consolidated)</option>
-                <option>Monarch Grand, Pune</option>
-                <option>Monarch Palace, Mumbai</option>
-                <option>Monarch Heritage, Nashik</option>
+                <option>JW Marriott Grand, Pune</option>
+                <option>JW Marriott Palace, Mumbai</option>
+                <option>JW Marriott Heritage, Nashik</option>
               </select>
             </div>
 
@@ -175,8 +174,8 @@ export default function ReportGenerator() {
             <div className="w-full max-w-2xl bg-white rounded-lg shadow-2xl p-10 space-y-10 relative overflow-hidden">
                {/* Watermark/Texture */}
                <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none overflow-hidden">
-                   <div className="absolute top-10 left-10 text-[100px] font-black -rotate-12">Q100</div>
-                   <div className="absolute bottom-10 right-10 text-[100px] font-black -rotate-12">Q100</div>
+                   <div className="absolute top-10 left-10 text-[100px] font-black -rotate-12">JW Marriott</div>
+                   <div className="absolute bottom-10 right-10 text-[100px] font-black -rotate-12">JW Marriott</div>
                </div>
 
               {/* PDF Header */}
@@ -189,7 +188,7 @@ export default function ReportGenerator() {
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">
                         Portfolio Ledger
                       </span>
-                      <p className="text-[8px] font-black text-slate-400 tracking-[0.3em] uppercase">Monarch Hospitality Group</p>
+                      <p className="text-[8px] font-black text-slate-400 tracking-[0.3em] uppercase">JW Marriott Hospitality Group</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -237,12 +236,12 @@ export default function ReportGenerator() {
                       </thead>
                       <tbody className="divide-y divide-slate-50">
                         <tr>
-                          <td className="px-4 py-3 font-bold">Pune Monarch Grand</td>
+                          <td className="px-4 py-3 font-bold">Pune JW Marriott Grand</td>
                           <td className="px-4 py-3 text-right font-bold">₹72,40,000</td>
                           <td className="px-4 py-3 text-right text-emerald-600 font-black">+₹8.4L</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 font-bold">Mumbai Monarch Palace</td>
+                          <td className="px-4 py-3 font-bold">Mumbai JW Marriott Palace</td>
                           <td className="px-4 py-3 text-right font-bold">₹86,10,000</td>
                           <td className="px-4 py-3 text-right text-emerald-600 font-black">+₹6.2L</td>
                         </tr>
@@ -254,7 +253,7 @@ export default function ReportGenerator() {
               <div className="pt-10 flex justify-center grayscale opacity-30 italic">
                   <div className="flex items-center gap-2">
                        <Building2 size={12} />
-                       <span className="text-[8px] font-black uppercase tracking-[0.4em]">Monarch Group Legal Ledger</span>
+                       <span className="text-[8px] font-black uppercase tracking-[0.4em]">JW Marriott Group Legal Ledger</span>
                   </div>
               </div>
             </div>

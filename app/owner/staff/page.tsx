@@ -47,20 +47,26 @@ const trainingImpactData = [
 
 const staffTable = [
   { 
-    hotel: "Monarch Grand, Pune", 
+    hotel: "JW Marriott Grand, Pune", 
     count: 18, vacancy: 0, status: "Excellent", rooms: 14.8, issue: "All Personnel Certified",
     staff: [{ name: "Meena R.", score: "92%", status: "Elite", trend: "+2.1%" }, { name: "Sunita K.", score: "89%", status: "Senior", trend: "+4.8%" }]
   },
-  { hotel: "Monarch Palace, Mumbai", count: 22, vacancy: 3, status: "Excellent", rooms: 14.6, issue: "Minor Checklist Delay" },
-  { hotel: "Monarch Heritage, Nashik", count: 14, vacancy: 12, status: "Training", rooms: 13.9, issue: "3 Staff in Training" },
   { 
-    hotel: "Monarch Gateway, Aurangabad", 
+    hotel: "JW Marriott Palace, Mumbai", count: 22, vacancy: 3, status: "Excellent", rooms: 14.6, issue: "Minor Checklist Delay",
+    staff: [{ name: "Arun P.", score: "88%", status: "Senior", trend: "+1.2%" }, { name: "Mehul L.", score: "85%", status: "Aide", trend: "+1.5%" }]
+  },
+  { 
+    hotel: "JW Marriott Heritage, Nashik", count: 14, vacancy: 12, status: "Training", rooms: 13.9, issue: "3 Staff in Training",
+    staff: [{ name: "Kiran S.", score: "86%", status: "Elite", trend: "+0.8%" }, { name: "Amit B.", score: "81%", status: "Trainee", trend: "+2.4%" }]
+  },
+  { 
+    hotel: "JW Marriott Gateway, Aurangabad", 
     count: 16, vacancy: 18, status: "Critical", rooms: 12.8, issue: "Needs Retraining (Minibar)",
     impact: "₹1.8L", fix: "Minibar Retraining Loop", timeline: "48h",
     staff: [{ name: "Sanjay M.", score: "74%", status: "Needs Review", trend: "+12.1%" }]
   },
   { 
-    hotel: "Monarch Central, Nagpur", 
+    hotel: "JW Marriott Central, Nagpur", 
     count: 14, vacancy: 21, status: "Critical", rooms: 11.2, issue: "Standard Onboarding Gap",
     impact: "₹2.1L", fix: "Onboarding Express Loop", timeline: "24h",
     staff: [{ name: "Rahul V.", score: "68%", status: "At Risk", trend: "+0.5%" }]
@@ -149,7 +155,6 @@ export default function StaffAnalytics() {
   return (
     <OwnerDashboardLayout 
       title="Staff Analytics" 
-      subtitle="Workforce yield intelligence and portfolio personnel matrix"
     >
       {/* HIDE SCROLLBAR CSS */}
       <style jsx global>{`
@@ -192,9 +197,9 @@ export default function StaffAnalytics() {
                             <th className="px-6 py-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Hotel Entity</th>
                             <th className="px-6 py-2.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">Staff</th>
                             <th className="px-6 py-2.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">Vacancy</th>
-                            <th className="px-6 py-2.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                            <th className="px-6 py-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Task Velocity</th>
-                            <th className="px-6 py-2.5 pr-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">Flag</th>
+                            <th className="px-4 py-2.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                            <th className="px-4 py-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">Task Velocity</th>
+                            <th className="px-4 py-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">Flag</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50 text-[11px] font-medium text-slate-700">
@@ -214,16 +219,16 @@ export default function StaffAnalytics() {
                                     <td className="px-6 py-2.5 text-center">
                                         <span className={row.vacancy > 15 ? 'text-rose-600 font-bold' : ''}>{row.vacancy}%</span>
                                     </td>
-                                    <td className="px-6 py-2.5 text-center">{getStatusBadge(row.status)}</td>
-                                    <td className="px-6 py-2.5">
-                                        <div className="flex items-center gap-3">
+                                    <td className="px-4 py-2.5 text-center">{getStatusBadge(row.status)}</td>
+                                    <td className="px-4 py-2.5 text-center">
+                                        <div className="flex items-center justify-center gap-3">
                                             <span className="font-bold text-slate-800">{row.rooms}</span>
                                             <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
                                                 <div style={{ width: `${Math.min((row.rooms / 16) * 100, 100)}%` }} className={`h-full rounded-full ${row.rooms > 14 ? 'bg-emerald-500' : row.rooms > 12 ? 'bg-amber-500' : 'bg-rose-500'}`} />
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-2.5 pr-8 text-right font-bold text-[9px] uppercase">
+                                    <td className="px-4 py-2.5 text-center font-bold text-[9px] uppercase">
                                         <span className={row.issue.includes('All') ? 'text-emerald-700' : 'text-rose-600'}>{row.issue.split(' ')[0]}</span>
                                     </td>
                                 </tr>
@@ -269,7 +274,7 @@ export default function StaffAnalytics() {
         {/* 2x2 ACTION GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
-            {/* 1. RISK MITIGATION (ROSE THEME) */}
+            {/* 1. RISK MITIGATION (ROSE THEME)
             <motion.div 
                 whileHover={{ y: -8, scale: 1.01 }}
                 className="bg-rose-50/50 border border-rose-100 rounded-xl p-6 shadow-sm flex flex-col h-[420px]"
@@ -297,8 +302,9 @@ export default function StaffAnalytics() {
                     )}
                 </div>
             </motion.div>
+            */}
 
-            {/* 2. TRAINING IMPACT PERFORMANCE (INDIGO THEME) */}
+            {/* 2. TRAINING IMPACT PERFORMANCE (INDIGO THEME)
             <motion.div 
                 whileHover={{ y: -8, scale: 1.01 }}
                 className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-0 shadow-sm flex flex-col h-[420px] overflow-hidden"
@@ -312,6 +318,7 @@ export default function StaffAnalytics() {
                     <div className="flex-1 min-h-0"><ResponsiveContainer width="100%" height="100%"><ScatterChart margin={{ top: 0, right: 30, bottom: 20, left: -20 }}><CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" vertical={false} /><XAxis type="number" dataKey="hours" name="Hours" unit="h" axisLine={false} tickLine={false} tick={{ fill: '#6366f1', fontSize: 10, fontWeight: '700' }} /><YAxis type="number" dataKey="improvement" name="Improvement" unit="%" axisLine={false} tickLine={false} tick={{ fill: '#6366f1', fontSize: 10, fontWeight: '700' }} /><Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} /><Scatter data={trainingImpactData} fill="#4f46e5" fillOpacity={0.6}>{trainingImpactData.map((entry, index) => <Cell key={`cell-${index}`} fill={index > 5 ? "#10b981" : "#4f46e5"} />)}</Scatter></ScatterChart></ResponsiveContainer></div>
                 </div>
             </motion.div>
+            */}
 
             {/* 3 & 4. PERSONNEL EXCELLENCE (DYNAMIC THEMES) */}
             <motion.div 

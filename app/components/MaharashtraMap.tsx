@@ -27,7 +27,7 @@ interface PropertyPin {
 const properties: PropertyPin[] = [
   {
     id: '1',
-    name: 'Monarch Grand',
+    name: 'JW Marriott Grand',
     city: 'Pune',
     x: 42,
     y: 58,
@@ -36,7 +36,7 @@ const properties: PropertyPin[] = [
   },
   {
     id: '2',
-    name: 'Monarch Palace',
+    name: 'JW Marriott Palace',
     city: 'Mumbai',
     x: 35,
     y: 52,
@@ -45,7 +45,7 @@ const properties: PropertyPin[] = [
   },
   {
     id: '3',
-    name: 'Monarch Heritage',
+    name: 'JW Marriott Heritage',
     city: 'Nashik',
     x: 44,
     y: 40,
@@ -54,7 +54,7 @@ const properties: PropertyPin[] = [
   },
   {
     id: '4',
-    name: 'Monarch Gateway',
+    name: 'JW Marriott Gateway',
     city: 'Aurangabad',
     x: 55,
     y: 45,
@@ -63,7 +63,7 @@ const properties: PropertyPin[] = [
   },
   {
     id: '5',
-    name: 'Monarch Central',
+    name: 'JW Marriott Central',
     city: 'Nagpur',
     x: 82,
     y: 35,

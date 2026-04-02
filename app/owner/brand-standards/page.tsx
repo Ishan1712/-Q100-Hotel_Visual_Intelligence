@@ -16,19 +16,19 @@ import OwnerDashboardLayout from "@/app/components/OwnerDashboardLayout";
 const roomTypes = ["Standard", "Executive", "Suite", "VIP Suite", "Penthouse"];
 
 const properties = [
-  "Monarch Grand, Pune",
-  "Monarch Palace, Mumbai",
-  "Monarch Heritage, Nashik",
-  "Monarch Gateway, Aurangabad",
-  "Monarch Central, Nagpur",
+  "JW Marriott Grand, Pune",
+  "JW Marriott Palace, Mumbai",
+  "JW Marriott Heritage, Nashik",
+  "JW Marriott Gateway, Aurangabad",
+  "JW Marriott Central, Nagpur",
 ];
 
-const heatmapData: Record<string, (number | null)[]> = {
-  "Monarch Grand, Pune": [92, 88, 95, 90, null],
-  "Monarch Palace, Mumbai": [85, 82, 88, 86, 91],
-  "Monarch Heritage, Nashik": [78, 75, 80, null, null],
-  "Monarch Gateway, Aurangabad": [74, 70, 76, null, null],
-  "Monarch Central, Nagpur": [68, 65, 72, null, null],
+const heatmapData: Record<string, number[]> = {
+  "JW Marriott Grand, Pune": [92, 88, 95, 90, 94],
+  "JW Marriott Palace, Mumbai": [85, 82, 88, 86, 91],
+  "JW Marriott Heritage, Nashik": [78, 75, 80, 82, 85],
+  "JW Marriott Gateway, Aurangabad": [74, 70, 76, 78, 80],
+  "JW Marriott Central, Nagpur": [68, 65, 72, 74, 76],
 };
 
 const drilldownData: Record<
@@ -43,55 +43,202 @@ const drilldownData: Record<
     }
   >
 > = {
-  "Monarch Grand, Pune": {
+  "JW Marriott Grand, Pune": {
     Standard: {
       totalRooms: 24,
       issueCount: 1,
-      complaints: [{ reason: "Bathroom drain issue", count: 1 }],
-      reviews: [
-        "Room was spotless and very comfortable for a short business stay.",
-        "Good housekeeping overall, though the bathroom drainage was slow.",
-      ],
+      complaints: [{ reason: "Slow bathroom drainage", count: 1 }],
+      reviews: ["Clean and comfortable.", "Slightly dated but very clean."],
     },
     Executive: {
       totalRooms: 18,
       issueCount: 2,
-      complaints: [
-        { reason: "AC not cooling enough", count: 1 },
-        { reason: "Lighting issue", count: 1 },
-      ],
-      reviews: [],
+      complaints: [{ reason: "AC cooling inconsistent", count: 2 }],
+      reviews: ["Great view, but AC was loud.", "Perfect stay for business."],
     },
     Suite: {
       totalRooms: 8,
       issueCount: 0,
       complaints: [],
-      reviews: [],
+      reviews: ["Absolutely stunning room.", "Best suite in the city."],
+    },
+    "VIP Suite": {
+      totalRooms: 4,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Exceptional service.", "True luxury experience."],
+    },
+    Penthouse: {
+      totalRooms: 2,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Breathtaking views.", "Unmatched quality standards."],
     },
   },
-  "Monarch Palace, Mumbai": {
+  "JW Marriott Palace, Mumbai": {
     Standard: {
       totalRooms: 36,
       issueCount: 3,
-      complaints: [{ reason: "Room not clean", count: 2 }],
-      reviews: [],
+      complaints: [{ reason: "Inconsistent linen quality", count: 3 }],
+      reviews: ["Busy hotel but clean.", "Room service was slow."],
+    },
+    Executive: {
+      totalRooms: 22,
+      issueCount: 1,
+      complaints: [{ reason: "Wifi signal weak", count: 1 }],
+      reviews: ["Good executive lounge.", "Comfortable bedding."],
+    },
+    Suite: {
+      totalRooms: 12,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Very spacious and clean.", "Elegant design."],
+    },
+    "VIP Suite": {
+      totalRooms: 6,
+      issueCount: 1,
+      complaints: [{ reason: "Minibar restock delay", count: 1 }],
+      reviews: ["Prestige service.", "A bit noisy near the lifts."],
+    },
+    Penthouse: {
+      totalRooms: 2,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Top tier luxury.", "Private pool was spotless."],
+    },
+  },
+  "JW Marriott Heritage, Nashik": {
+    Standard: {
+      totalRooms: 20,
+      issueCount: 4,
+      complaints: [{ reason: "Carpet stains", count: 2 }],
+      reviews: ["Nice garden view.", "Room needs fresh paint."],
+    },
+    Executive: {
+      totalRooms: 15,
+      issueCount: 2,
+      complaints: [{ reason: "Balcony door lock", count: 1 }],
+      reviews: ["Good amenities.", "Staff were very helpful."],
+    },
+    Suite: {
+      totalRooms: 6,
+      issueCount: 1,
+      complaints: [{ reason: "Tapestry wear", count: 1 }],
+      reviews: ["Large living area.", "Beautiful furniture."],
+    },
+    "VIP Suite": {
+      totalRooms: 2,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Quiet and peaceful.", "Great heritage feel."],
+    },
+    Penthouse: {
+      totalRooms: 1,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Exclusive and grand.", "Perfect heritage preservation."],
+    },
+  },
+  "JW Marriott Gateway, Aurangabad": {
+    Standard: {
+      totalRooms: 28,
+      issueCount: 5,
+      complaints: [{ reason: "Dust on headboard", count: 3 }],
+      reviews: ["Good location.", "Housekeeping could be better."],
+    },
+    Executive: {
+      totalRooms: 12,
+      issueCount: 2,
+      complaints: [{ reason: "Noisy corridor", count: 2 }],
+      reviews: ["Business ready.", "Adequate lighting."],
+    },
+    Suite: {
+      totalRooms: 4,
+      issueCount: 1,
+      complaints: [{ reason: "Upholstery cleaning", count: 1 }],
+      reviews: ["Impressive suites.", "Modern touch."],
+    },
+    "VIP Suite": {
+      totalRooms: 2,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Great for VIPs.", "Private check-in was smooth."],
+    },
+    Penthouse: {
+      totalRooms: 1,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Superb luxury.", "Detail oriented."],
+    },
+  },
+  "JW Marriott Central, Nagpur": {
+    Standard: {
+      totalRooms: 30,
+      issueCount: 8,
+      complaints: [{ reason: "Old AC rattling", count: 5 }],
+      reviews: ["Central location.", "Old rooms need upgrade.", "Functional but tired."],
+    },
+    Executive: {
+      totalRooms: 10,
+      issueCount: 3,
+      complaints: [{ reason: "Damp smell in bathroom", count: 3 }],
+      reviews: ["Practical for work.", "Okay stay but not great."],
+    },
+    Suite: {
+      totalRooms: 4,
+      issueCount: 2,
+      complaints: [{ reason: "Curtain hooks missing", count: 2 }],
+      reviews: ["Large rooms.", "Needs better lighting."],
+    },
+    "VIP Suite": {
+      totalRooms: 2,
+      issueCount: 1,
+      complaints: [{ reason: "Mirror tarnishing", count: 1 }],
+      reviews: ["Good space.", "Premium feel is fading."],
+    },
+    Penthouse: {
+      totalRooms: 1,
+      issueCount: 0,
+      complaints: [],
+      reviews: ["Surprising luxury.", "Well maintained compared to standard rooms."],
     },
   },
 };
 
 const actionItems = [
   {
-    hotel: "Monarch Central, Nagpur",
+    hotel: "JW Marriott Central, Nagpur",
     roomType: "Standard",
     issue: "Consistent AC issues",
     age: "2 days",
     status: "Critical",
   },
   {
-    hotel: "Monarch Gateway, Aurangabad",
+    hotel: "JW Marriott Gateway, Aurangabad",
     roomType: "Executive",
     issue: "Damaged welcome kits",
     age: "1 day",
+    status: "Warning",
+  },
+  {
+    hotel: "JW Marriott Heritage, Nashik",
+    roomType: "Suite",
+    issue: "Tapestry wear detected",
+    age: "3 days",
+    status: "Warning",
+  },
+  {
+    hotel: "JW Marriott Palace, Mumbai",
+    roomType: "Standard",
+    issue: "Linen quality audit failed",
+    age: "5 hours",
+    status: "Critical",
+  },
+  {
+    hotel: "JW Marriott Grand, Pune",
+    roomType: "Executive",
+    issue: "AC unit loud noise report",
+    age: "8 hours",
     status: "Warning",
   },
 ];
@@ -118,7 +265,6 @@ export default function RoomQualityOverview() {
   return (
     <OwnerDashboardLayout
       title="Brand Standards"
-      subtitle="Protocol compliance heatmap across your portfolio"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-8 space-y-5">
@@ -201,65 +347,87 @@ export default function RoomQualityOverview() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 15 }}
-                className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6"
+                className="bg-white border border-slate-200 rounded-2xl shadow-xl p-7"
               >
                 <div className="flex items-start justify-between mb-8">
                   <div className="flex items-center gap-4">
-                     <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
-                        <Search size={22} />
+                     <div className="h-14 w-14 rounded-2xl bg-slate-950 text-white flex items-center justify-center shadow-2xl shadow-slate-900/20">
+                        <Search size={24} />
                      </div>
                      <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Property Analysis</p>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                           {selectedCell.property.split(',')[0]} · {selectedCell.roomType}
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Property Analysis</p>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                           {selectedCell.property.split(',')[0]} <span className="mx-2 text-slate-300">·</span> <span className="text-slate-800">{selectedCell.roomType}</span>
                         </h3>
                      </div>
                   </div>
-                  <button onClick={() => setSelectedCell(null)} className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-900 hover:bg-white transition-all active:scale-90">
-                    <RotateCcw size={18} />
+                  <button 
+                    onClick={() => setSelectedCell(null)} 
+                    className="p-3 rounded-2xl border border-slate-100 bg-slate-50 text-slate-400 hover:text-slate-900 hover:bg-white transition-all active:scale-90 shadow-sm"
+                  >
+                    <RotateCcw size={20} />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                   <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                         <StatCard label="Inventory" value={`${selectedDetails?.totalRooms ?? 0}`} suffix="units" />
-                         <StatCard label="Failures" value={`${selectedDetails?.issueCount ?? 0}`} suffix="rooms" danger />
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-5">
+                         <StatCard label="Inventory" value={`${selectedDetails?.totalRooms ?? 0}`} suffix="rooms" color="slate" />
+                         <StatCard label="Failures" value={`${selectedDetails?.issueCount ?? 0}`} suffix="rooms" color="rose" />
                       </div>
-                      <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
-                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4">Failures by Category</h4>
-                         <div className="space-y-2">
+                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/30 p-6">
+                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-5">Failures by Category</h4>
+                         <div className="space-y-2.5">
                             {selectedDetails?.complaints?.map((c, i) => (
-                               <div key={i} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                  <span className="text-xs font-bold text-slate-700">{c.reason}</span>
-                                  <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{c.count}</span>
+                               <div key={i} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                                  <span className="text-sm font-bold text-slate-700">{c.reason}</span>
+                                  <span className="text-[11px] font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">{c.count}</span>
                                </div>
                             ))}
-                            {!selectedDetails?.complaints?.length && <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest text-center py-4">No Failures Detected</p>}
+                            {!selectedDetails?.complaints?.length && <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest text-center py-6">All Standards Maintained</p>}
                          </div>
                       </div>
                    </div>
-                   <div className="space-y-5">
-                      <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
-                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4">Guest Feedback</h4>
-                         <div className="space-y-3">
+                   <div className="space-y-6">
+                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/30 p-6">
+                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-5">Guest Feedback</h4>
+                         <div className="space-y-4">
                             {selectedDetails?.reviews?.map((r, i) => (
-                               <div key={i} className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm italic text-xs text-slate-600 leading-relaxed">"{r}"</div>
+                               <div key={i} className="p-5 bg-white border border-slate-100 rounded-2xl shadow-sm italic text-sm text-slate-600 leading-relaxed relative group">
+                                  <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  "{r}"
+                               </div>
                             ))}
-                            {!selectedDetails?.reviews?.length && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center py-4 opacity-50">No recent reviews</p>}
+                            {!selectedDetails?.reviews?.length && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center py-6 opacity-50">No data for selection</p>}
                          </div>
                       </div>
-                      <button className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95">Notify Manager</button>
+                      <button className="w-full py-5 bg-slate-950 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-slate-900/10 hover:bg-slate-900 hover:shadow-2xl transition-all active:scale-[0.98]">
+                        Notify Manager
+                      </button>
                    </div>
                 </div>
               </motion.div>
             ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-dashed border-slate-200 rounded-2xl p-10 text-center">
-                <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 shadow-inner">
-                  <Info size={28} />
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                className="bg-white border border-slate-100 rounded-[2.5rem] p-16 text-center shadow-inner relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-50/0 via-slate-50/0 to-slate-50/40 pointer-events-none" />
+                <div className="relative z-10">
+                  <div className="mx-auto mb-6 h-20 w-20 rounded-[2rem] bg-white border border-slate-100 flex items-center justify-center text-slate-200 shadow-xl group-hover:scale-110 transition-transform duration-500">
+                    <Info size={36} strokeWidth={1} />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-950 uppercase tracking-tight">Granular Intelligence</h3>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-4 max-w-sm mx-auto leading-relaxed opacity-70">
+                    Select a cell mapping in the matrix above to initiate a deep-dive analysis
+                  </p>
+                  <div className="mt-10 flex justify-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-100" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-50" />
+                  </div>
                 </div>
-                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Granular Intelligence</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 max-w-sm mx-auto leading-loose">Select a cell mapping in the matrix above to initiate a deep-dive analysis</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -310,13 +478,39 @@ function LegendDot({ label, dotClass }: { label: string; dotClass: string }) {
   );
 }
 
-function StatCard({ label, value, suffix, danger = false }: { label: string; value: string; suffix: string; danger?: boolean }) {
+function StatCard({ label, value, suffix, color = "slate" }: { label: string; value: string; suffix: string; color?: "slate" | "rose" }) {
+  const styles = {
+    slate: {
+      border: "border-slate-100",
+      bg: "from-white to-slate-50/50",
+      label: "text-slate-400",
+      value: "text-slate-900",
+      line: "bg-slate-100"
+    },
+    rose: {
+      border: "border-rose-100",
+      bg: "from-white to-rose-50/30",
+      label: "text-rose-500",
+      value: "text-rose-700",
+      line: "bg-rose-100"
+    }
+  };
+
+  const theme = styles[color];
+
   return (
-    <motion.div whileHover={{ y: -4 }} className={`rounded-2xl border p-5 shadow-sm bg-gradient-to-br from-white to-slate-50/50 ${danger ? "border-rose-100" : "border-slate-100"}`}>
-      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${danger ? "text-rose-500" : "text-slate-400"}`}>{label}</p>
-      <p className={`text-2xl font-black tracking-tight ${danger ? "text-rose-700" : "text-slate-900"}`}>
-        {value} <span className="text-[10px] font-bold text-slate-400 ml-1 uppercase">{suffix}</span>
-      </p>
+    <motion.div 
+      whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.05)" }} 
+      className={`rounded-2xl border p-6 transition-all bg-gradient-to-br ${theme.border} ${theme.bg}`}
+    >
+      <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${theme.label}`}>{label}</p>
+      <div className="flex items-baseline gap-2">
+        <p className={`text-4xl font-black tracking-tighter ${theme.value}`}>
+          {value}
+        </p>
+        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{suffix}</span>
+      </div>
+      <div className={`mt-4 h-1 w-8 rounded-full ${theme.line}`} />
     </motion.div>
   );
 }

@@ -28,6 +28,9 @@ import {
   ReferenceLine,
   ComposedChart,
   Line,
+  BarChart,
+  Bar,
+  Cell,
 } from "recharts";
 import OwnerDashboardLayout from "@/app/components/OwnerDashboardLayout";
 
@@ -56,49 +59,162 @@ const impactTrendData = [
 ];
 
 const properties = [
-  { name: "Mumbai", color: "#3b82f6" },
-  { name: "Pune", color: "#10b981" },
-  { name: "Nashik", color: "#f59e0b" },
-  { name: "Aurangabad", color: "#8b5cf6" },
-  { name: "Nagpur", color: "#f43f5e" },
+  { name: "Portfolio", color: "#64748b" },
+  { name: "JW Marriott Palace, Mumbai", color: "#3b82f6" },
+  { name: "JW Marriott Grand, Pune", color: "#10b981" },
+  { name: "JW Marriott Heritage, Nashik", color: "#f59e0b" },
+  { name: "JW Marriott Gateway, Aurangabad", color: "#8b5cf6" },
+  { name: "JW Marriott Central, Nagpur", color: "#f43f5e" },
+];
+
+const hotelTrendData: Record<string, typeof impactTrendData> = {
+  Portfolio: impactTrendData,
+  "JW Marriott Palace, Mumbai": [
+    { month: "Oct", reviews: 4.0, complaints: 92 },
+    { month: "Nov", reviews: 3.9, complaints: 95 },
+    { month: "Dec", reviews: 4.0, complaints: 93 },
+    { month: "Jan", reviews: 4.1, complaints: 88 },
+    { month: "Feb", reviews: 4.0, complaints: 91 },
+    { month: "Mar", reviews: 4.1, complaints: 89 },
+    { month: "Apr", reviews: 4.2, complaints: 72 },
+    { month: "May", reviews: 4.3, complaints: 55 },
+    { month: "Jun", reviews: 4.4, complaints: 42 },
+    { month: "Jul", reviews: 4.4, complaints: 38 },
+    { month: "Aug", reviews: 4.5, complaints: 32 },
+    { month: "Sep", reviews: 4.5, complaints: 30 },
+  ],
+  "JW Marriott Grand, Pune": [
+    { month: "Oct", reviews: 4.3, complaints: 78 },
+    { month: "Nov", reviews: 4.2, complaints: 82 },
+    { month: "Dec", reviews: 4.3, complaints: 80 },
+    { month: "Jan", reviews: 4.4, complaints: 75 },
+    { month: "Feb", reviews: 4.3, complaints: 79 },
+    { month: "Mar", reviews: 4.4, complaints: 70 },
+    { month: "Apr", reviews: 4.5, complaints: 52 },
+    { month: "May", reviews: 4.6, complaints: 38 },
+    { month: "Jun", reviews: 4.7, complaints: 28 },
+    { month: "Jul", reviews: 4.8, complaints: 22 },
+    { month: "Aug", reviews: 4.8, complaints: 18 },
+    { month: "Sep", reviews: 4.9, complaints: 15 },
+  ],
+  "JW Marriott Heritage, Nashik": [
+    { month: "Oct", reviews: 3.8, complaints: 96 },
+    { month: "Nov", reviews: 3.7, complaints: 98 },
+    { month: "Dec", reviews: 3.8, complaints: 95 },
+    { month: "Jan", reviews: 3.9, complaints: 92 },
+    { month: "Feb", reviews: 3.8, complaints: 94 },
+    { month: "Mar", reviews: 3.9, complaints: 90 },
+    { month: "Apr", reviews: 4.0, complaints: 78 },
+    { month: "May", reviews: 4.1, complaints: 65 },
+    { month: "Jun", reviews: 4.2, complaints: 52 },
+    { month: "Jul", reviews: 4.2, complaints: 48 },
+    { month: "Aug", reviews: 4.3, complaints: 42 },
+    { month: "Sep", reviews: 4.3, complaints: 38 },
+  ],
+  "JW Marriott Gateway, Aurangabad": [
+    { month: "Oct", reviews: 3.7, complaints: 98 },
+    { month: "Nov", reviews: 3.6, complaints: 100 },
+    { month: "Dec", reviews: 3.7, complaints: 97 },
+    { month: "Jan", reviews: 3.8, complaints: 94 },
+    { month: "Feb", reviews: 3.7, complaints: 96 },
+    { month: "Mar", reviews: 3.8, complaints: 92 },
+    { month: "Apr", reviews: 3.9, complaints: 82 },
+    { month: "May", reviews: 4.0, complaints: 70 },
+    { month: "Jun", reviews: 4.1, complaints: 58 },
+    { month: "Jul", reviews: 4.1, complaints: 54 },
+    { month: "Aug", reviews: 4.2, complaints: 48 },
+    { month: "Sep", reviews: 4.2, complaints: 44 },
+  ],
+  "JW Marriott Central, Nagpur": [
+    { month: "Oct", reviews: 3.5, complaints: 110 },
+    { month: "Nov", reviews: 3.4, complaints: 115 },
+    { month: "Dec", reviews: 3.5, complaints: 112 },
+    { month: "Jan", reviews: 3.6, complaints: 108 },
+    { month: "Feb", reviews: 3.5, complaints: 110 },
+    { month: "Mar", reviews: 3.6, complaints: 105 },
+    { month: "Apr", reviews: 3.7, complaints: 95 },
+    { month: "May", reviews: 3.8, complaints: 85 },
+    { month: "Jun", reviews: 3.9, complaints: 75 },
+    { month: "Jul", reviews: 3.9, complaints: 72 },
+    { month: "Aug", reviews: 4.0, complaints: 68 },
+    { month: "Sep", reviews: 4.0, complaints: 65 },
+  ],
+};
+
+const hotelKpiStats: Record<string, Array<{ label: string; val: string; icon: any; color: string }>> = {
+  Portfolio: [
+    { label: "Reviews", val: "+0.4 stars", icon: ArrowUpRight, color: "emerald" },
+    { label: "Complaints", val: "-70%", icon: TrendingDown, color: "emerald" },
+    { label: "Monthly Revenue", val: "₹18.4L", icon: TrendingUp, color: "emerald" },
+  ],
+  "JW Marriott Palace, Mumbai": [
+    { label: "Reviews", val: "+0.3 stars", icon: ArrowUpRight, color: "emerald" },
+    { label: "Complaints", val: "-62%", icon: TrendingDown, color: "emerald" },
+    { label: "Monthly Revenue", val: "₹12.2L", icon: TrendingUp, color: "emerald" },
+  ],
+  "JW Marriott Grand, Pune": [
+    { label: "Reviews", val: "+0.6 stars", icon: ArrowUpRight, color: "emerald" },
+    { label: "Complaints", val: "-85%", icon: TrendingDown, color: "emerald" },
+    { label: "Monthly Revenue", val: "₹24.8L", icon: TrendingUp, color: "emerald" },
+  ],
+  "JW Marriott Heritage, Nashik": [
+    { label: "Reviews", val: "+0.5 stars", icon: ArrowUpRight, color: "emerald" },
+    { label: "Complaints", val: "-58%", icon: TrendingDown, color: "emerald" },
+    { label: "Monthly Revenue", val: "₹9.4L", icon: TrendingUp, color: "emerald" },
+  ],
+  "JW Marriott Gateway, Aurangabad": [
+    { label: "Reviews", val: "+0.4 stars", icon: ArrowUpRight, color: "emerald" },
+    { label: "Complaints", val: "-52%", icon: TrendingDown, color: "emerald" },
+    { label: "Monthly Revenue", val: "₹7.8L", icon: TrendingUp, color: "emerald" },
+  ],
+  "JW Marriott Central, Nagpur": [
+    { label: "Reviews", val: "+0.5 stars", icon: ArrowUpRight, color: "emerald" },
+    { label: "Complaints", val: "-45%", icon: TrendingDown, color: "emerald" },
+    { label: "Monthly Revenue", val: "₹6.2L", icon: TrendingUp, color: "emerald" },
+  ],
+};
+
+const propertyRevenueData = [
+  { name: "Mumbai", revenue: 48.2, color: "#3b82f6" },
+  { name: "Pune", revenue: 52.4, color: "#10b981" },
+  { name: "Nashik", revenue: 24.7, color: "#f59e0b" },
+  { name: "Aurangabad", revenue: 21.4, color: "#8b5cf6" },
+  { name: "Nagpur", revenue: 18.2, color: "#f43f5e" },
 ];
 
 const workingItems = [
   {
-    hotel: "Monarch Grand, Pune",
-    metric: "Guest review score hit 4.8",
-    value: "Highest in portfolio",
-    tone: "emerald",
+    hotel: "JW Marriott Grand, Pune",
+    metric: "Turnaround Time",
+    value: "14.2 min",
   },
   {
-    hotel: "Monarch Palace, Mumbai",
-    metric: "Complaints reduced by 82%",
-    value: "Strong Q100 impact",
-    tone: "blue",
+    hotel: "JW Marriott Palace, Mumbai",
+    metric: "Staff Retention",
+    value: "94.2%",
   },
   {
-    hotel: "Monarch Heritage, Nashik",
-    metric: "Staff efficiency up 1.4x",
-    value: "34 more rooms daily",
-    tone: "indigo",
+    hotel: "JW Marriott Heritage, Nashik",
+    metric: "Breakfast Quality Score",
+    value: "4.9/5",
   },
 ];
 
 const attentionItems = [
   {
-    hotel: "Monarch Central, Nagpur",
+    hotel: "JW Marriott Central, Nagpur",
     issue: "Reviews dropped 0.2 stars",
     impact: "₹3.2L/mo loss",
     detail: "12 complaints about room cleanliness this week",
   },
   {
-    hotel: "Monarch Gateway, Aurangabad",
+    hotel: "JW Marriott Gateway, Aurangabad",
     issue: "Guest retention fell 12%",
     impact: "₹1.8L/mo risk",
     detail: "Issues with VIP check-in consistency",
   },
   {
-    hotel: "Monarch Heritage, Nashik",
+    hotel: "JW Marriott Heritage, Nashik",
     issue: "Complaint rate spike (8%)",
     impact: "₹1.1L/mo loss",
     detail: "Bathroom amenity image misalignment",
@@ -109,12 +225,14 @@ function SectionCard({
   title,
   subtitle,
   icon,
+  action,
   children,
   className = "",
 }: {
   title: string;
   subtitle?: string;
   icon?: React.ReactNode;
+  action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -123,12 +241,15 @@ function SectionCard({
       whileHover={{ y: -5 }}
       className={`rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md ${className}`}
     >
-      <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
-        <div>
-          <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
-          {subtitle ? <p className="mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p> : null}
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex items-start gap-3">
+          {icon ? <div className="rounded-xl bg-slate-50 border border-slate-100 p-2 text-slate-600 shadow-inner">{icon}</div> : null}
+          <div>
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
+            {subtitle ? <p className="mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p> : null}
+          </div>
         </div>
-        {icon ? <div className="rounded-xl bg-slate-50 border border-slate-100 p-2 text-slate-600 shadow-inner">{icon}</div> : null}
+        {action ? <div>{action}</div> : null}
       </div>
       <div className="p-5">{children}</div>
     </motion.div>
@@ -136,17 +257,34 @@ function SectionCard({
 }
 
 export default function HotelPerformance() {
+  const [selectedHotel, setSelectedHotel] = React.useState("Portfolio");
+
   return (
     <OwnerDashboardLayout
       title="Hotel Performance"
-      subtitle="How are your hotels performing — and how has Q100 changed things?"
     >
       <div className="space-y-5">
         {/* Row 1 */}
         <SectionCard
           title="Portfolio Impact Velocity"
-          subtitle="12-month performance trend delta tracking"
+          subtitle={selectedHotel === "Portfolio" ? "12-month performance trend delta tracking" : `${selectedHotel} property performance trend`}
           icon={<History size={18} />}
+          action={
+            <div className="relative">
+              <select 
+                value={selectedHotel}
+                onChange={(e) => setSelectedHotel(e.target.value)}
+                className="appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 pr-10 text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer shadow-sm hover:bg-white"
+              >
+                {properties.map(p => (
+                  <option key={p.name} value={p.name}>{p.name}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronRight size={14} className="rotate-90" />
+              </div>
+            </div>
+          }
           className="overflow-hidden bg-gradient-to-br from-white via-white to-slate-50/50"
         >
           <div className="mb-6 flex flex-wrap items-center gap-4">
@@ -162,7 +300,7 @@ export default function HotelPerformance() {
 
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={impactTrendData} margin={{ top: 16, right: 12, left: 0, bottom: 6 }}>
+              <ComposedChart data={hotelTrendData[selectedHotel]} margin={{ top: 16, right: 12, left: 0, bottom: 6 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis
                   dataKey="month"
@@ -227,11 +365,7 @@ export default function HotelPerformance() {
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 md:grid-cols-4">
-            {[
-                { label: "Reviews", val: "+0.4 stars", icon: ArrowUpRight, color: "emerald" },
-                { label: "Complaints", val: "-70%", icon: TrendingDown, color: "emerald" },
-                { label: "Monthly Revenue", val: "₹18.4L", icon: TrendingUp, color: "emerald" },
-            ].map((stat, i) => (
+            {hotelKpiStats[selectedHotel].map((stat, i) => (
                 <div key={i} className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white px-5 py-3 shadow-sm">
                   <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{stat.label}</p>
                   <div className="mt-1 flex items-center gap-2 text-xl font-black text-emerald-800 tracking-tighter">
@@ -249,51 +383,135 @@ export default function HotelPerformance() {
         </SectionCard>
 
         {/* Row 2 */}
-        <SectionCard
-          title="Portfolio Yield Radar"
-          subtitle="Comparative metrics across all properties"
-          icon={<Target size={18} />}
-        >
-          <div className="h-[340px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                <PolarGrid stroke="#f1f5f9" />
-                <PolarAngleAxis dataKey="metric" tick={{ fill: "#64748b", fontSize: 10, fontWeight: "bold" }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                {properties.map((prop) => (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          {/* Radar Chart */}
+          <SectionCard
+            title="Portfolio Yield Radar"
+            subtitle="Comparative metrics across all properties"
+            icon={<Target size={18} />}
+          >
+            <div className="h-[340px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                  <PolarGrid stroke="#f1f5f9" />
+                  <PolarAngleAxis dataKey="metric" tick={{ fill: "#64748b", fontSize: 10, fontWeight: "bold" }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar
-                    key={prop.name}
-                    name={prop.name}
-                    dataKey={prop.name}
-                    stroke={prop.color}
-                    fill={prop.color}
+                    name="Aurangabad"
+                    dataKey="Aurangabad"
+                    stroke="#8b5cf6"
+                    fill="#8b5cf6"
                     fillOpacity={0.05}
                     strokeWidth={3}
                     animationDuration={1500}
                   />
-                ))}
-                <Radar
-                  name="Industry Average"
-                  dataKey="Average"
-                  stroke="#94a3b8"
-                  fill="transparent"
-                  strokeWidth={2}
-                  strokeDasharray="6 6"
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "none",
-                    borderRadius: "16px",
-                    boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.15)",
-                  }}
-                  itemStyle={{ fontWeight: "bold", fontSize: "11px" }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: "20px", fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em" }} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </SectionCard>
+                  <Radar
+                    name="Industry Average"
+                    dataKey="Average"
+                    stroke="#94a3b8"
+                    fill="transparent"
+                    strokeWidth={2}
+                    strokeDasharray="6 6"
+                  />
+                  <Radar
+                    name="Mumbai"
+                    dataKey="Mumbai"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.05}
+                    strokeWidth={3}
+                    animationDuration={1500}
+                  />
+                  <Radar
+                    name="Nagpur"
+                    dataKey="Nagpur"
+                    stroke="#f43f5e"
+                    fill="#f43f5e"
+                    fillOpacity={0.05}
+                    strokeWidth={3}
+                    animationDuration={1500}
+                  />
+                  <Radar
+                    name="Nashik"
+                    dataKey="Nashik"
+                    stroke="#f59e0b"
+                    fill="#f59e0b"
+                    fillOpacity={0.05}
+                    strokeWidth={3}
+                    animationDuration={1500}
+                  />
+                  <Radar
+                    name="Pune"
+                    dataKey="Pune"
+                    stroke="#10b981"
+                    fill="#10b981"
+                    fillOpacity={0.05}
+                    strokeWidth={3}
+                    animationDuration={1500}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      border: "none",
+                      borderRadius: "16px",
+                      boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.15)",
+                    }}
+                    itemStyle={{ fontWeight: "bold", fontSize: "11px" }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: "20px", fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em" }} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </SectionCard>
+
+          {/* Revenue Bar Chart */}
+          <SectionCard
+            title="Property Revenue Matrix"
+            subtitle="Total monthly yield per asset (in Lakhs)"
+            icon={<TrendingUp size={18} />}
+          >
+            <div className="h-[340px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={propertyRevenueData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "#64748b", fontSize: 10, fontWeight: "bold" }} 
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "#64748b", fontSize: 10, fontWeight: "bold" }}
+                    tickFormatter={(val) => `₹${val}L`}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      border: "none",
+                      borderRadius: "16px",
+                      boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.15)",
+                    }}
+                    itemStyle={{ fontWeight: "bold", fontSize: "11px" }}
+                    formatter={(val) => [`₹${val} Lakhs`, "Monthly Revenue"]}
+                  />
+                  <Bar 
+                    dataKey="revenue" 
+                    radius={[8, 8, 0, 0]} 
+                    animationDuration={2000}
+                    animationBegin={200}
+                  >
+                    {propertyRevenueData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </SectionCard>
+        </div>
 
         {/* Row 3 */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

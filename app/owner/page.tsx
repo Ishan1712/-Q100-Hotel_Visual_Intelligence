@@ -46,7 +46,7 @@ const portfolioKPIs = [
   { 
     label: "My Hotels", 
     value: "5 Hotels", 
-    subText: "612 Total Room Inventory", 
+    subText: "612 Total Rooms", 
     icon: Hotel, 
     color: "blue",
     trend: "Institutional Grade",
@@ -82,7 +82,7 @@ const portfolioKPIs = [
 
 const propertyLeaderboard = [
   { 
-    property: "Monarch Grand, Pune", 
+    property: "JW Marriott Grand, Pune", 
     rooms: 148, 
     googleRating: 4.8, 
     otaScore: 4.7, 
@@ -94,7 +94,7 @@ const propertyLeaderboard = [
     performance: "best"
   },
   { 
-    property: "Monarch Palace, Mumbai", 
+    property: "JW Marriott Palace, Mumbai", 
     rooms: 142, 
     googleRating: 4.5, 
     otaScore: 4.4, 
@@ -105,7 +105,7 @@ const propertyLeaderboard = [
     trend: [35, 36, 34, 37, 38, 38.5]
   },
   { 
-    property: "Monarch Heritage, Nashik", 
+    property: "JW Marriott Heritage, Nashik", 
     rooms: 98, 
     googleRating: 4.3, 
     otaScore: 4.2, 
@@ -116,7 +116,7 @@ const propertyLeaderboard = [
     trend: [22, 23, 22, 24, 25, 24.7]
   },
   { 
-    property: "Monarch Gateway, Aurangabad", 
+    property: "JW Marriott Gateway, Aurangabad", 
     rooms: 112, 
     googleRating: 4.1, 
     otaScore: 4.0, 
@@ -127,7 +127,7 @@ const propertyLeaderboard = [
     trend: [18, 19, 20, 19, 21, 21.4]
   },
   { 
-    property: "Monarch Central, Nagpur", 
+    property: "JW Marriott Central, Nagpur", 
     rooms: 112, 
     googleRating: 3.8, 
     otaScore: 3.6, 
@@ -151,7 +151,6 @@ export default function PortfolioDashboard() {
   return (
     <OwnerDashboardLayout 
       title="Portfolio Command Centre" 
-      subtitle="Strategic yield oversight of Monarch Hospitality Group · 5 Portfolios · Real-time Intelligence"
     >
       <div className="space-y-8 pb-12">
         
@@ -242,7 +241,7 @@ export default function PortfolioDashboard() {
                     <thead>
                         <tr className="text-slate-400 text-[9px] uppercase font-black tracking-[0.2em] border-b border-slate-50">
                             <th className="px-8 py-5">Hotel Entity</th>
-                            <th className="px-8 py-5 text-center">Unit Count</th>
+                            <th className="px-8 py-5 text-center">Room Count</th>
                             <th className="px-8 py-5">Google Rating</th>
                             <th className="px-8 py-5 text-center">OTA Score</th>
                             <th className="px-8 py-5 text-center text-emerald-600">Total Reviews</th>
@@ -336,7 +335,7 @@ export default function PortfolioDashboard() {
                     </div>
                     <div>
                         <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em]">Alpha Performer</h5>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Monarch Grand, Pune</h3>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">JW Marriott Grand, Pune</h3>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-8 mb-8">
@@ -353,9 +352,7 @@ export default function PortfolioDashboard() {
                     <ThumbsUp size={16} className="text-emerald-600" />
                     <p className="text-[11px] font-bold text-emerald-700 tracking-tight uppercase">"Highest reviews, most customers across portfolio"</p>
                 </div>
-                <button className="flex items-center gap-3 w-full justify-center py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all transition-duration-300">
-                    Propel Success Model <ArrowRight size={16} />
-                </button>
+
             </motion.div>
 
             {/* NEEDS ATTENTION */}
@@ -370,7 +367,7 @@ export default function PortfolioDashboard() {
                     </div>
                     <div>
                         <h5 className="text-[10px] font-black text-rose-600 uppercase tracking-[0.2em]">Intervention Required</h5>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Monarch Central, Nagpur</h3>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">JW Marriott Central, Nagpur</h3>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-8 mb-8">
@@ -389,9 +386,7 @@ export default function PortfolioDashboard() {
                         Lowest reviews, fewest customers — review drop costing ~₹3.2L/month in lost bookings
                     </p>
                 </div>
-                <button className="flex items-center gap-3 w-full justify-center py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all transition-duration-300">
-                    Initiate Recovery Protocol <ArrowRight size={16} />
-                </button>
+
             </motion.div>
         </div>
 
