@@ -75,7 +75,6 @@ const roleConfigs = {
       { name: "Portfolio Dashboard", href: "/owner", icon: LayoutDashboard },
       { name: "Hotel Performance", href: "/owner/comparison", icon: TrendingUp },
       { name: "Room Quality Overview", href: "/owner/brand-standards", icon: LayoutGrid },
-      { name: "Revenue Impact", href: "/owner/roi", icon: IndianRupee },
       { name: "Staff Analytics", href: "/owner/staff", icon: Users },
       { name: "Report Generator", href: "/owner/reports", icon: FileText },
     ]
@@ -123,18 +122,9 @@ export default function Sidebar({ collapsed, setCollapsed, isMobileOpen, setIsMo
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[45] lg:hidden animate-fade-in"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
-
       <aside 
-        className={`fixed top-0 left-0 h-screen bg-[#0b1220] text-slate-300 transition-all duration-300 ease-in-out z-50 flex flex-col 
+        className={`fixed top-0 left-0 h-screen bg-[#0b1220] text-slate-300 transition-all duration-300 ease-in-out z-50 hidden lg:flex flex-col 
           ${collapsed ? 'w-20' : 'w-64'} 
-          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Sidebar Header */}

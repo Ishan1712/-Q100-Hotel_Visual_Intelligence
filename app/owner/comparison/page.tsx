@@ -241,15 +241,15 @@ function SectionCard({
       whileHover={{ y: -5 }}
       className={`rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md ${className}`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
         <div className="flex items-start gap-3">
-          {icon ? <div className="rounded-xl bg-slate-50 border border-slate-100 p-2 text-slate-600 shadow-inner">{icon}</div> : null}
-          <div>
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
+          {icon ? <div className="rounded-xl bg-slate-50 border border-slate-100 p-2 text-slate-600 shadow-inner shrink-0">{icon}</div> : null}
+          <div className="min-w-0">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{title}</h3>
             {subtitle ? <p className="mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p> : null}
           </div>
         </div>
-        {action ? <div>{action}</div> : null}
+        {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>
       <div className="p-5">{children}</div>
     </motion.div>
@@ -270,11 +270,11 @@ export default function HotelPerformance() {
           subtitle={selectedHotel === "Portfolio" ? "12-month performance trend delta tracking" : `${selectedHotel} property performance trend`}
           icon={<History size={18} />}
           action={
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <select 
                 value={selectedHotel}
                 onChange={(e) => setSelectedHotel(e.target.value)}
-                className="appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 pr-10 text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer shadow-sm hover:bg-white"
+                className="w-full sm:w-auto appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 pr-10 text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer shadow-sm hover:bg-white"
               >
                 {properties.map(p => (
                   <option key={p.name} value={p.name}>{p.name}</option>
@@ -530,7 +530,7 @@ export default function HotelPerformance() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ x: 5 }}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-5 shadow-sm group hover:border-emerald-200 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-5 shadow-sm group hover:border-emerald-200 transition-colors"
                 >
                   <div className="flex-1">
                     <div className="flex flex-col">
@@ -542,7 +542,7 @@ export default function HotelPerformance() {
                     </div>
                   </div>
 
-                  <button className="whitespace-nowrap px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 active:scale-95">
+                  <button className="w-full sm:w-auto whitespace-nowrap px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 active:scale-95">
                     Roll Out Global
                   </button>
                 </motion.div>
@@ -564,7 +564,7 @@ export default function HotelPerformance() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ x: -5 }}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/30 to-white p-5 shadow-sm group hover:border-rose-300 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/30 to-white p-5 shadow-sm group hover:border-rose-300 transition-colors"
                 >
                   <div className="flex-1">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.hotel}</p>
@@ -577,7 +577,7 @@ export default function HotelPerformance() {
                     </div>
                   </div>
 
-                  <button className="whitespace-nowrap px-4 py-2.5 bg-rose-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/10 active:scale-95">
+                  <button className="w-full sm:w-auto whitespace-nowrap px-4 py-2.5 bg-rose-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/10 active:scale-95">
                     Notify Manager
                   </button>
                 </motion.div>

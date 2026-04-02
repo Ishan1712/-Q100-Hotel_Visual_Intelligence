@@ -325,24 +325,24 @@ export default function StaffAnalytics() {
                 whileHover={{ y: -8, scale: 1.005 }}
                 className={`${ui.bg} border ${ui.border} rounded-xl shadow-sm flex flex-col h-[400px] md:col-span-2 overflow-hidden transition-colors duration-500`}
             >
-                <div className="px-6 py-4 border-b border-slate-200/50 flex items-center justify-between bg-white/60">
+                <div className="px-6 py-4 border-b border-slate-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 gap-4">
                     <div className="flex items-center gap-2">
                         {ui.icon}
-                        <h4 className={`text-[11px] font-bold ${ui.main} uppercase tracking-widest`}>Personnel Excellence Hub</h4>
+                        <h4 className={`text-[11px] font-bold ${ui.main} uppercase tracking-widest leading-tight`}>Personnel Excellence Hub</h4>
                     </div>
                     
-                    <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+                    <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1 shadow-sm w-full sm:w-auto overflow-x-auto no-scrollbar">
                         <button 
                             onClick={() => setActiveEliteTab('elites')} 
-                            className={`px-5 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${activeEliteTab === 'elites' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-amber-700'}`}
+                            className={`flex-1 sm:flex-none px-2 sm:px-5 py-1.5 text-[8px] min-[380px]:text-[9px] sm:text-[10px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${activeEliteTab === 'elites' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-amber-700'}`}
                         >
-                            <div className="flex items-center gap-2"><Star size={12} fill={activeEliteTab === 'elites' ? "white" : "none"} /> Top Performers</div>
+                            <div className="flex items-center justify-center gap-1 sm:gap-2"><Star size={10} className="sm:w-[12px] sm:h-[12px]" fill={activeEliteTab === 'elites' ? "white" : "none"} /> Top Performers</div>
                         </button>
                         <button 
                             onClick={() => setActiveEliteTab('improved')} 
-                            className={`px-5 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${activeEliteTab === 'improved' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-emerald-700'}`}
+                            className={`flex-1 sm:flex-none px-2 sm:px-5 py-1.5 text-[8px] min-[380px]:text-[9px] sm:text-[10px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${activeEliteTab === 'improved' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-emerald-700'}`}
                         >
-                            <div className="flex items-center gap-2"><ArrowUpRight size={12} /> Most Improved</div>
+                            <div className="flex items-center justify-center gap-1 sm:gap-2"><ArrowUpRight size={10} className="sm:w-[12px] sm:h-[12px]" /> Most Improved</div>
                         </button>
                     </div>
                 </div>
@@ -360,7 +360,7 @@ export default function StaffAnalytics() {
                         {(activeEliteTab === 'elites' ? topPerformers : mostImproved).map((person, idx) => (
                             <div key={person.name} className="flex items-center justify-between p-3.5 rounded-xl hover:bg-white transition-all border border-transparent hover:border-slate-100 hover:shadow-md group">
                                 <div className="flex items-center gap-4">
-                                    <span className={`text-[11px] font-bold ${ui.sub} w-6`}>{(person as any).rank ? `#0${(person as any).rank}` : `+${(person as any).growth}`}</span>
+                                    <span className={`text-[11px] font-bold ${ui.sub} w-12 shrink-0`}>{(person as any).rank ? `#0${(person as any).rank}` : `+${(person as any).growth}`}</span>
                                     <div>
                                         <p className={`text-sm font-bold ${ui.main} leading-tight`}>{person.name}</p>
                                         <p className={`text-[9px] ${ui.accent} font-black uppercase tracking-tighter mt-1`}>{person.property}</p>

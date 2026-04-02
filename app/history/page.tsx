@@ -348,7 +348,7 @@ export default function RoomHistoryPage() {
                     />
                     <div
                       ref={calendarRef}
-                      className="absolute top-full right-0 mt-2 w-72 bg-white rounded-3xl shadow-2xl border border-slate-100 z-50 p-5 animate-in fade-in zoom-in duration-200 origin-top-right"
+                      className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-72 bg-white rounded-3xl shadow-2xl border border-slate-100 z-50 p-5 animate-in fade-in zoom-in duration-200 origin-top-left sm:origin-top-right"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="font-bold text-slate-900 text-xs">

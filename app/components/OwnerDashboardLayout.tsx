@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronRight,
   Plus,
@@ -19,6 +19,8 @@ export default function OwnerDashboardLayout({
   children, 
   title
 }: OwnerDashboardLayoutProps) {
+  const [isFabOpen, setIsFabOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 lg:p-8 pt-16 md:pt-20 lg:pt-8 text-slate-900">
       {/* Top Header */}
@@ -50,35 +52,55 @@ export default function OwnerDashboardLayout({
       </motion.div>
 
       {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-8 right-8 z-[200]">
-        <div className="relative group/fab">
-            <button className="w-14 h-14 bg-slate-900 border border-slate-800 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300">
-                <Plus size={28} className="group-hover/fab:rotate-45 transition-transform duration-300" />
+      <div className="fixed bottom-[100px] lg:bottom-8 right-6 lg:right-8 z-[200]">
+        <div className="relative">
+            <button 
+                onClick={() => setIsFabOpen(!isFabOpen)}
+                className={`w-14 h-14 bg-slate-900 border border-slate-800 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-all duration-300 ${isFabOpen ? 'scale-110 rotate-45' : 'hover:scale-110'}`}
+            >
+                <Plus size={28} />
             </button>
             
             {/* FAB Actions */}
-            <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-3 opacity-0 translate-y-4 pointer-events-none group-hover/fab:opacity-100 group-hover/fab:translate-y-0 group-hover/fab:pointer-events-auto transition-all duration-300">
-                <button className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-50 transition-all whitespace-nowrap">
-                    <span className="text-[11px] font-bold text-slate-700">Call Property Manager</span>
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <Phone size={16} />
-                    </div>
-                </button>
-                <button className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-50 transition-all whitespace-nowrap">
-                    <span className="text-[11px] font-bold text-slate-700">Generate Report</span>
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <FileText size={16} />
-                    </div>
-                </button>
-                <button className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-50 transition-all whitespace-nowrap">
-                    <span className="text-[11px] font-bold text-slate-700">Flag for Review</span>
-                    <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                        <AlertTriangle size={16} />
-                    </div>
-                </button>
-            </div>
+            <AnimatePresence>
+                {isFabOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                        className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-3"
+                    >
+                        <button className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-50 transition-all whitespace-nowrap">
+                            <span className="text-[11px] font-bold text-slate-700">Call Property Manager</span>
+                            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <Phone size={16} />
+                            </div>
+                        </button>
+                        <button className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-50 transition-all whitespace-nowrap">
+                            <span className="text-[11px] font-bold text-slate-700">Generate Report</span>
+                            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <FileText size={16} />
+                            </div>
+                        </button>
+                        <button className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-50 transition-all whitespace-nowrap">
+                            <span className="text-[11px] font-bold text-slate-700">Flag for Review</span>
+                            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                                <AlertTriangle size={16} />
+                            </div>
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
       </div>
+
+      {/* Backdrop for FAB to close when clicking outside */}
+      {isFabOpen && (
+        <div 
+            className="fixed inset-0 z-[190] bg-slate-900/5 backdrop-blur-[2px]" 
+            onClick={() => setIsFabOpen(false)}
+        />
+      )}
 
       {/* Footer Branding */}
       <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 pb-12 md:pb-8">

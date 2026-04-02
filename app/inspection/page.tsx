@@ -499,7 +499,7 @@ export default function InspectionFlowPage() {
         </div>
 
         <div className="flex-1 flex flex-col p-3 md:p-4 gap-3 md:gap-4 overflow-hidden">
-          <div className="flex-[1.2] relative bg-slate-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-slate-900/50 group">
+          <div className="flex-[2] relative bg-slate-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-slate-900/50 group">
             {uploadedImage ? (
               <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover z-20" />
             ) : (
