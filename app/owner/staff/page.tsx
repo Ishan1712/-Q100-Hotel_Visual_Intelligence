@@ -323,7 +323,7 @@ export default function StaffAnalytics() {
             {/* 3 & 4. PERSONNEL EXCELLENCE (DYNAMIC THEMES) */}
             <motion.div 
                 whileHover={{ y: -8, scale: 1.005 }}
-                className={`${ui.bg} border ${ui.border} rounded-xl shadow-sm flex flex-col h-[400px] md:col-span-2 overflow-hidden transition-colors duration-500`}
+                className={`${ui.bg} border ${ui.border} rounded-xl shadow-sm flex flex-col h-[550px] md:h-[420px] md:col-span-2 overflow-hidden transition-colors duration-500`}
             >
                 <div className="px-6 py-4 border-b border-slate-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 gap-4">
                     <div className="flex items-center gap-2">
@@ -347,7 +347,7 @@ export default function StaffAnalytics() {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-auto p-6 hide-scrollbar relative">
+                <div className="flex-1 overflow-auto p-4 sm:p-6 hide-scrollbar relative">
                     <AnimatePresence>
                         {recognizing && (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-950 text-white px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/10 uppercase font-bold text-[10px] tracking-widest">

@@ -19,8 +19,10 @@ import {
   Maximize2,
   Plus,
   LayoutGrid,
-  Search
+  Search,
+  X
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 // --- Types ---
@@ -57,19 +59,34 @@ const reportRooms = [
   { number: "432", type: "VIP", floor: "4", status: "needs_fix", issues: 4, time: "11:45 AM" },
 ];
 
-const checkpointImages: Record<string, string> = {
-  "Dustbin": "/images/report/dustbin.png",
-  "Bed & Pillows": "/images/report/bed.png",
-  "Bed Linen": "/images/report/linen.png",
-  "Towels (Bathroom)": "/images/report/towels.png",
-  "Towels (Bedroom)": "/images/report/towels.png",
-  "Coffee/Tea Tray": "/images/report/tea_tray.png",
-  "Minibar / Water": "/images/report/minibar.png",
-  "Bathroom Amenities": "/images/report/amenities.png",
-  "TV Remote & Menu Card": "/images/report/tv_remote.png",
-  "Curtains & Lighting": "/images/report/curtains.png",
-  "Wardrobe/Closet": "/images/report/wardrobe.png",
-  "Welcome Items": "/images/report/welcome.png",
+const checkpointMasterImages: Record<string, string> = {
+  "Dustbin": "/images/inspection/01_Dustbin_master.png",
+  "Bed & Pillows": "/images/inspection/02_Bed_Pillows_master.png",
+  "Bed Linen": "/images/inspection/03_Bed_Linen_master.png",
+  "Towels (Bathroom)": "/images/inspection/04_Towels_Bathroom_master.png",
+  "Towels (Bedroom)": "/images/inspection/05_Towels_Bedroom_master.png",
+  "Coffee/Tea Tray": "/images/inspection/06_Coffee_Tea_Tray_master.png",
+  "Minibar / Water": "/images/inspection/07_Minibar_Water_master.png",
+  "Bathroom Amenities": "/images/inspection/08_Bathroom_Amenities_master.png",
+  "TV Remote & Menu Card": "/images/inspection/09_TV_Remote_Menu_master.png",
+  "Curtains & Lighting": "/images/inspection/10_Curtains_Lighting_master.png",
+  "Wardrobe/Closet": "/images/inspection/11_Wardrobe_Closet_master.png",
+  "Welcome Items": "/images/inspection/12_Welcome_Stationery_master.png",
+};
+
+const checkpointActualImages: Record<string, string> = {
+  "Dustbin": "/images/inspection/01_Dustbin_master.png",
+  "Bed & Pillows": "/images/inspection/02_Bed_Pillows_master.png",
+  "Bed Linen": "/images/inspection/03_Bed_Linen_master.png",
+  "Towels (Bathroom)": "/images/inspection/04_Bathroom_Towels_Missing.png",
+  "Towels (Bedroom)": "/images/inspection/05_Towels_Bedroom_master.png",
+  "Coffee/Tea Tray": "/images/inspection/06_Coffee_Tea_Tray_inspection.png",
+  "Minibar / Water": "/images/inspection/07_Minibar_Water_master.png",
+  "Bathroom Amenities": "/images/inspection/08_Bathroom_Ammenties_Missing.png",
+  "TV Remote & Menu Card": "/images/inspection/09_TV_Remote_Menu_master.png",
+  "Curtains & Lighting": "/images/inspection/10_Curtains_Lighting_master.png",
+  "Wardrobe/Closet": "/images/inspection/11_Wardrobe_Closet_master.png",
+  "Welcome Items": "/images/inspection/12_Welcome_Stationery_master.png",
 };
 
 export default function InspectionReportPage() {
@@ -77,6 +94,7 @@ export default function InspectionReportPage() {
   const [reportSearchQuery, setReportSearchQuery] = useState("");
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>(initialCheckpoints);
   const [fixingId, setFixingId] = useState<number | null>(null);
+  const [selectedCPForModal, setSelectedCPForModal] = useState<Checkpoint | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
   const [flash, setFlash] = useState(false);
 
@@ -302,12 +320,14 @@ export default function InspectionReportPage() {
                   </div>
                 </div>
 
-                {/* Center: Thumbnail Pair */}
-                <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar py-1">
+                   <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar py-1">
                    {/* Master */}
-                   <div className="relative group flex-shrink-0 overflow-hidden rounded-xl border-2 border-amber-200/50">
+                   <div 
+                      onClick={() => setSelectedCPForModal(cp)}
+                      className="relative group flex-shrink-0 overflow-hidden rounded-xl border-2 border-amber-200/50 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                   >
                       <div className="w-16 h-12 md:w-20 md:h-14 bg-slate-900 overflow-hidden flex items-center justify-center">
-                         <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} alt="Master" className="w-full h-full object-cover shadow-inner" />
+                         <img src={checkpointMasterImages[cp.name] || checkpointMasterImages["Dustbin"]} alt="Master" className="w-full h-full object-cover shadow-inner" />
                          <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center">
                             <span className="text-[7px] md:text-[8px] font-bold text-amber-600 bg-white/90 px-1 py-0.5 rounded shadow-sm scale-90">MASTER</span>
                          </div>
@@ -315,19 +335,22 @@ export default function InspectionReportPage() {
                    </div>
                    
                    <ArrowRight size={14} className="text-slate-200 flex-shrink-0" />
-
+                   
                    {/* Captured */}
-                   <div className={`relative group flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
-                     isFailed ? 'border-rose-400 shadow-md shadow-rose-200/40' : 'border-emerald-400'
-                   }`}>
+                   <div 
+                      onClick={() => setSelectedCPForModal(cp)}
+                      className={`relative group flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                        isFailed ? 'border-rose-400 shadow-md shadow-rose-200/40' : 'border-emerald-400'
+                      }`}
+                   >
                       <div className="w-16 h-12 md:w-20 md:h-14 bg-slate-900 overflow-hidden flex items-center justify-center">
-                         <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} alt="Captured" className="w-full h-full object-cover" />
+                         <img src={checkpointActualImages[cp.name] || checkpointActualImages["Dustbin"]} alt="Captured" className="w-full h-full object-cover" />
                          {isFailed && <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />}
                       </div>
                    </div>
-                </div>
-
-                {/* Right: Status Icon & Actions */}
+                 </div>
+ 
+                 {/* Right: Status Icon & Actions */}
                 <div className="flex items-center gap-3 sm:ml-auto">
                     {(!isFailed && !isFlagged) ? (
                       <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100 flex-shrink-0">
@@ -368,7 +391,11 @@ export default function InspectionReportPage() {
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-center">
                       <div className="bg-white rounded-2xl p-3 border border-slate-200 flex flex-col items-center gap-2 relative shadow-sm">
                          <div className="w-full h-32 md:h-40 bg-slate-900 rounded-xl overflow-hidden relative opacity-60 grayscale-[30%]">
-                            <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
+                             <img 
+                                src={checkpointActualImages[cp.name] || checkpointActualImages["Dustbin"]} 
+                                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-all" 
+                                onClick={() => setSelectedCPForModal(cp)}
+                             />
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 border-4 border-rose-500/50 rounded-full" />
                          </div>
                          <div className="absolute top-4 left-4">
@@ -384,7 +411,11 @@ export default function InspectionReportPage() {
 
                       <div className="bg-white rounded-2xl p-3 border border-emerald-100 flex flex-col items-center gap-2 relative shadow-sm ring-1 ring-emerald-500/10">
                          <div className="w-full h-32 md:h-40 bg-slate-900 rounded-xl overflow-hidden relative">
-                            <img src={checkpointImages[cp.name] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
+                             <img 
+                                src={checkpointMasterImages[cp.name] || checkpointMasterImages["Dustbin"]} 
+                                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-all" 
+                                onClick={() => setSelectedCPForModal(cp)}
+                             />
                          </div>
                          <div className="absolute top-4 left-4">
                             <p className="text-[8px] md:text-[9px] font-bold text-emerald-700 uppercase tracking-wider bg-emerald-100 border border-emerald-200 px-2 py-1 rounded-md shadow-sm">2nd Capture: Verified</p>
@@ -416,7 +447,7 @@ export default function InspectionReportPage() {
                  
                  {/* Ghost Overlay (Master image) */}
                  <div className="absolute inset-0 opacity-20 transition-opacity">
-                    <img src={checkpointImages[checkpoints.find(c => c.id === fixingId)?.name || 'Dustbin'] || checkpointImages["Dustbin"]} className="w-full h-full object-cover" />
+                     <img src={checkpointMasterImages[checkpoints.find(c => c.id === fixingId)?.name || 'Dustbin'] || checkpointMasterImages["Dustbin"]} className="w-full h-full object-cover" />
                  </div>
               </div>
 
@@ -451,6 +482,98 @@ export default function InspectionReportPage() {
         </div>
       )}
 
+      {/* Comparison Modal */}
+      <AnimatePresence>
+        {selectedCPForModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setSelectedCPForModal(null)}
+               className="absolute inset-0 bg-slate-900/40 backdrop-blur-3xl"
+             />
+             
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.9, y: 20 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.9, y: 20 }}
+               className="relative w-full max-w-5xl bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
+             >
+                {/* Modal Header */}
+                <div className="p-6 flex items-center justify-between border-b border-white/5 bg-white/5">
+                   <div>
+                      <h4 className="text-xl font-bold text-white tracking-tight">{selectedCPForModal.name}</h4>
+                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-0.5">Visual Comparison Report</p>
+                   </div>
+                   <button 
+                     onClick={() => setSelectedCPForModal(null)}
+                     className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all shadow-inner"
+                   >
+                     <X size={20} />
+                   </button>
+                </div>
+                
+                {/* Modal Content - Side by Side Comparison */}
+                <div className="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 overflow-y-auto max-h-[80vh]">
+                   {/* Master Side */}
+                   <div className="space-y-4">
+                      <div className="flex items-center justify-between px-2">
+                         <span className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em]">Master Reference</span>
+                         <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest italic">Standard Compliant View</span>
+                      </div>
+                      <div className="aspect-video relative rounded-3xl overflow-hidden border-2 border-amber-500/20 shadow-2xl">
+                         <img 
+                           src={checkpointMasterImages[selectedCPForModal.name] || checkpointMasterImages["Dustbin"]} 
+                           className="w-full h-full object-cover"
+                         />
+                         <div className="absolute top-4 left-4">
+                            <span className="px-3 py-1 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg">ORIGINAL</span>
+                         </div>
+                      </div>
+                   </div>
+                   
+                   {/* Captured Side */}
+                   <div className="space-y-4">
+                      <div className="flex items-center justify-between px-2">
+                         <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${selectedCPForModal.status === 'fail' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                           {selectedCPForModal.status === 'fail' ? 'Discrepancy Found' : 'Verified Actual'}
+                         </span>
+                         <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest italic">Live Inspection Data</span>
+                      </div>
+                      <div className={`aspect-video relative rounded-3xl overflow-hidden border-2 shadow-2xl transition-all ${
+                        selectedCPForModal.status === 'fail' ? 'border-rose-500/40' : 'border-emerald-500/40'
+                      }`}>
+                         <img 
+                           src={checkpointActualImages[selectedCPForModal.name] || checkpointActualImages["Dustbin"]} 
+                           className="w-full h-full object-cover"
+                         />
+                         <div className="absolute top-4 left-4">
+                            <span className={`px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg ${
+                              selectedCPForModal.status === 'fail' ? 'bg-rose-600' : 'bg-emerald-600'
+                            }`}>CAPTURED</span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                
+                {/* Modal Footer */}
+                <div className="p-6 bg-white/5 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest text-center md:text-left">
+                       Proprietary Q100 Vision analysis • Comparison rendered from live vision stream
+                    </p>
+                    <button 
+                      onClick={() => setSelectedCPForModal(null)}
+                      className="w-full md:w-auto px-8 py-3 bg-white text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
+                    >
+                       Acknowledge Analysis
+                    </button>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Global CSS for some advanced animations */}
       <style jsx global>{`
         @keyframes expand-vertical {
@@ -475,6 +598,20 @@ export default function InspectionReportPage() {
         }
         .animate-camera-flash {
           animation: camera-flash 0.3s ease-out;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        @keyframes modal-in {
+          0% { transform: scale(0.95); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-modal-in {
+          animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
       `}</style>
 

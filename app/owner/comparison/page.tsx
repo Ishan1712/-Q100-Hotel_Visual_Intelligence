@@ -251,7 +251,7 @@ function SectionCard({
         </div>
         {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-3 sm:p-5">{children}</div>
     </motion.div>
   );
 }
@@ -390,7 +390,7 @@ export default function HotelPerformance() {
             subtitle="Comparative metrics across all properties"
             icon={<Target size={18} />}
           >
-            <div className="h-[340px] w-full">
+            <div className="h-[260px] sm:h-[340px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart 
                   cx="50%" 
@@ -467,7 +467,7 @@ export default function HotelPerformance() {
                     }}
                     itemStyle={{ fontWeight: "bold", fontSize: "11px" }}
                   />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: "20px", fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em" }} />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: typeof window !== 'undefined' && window.innerWidth < 640 ? "4px" : "20px", fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em" }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>

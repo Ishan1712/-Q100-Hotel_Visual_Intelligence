@@ -547,26 +547,26 @@ export default function PortfolioDashboard() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="bg-slate-900 rounded-[3rem] p-12 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)] relative overflow-hidden border border-slate-800"
+                    className="bg-slate-900 rounded-[3rem] p-6 sm:p-12 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)] relative overflow-hidden border border-slate-800"
                 >
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 blur-[150px] -translate-y-1/2 translate-x-1/2 rounded-full" />
 
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16">
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-8 sm:mb-16">
                         <div>
                             <div className="flex items-center gap-2 text-blue-400 font-black text-[12px] uppercase tracking-[0.4em] mb-4">
                                 <ShieldCheck size={18} /> Quality-to-Revenue Matrix
                             </div>
-                            <h2 className="text-6xl font-black text-white tracking-tighter leading-none mb-3">
+                            <h2 className="text-3xl min-[400px]:text-4xl sm:text-6xl font-black text-white tracking-tighter leading-none mb-3">
                                 ₹18.42L{" "}
-                                <span className="text-blue-500 text-3xl align-top mt-2 inline-block">
+                                <span className="text-blue-500 text-lg min-[400px]:text-xl sm:text-3xl align-top mt-2 inline-block">
                                     / Monthly Uplift
                                 </span>
                             </h2>
-                            <p className="text-slate-400 text-xl font-bold tracking-tight uppercase">
+                            <p className="text-slate-400 text-sm sm:text-xl font-bold tracking-tight uppercase">
                                 Increased Bookings (Reviews) → Portfolio Growth
                             </p>
                         </div>
-                        <div className="bg-white/5 border border-white/10 p-8 rounded-3xl text-right backdrop-blur-xl">
+                        <div className="bg-white/5 border border-white/10 p-5 sm:p-8 rounded-3xl text-right backdrop-blur-xl">
                             <p className="text-blue-400 text-[9px] font-black uppercase tracking-widest mb-2">
                                 Portfolio ROI Alpha
                             </p>
@@ -600,11 +600,11 @@ export default function PortfolioDashboard() {
                         ))}
                     </div>
 
-                    <div className="mt-16 pt-8 border-t border-white/5 flex justify-between items-center relative z-10">
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">
+                    <div className="mt-10 sm:mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative z-10">
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic whitespace-nowrap overflow-hidden text-ellipsis w-full sm:w-auto">
                             * Proprietary Q100 Yield Attribution Analysis (Reviews → Bookings Engine)
                         </p>
-                        <button className="flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all">
+                        <button className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all">
                             <Download size={16} /> Asset Growth Ledger
                         </button>
                     </div>
