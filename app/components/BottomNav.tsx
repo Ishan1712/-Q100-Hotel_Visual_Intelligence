@@ -61,7 +61,6 @@ export default function BottomNav() {
       { name: 'Floor Map', href: '/manager/floormap', icon: Map },
       { name: 'Dashboard', href: '/manager', icon: LayoutGrid, isCenter: true },
       { name: 'Inspection', href: '/manager/inspection', icon: ScanSearch },
-      { name: 'Staff', href: '/manager/performance', icon: Users },
       { name: 'Report', href: '/manager/report', icon: FileBarChart },
     ],
     owner: [
