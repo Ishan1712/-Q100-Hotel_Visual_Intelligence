@@ -228,6 +228,7 @@ function SectionCard({
   action,
   children,
   className = "",
+  bodyClassName = "p-3 sm:p-5",
 }: {
   title: string;
   subtitle?: string;
@@ -235,6 +236,7 @@ function SectionCard({
   action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  bodyClassName?: string;
 }) {
   return (
     <motion.div 
@@ -251,7 +253,7 @@ function SectionCard({
         </div>
         {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>
-      <div className="p-3 sm:p-5">{children}</div>
+      <div className={bodyClassName}>{children}</div>
     </motion.div>
   );
 }
@@ -389,15 +391,16 @@ export default function HotelPerformance() {
             title="Portfolio Yield Radar"
             subtitle="Comparative metrics across all properties"
             icon={<Target size={18} />}
+            bodyClassName="p-3 sm:p-5 pt-2 sm:pt-2"
           >
-            <div className="h-[260px] sm:h-[340px] w-full">
+            <div className="h-[260px] sm:h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart 
                   cx="50%" 
-                  cy="50%" 
-                  outerRadius={typeof window !== 'undefined' && window.innerWidth < 640 ? "55%" : "70%"} 
+                  cy="45%" 
+                  outerRadius={typeof window !== 'undefined' && window.innerWidth < 640 ? "65%" : "75%"} 
                   data={radarData}
-                  margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                  margin={{ top: 0, right: 10, bottom: 0, left: 10 }}
                 >
                   <PolarGrid stroke="#f1f5f9" />
                   <PolarAngleAxis 
@@ -478,8 +481,9 @@ export default function HotelPerformance() {
             title="Property Revenue Matrix"
             subtitle="Total monthly yield per asset (in Lakhs)"
             icon={<TrendingUp size={18} />}
+            bodyClassName="p-3 sm:p-5 pt-2 sm:pt-2"
           >
-            <div className="h-[340px]">
+            <div className="h-[260px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={propertyRevenueData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
