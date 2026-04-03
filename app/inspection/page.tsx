@@ -21,7 +21,7 @@ import {
   Upload
 } from 'lucide-react';
 import Link from 'next/link';
-import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage, AIProvider } from '../lib/comparison';
+import { analyzeWithGPT4v, fileToBase64, masterToBase64, compressImage, AIProvider, CheckedItem } from '../lib/comparison';
 
 // --- Types & Dummy Data ---
 
@@ -78,6 +78,8 @@ export default function InspectionFlowPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [analysisReason, setAnalysisReason] = useState<string | null>(null);
+  const [checkedItems, setCheckedItems] = useState<CheckedItem[]>([]);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
 
   const [capturedImages, setCapturedImages] = useState<Record<number, string>>({});
   const [viewingCheckpointId, setViewingCheckpointId] = useState<number | null>(null);
@@ -114,6 +116,8 @@ export default function InspectionFlowPage() {
   const runAnalysis = React.useCallback(async (insB64: string) => {
     setComparing(true);
     setAnalysisReason(null);
+    setCheckedItems([]);
+    setSuggestion(null);
 
     try {
       const cp = checkpoints[currentStep];
@@ -130,6 +134,8 @@ export default function InspectionFlowPage() {
 
       setComparing(false);
       setAnalysisReason(result.reason);
+      setCheckedItems(result.items || []);
+      setSuggestion(result.suggestion || null);
       setCapturedImages(prev => ({
         ...prev,
         [cp.id]: toImageSrc(insB64) || insB64
@@ -559,32 +565,72 @@ export default function InspectionFlowPage() {
 
           <div className={`flex-1 bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 shadow-xl border flex flex-col animate-slide-up transition-all duration-300 ${itemStatus === 'fail' ? 'border-rose-400 bg-rose-50/20' : 'border-blue-50'
             }`}>
-            {itemStatus === 'fail' && (
-              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 animate-fade-in">
-                <AlertCircle size={18} className="text-rose-500 shrink-0" />
-                <p className="text-[10px] md:text-xs font-bold text-rose-600 uppercase tracking-widest leading-none">
-                  {analysisReason || "Discrepancy Detected"}
-                </p>
-              </div>
-            )}
-
             <div className="flex-1 flex gap-4 md:gap-6">
-              <div className="flex-1 flex flex-col">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex items-center gap-2 mb-2 md:mb-3">
                   <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg text-white ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-blue-600'}`}>
                     {cp.icon}
                   </span>
                   <h2 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">{cp.name}</h2>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2 group">
-                    <CheckCircle2 size={16} className={`${itemStatus === 'fail' ? 'text-rose-400' : 'text-emerald-500'} mt-0.5 shrink-0`} />
-                    <p className="text-[10px] md:text-xs font-semibold text-slate-600 leading-relaxed">
+                {/* Items checklist */}
+                {itemStatus === 'fail' && checkedItems.length > 0 ? (
+                  <div className="flex flex-col gap-1 md:gap-2 animate-fade-in">
+                    <div className="flex flex-wrap gap-1 md:gap-2">
+                      {checkedItems.filter(item => item.status === 'missing').map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1 px-1.5 md:px-3 py-1 md:py-2 rounded-md md:rounded-xl shadow-sm border bg-white border-rose-200"
+                        >
+                          <XCircle size={10} className="text-rose-500 shrink-0 md:hidden" />
+                          <XCircle size={14} className="text-rose-500 shrink-0 hidden md:block" />
+                          <span className="text-[8px] md:text-xs font-bold uppercase tracking-wide whitespace-nowrap text-rose-600">
+                            {item.name} Missing
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {suggestion && (
+                      <div className="flex items-start gap-1 md:gap-2 px-1.5 md:px-3 py-1 md:py-2 bg-amber-50 border border-amber-200 rounded-md md:rounded-xl">
+                        <span className="text-amber-500 text-[10px] md:text-sm shrink-0 mt-px md:mt-0.5">💡</span>
+                        <p className="text-[8px] md:text-xs font-semibold text-amber-700 leading-snug md:leading-relaxed">
+                          {suggestion}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : itemStatus === 'fail' ? (
+                  <div className="animate-fade-in">
+                    <div className="flex items-center gap-1 px-1.5 md:px-3 py-1 md:py-2 bg-white border border-rose-200 rounded-md md:rounded-xl shadow-sm">
+                      <AlertCircle size={10} className="text-rose-500 shrink-0 md:hidden" />
+                      <AlertCircle size={14} className="text-rose-500 shrink-0 hidden md:block" />
+                      <span className="text-[8px] md:text-xs font-bold text-rose-600 uppercase tracking-wide">
+                        {analysisReason || "Discrepancy Detected"}
+                      </span>
+                    </div>
+                  </div>
+                ) : itemStatus === 'pass' ? (
+                  <div className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2.5 bg-emerald-50 border border-emerald-200 rounded-md md:rounded-xl shadow-sm">
+                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0 md:hidden" />
+                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0 hidden md:block" />
+                    <div className="flex flex-col">
+                      <span className="text-[9px] md:text-xs font-bold text-emerald-700 uppercase tracking-wide leading-tight">
+                        Inspection Passed
+                      </span>
+                      <span className="text-[7px] md:text-[10px] font-medium text-emerald-500 leading-tight mt-0.5">
+                        All items verified and match the standard
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 size={16} className="text-blue-400 mt-0.5 shrink-0" />
+                    <p className="text-[10px] md:text-xs font-semibold text-slate-500 leading-relaxed">
                       &quot;{cp.ref}&quot;
                     </p>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="shrink-0 flex flex-col">
@@ -621,6 +667,8 @@ export default function InspectionFlowPage() {
                           return newResults;
                         });
                         setAnalysisReason(null);
+                        setCheckedItems([]);
+                        setSuggestion(null);
                       }}
                       className="w-full h-12 md:h-14 bg-blue-600 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
                     >

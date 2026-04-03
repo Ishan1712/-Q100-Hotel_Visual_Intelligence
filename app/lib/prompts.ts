@@ -181,7 +181,13 @@ RULES:
 6. Be STRICT — when in doubt, FAIL. It is better to flag a marginal issue than to miss one.
 
 RESPONSE FORMAT (JSON only, no markdown):
-{"status": "pass" | "fail", "reason": "concise 1-2 sentence explanation"}`;
+{"status": "pass" | "fail", "reason": "concise 1-2 sentence explanation", "items": [{"name": "Item Name", "status": "present" | "missing"}], "suggestion": "friendly suggestion to fix the issues"}
+
+IMPORTANT:
+- The "items" array MUST list ALL individual items that were checked for this checkpoint, each with status "present" or "missing".
+- Each item name should be a short label (2-4 words max, e.g. "Fresh Liner", "Dustbin", "Bath Mat", "Coffee Sachets", "Sugar Packets").
+- Break down compound checkpoints into individual items (e.g. for Coffee/Tea Tray: list Kettle, Cups, Saucers, Tea Bags, Coffee Sachets, Sugar Packets, Milk Pods separately).
+- The "suggestion" should be a short, friendly instruction for housekeeping staff on how to fix the issues (e.g. "Please place the dustbin to the left of the desk"). If status is "pass", set suggestion to "".`;
 
 
 // ---------------------------------------------------------------------------
@@ -215,5 +221,5 @@ FALLBACK REFERENCE: ${inspectionCriteria}
 
 Compare the two images below. The first is the INSPECTION image (taken by staff). The second is the MASTER image (perfect reference).
 
-Return JSON only: {"status": "pass" | "fail", "reason": "short explanation"}`;
+Return JSON only: {"status": "pass" | "fail", "reason": "short explanation", "items": [{"name": "Item", "status": "present" | "missing"}], "suggestion": "how to fix"}`;
 }
