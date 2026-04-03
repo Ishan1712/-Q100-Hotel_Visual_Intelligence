@@ -7,9 +7,16 @@ import { getComparisonPrompt } from './prompts';
 
 export type AIProvider = 'google' | 'openai';
 
+export interface CheckedItem {
+  name: string;
+  status: 'present' | 'missing';
+}
+
 export interface ComparisonResult {
   status: 'pass' | 'fail';
   reason: string;
+  items?: CheckedItem[];
+  suggestion?: string;
 }
 
 /**
