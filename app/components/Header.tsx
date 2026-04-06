@@ -46,9 +46,9 @@ const roleData = {
     title: 'JW Portfolio Owner',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=arjun',
     stat: {
-      label: 'Portfolio Yield',
-      value: '+18.4%',
-      icon: TrendingUp,
+      label: 'Compliance',
+      value: '94.2%',
+      icon: Shield,
       color: 'blue'
     }
   }

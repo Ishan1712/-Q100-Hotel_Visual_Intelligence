@@ -46,20 +46,20 @@ const portfolioKPIs = [
     },
     {
         label: "Complaints Reduced",
-        value: "70.2% RED",
-        subText: "Sector-leading complaint reduction",
+        value: "70.2% DROP",
+        subText: "Top 5% in Sector Reduction",
         icon: Megaphone,
         color: "rose",
         trend: "Critical Gain",
         isDownward: true
     },
     {
-        label: "Revenue Growth",
-        value: "+₹18.42L",
-        subText: "Monthly alpha from better reviews",
-        icon: TrendingUp,
+        label: "Compliance Score",
+        value: "94.2%",
+        subText: "↑ 2.4% since last audit",
+        icon: ShieldCheck,
         color: "emerald",
-        trend: "+12.4% MoM"
+        trend: "High Standard"
     }
 ];
 
@@ -72,8 +72,8 @@ const propertyLeaderboard = [
         totalReviews: 240,
         bookings: 2340,
         complaints: 4,
-        revenue: "₹48.2L",
-        trend: [40, 42, 45, 44, 46, 48],
+        compliance: 98,
+        trend: [96, 95, 97, 98, 98, 98],
         performance: "best"
     },
     {
@@ -84,8 +84,8 @@ const propertyLeaderboard = [
         totalReviews: 198,
         bookings: 1890,
         complaints: 12,
-        revenue: "₹38.5L",
-        trend: [35, 36, 34, 37, 38, 38.5]
+        compliance: 92,
+        trend: [90, 91, 92, 92, 93, 92]
     },
     {
         property: "JW Marriott Heritage, Nashik",
@@ -95,8 +95,8 @@ const propertyLeaderboard = [
         totalReviews: 124,
         bookings: 1120,
         complaints: 18,
-        revenue: "₹24.7L",
-        trend: [22, 23, 22, 24, 25, 24.7]
+        compliance: 86,
+        trend: [88, 87, 85, 86, 86, 86]
     },
     {
         property: "JW Marriott Gateway, Aurangabad",
@@ -106,8 +106,8 @@ const propertyLeaderboard = [
         totalReviews: 88,
         bookings: 940,
         complaints: 22,
-        revenue: "₹21.4L",
-        trend: [18, 19, 20, 19, 21, 21.4]
+        compliance: 82,
+        trend: [80, 81, 82, 82, 83, 82]
     },
     {
         property: "JW Marriott Central, Nagpur",
@@ -117,18 +117,31 @@ const propertyLeaderboard = [
         totalReviews: 64,
         bookings: 890,
         complaints: 28,
-        revenue: "₹18.2L",
-        trend: [22, 21, 19, 20, 18, 18.2],
+        compliance: 74,
+        trend: [78, 76, 75, 74, 74, 74],
         performance: "worst"
     },
 ];
 
-const financialImpactData = [
-    { name: 'Increased Bookings', value: 820000, color: '#3b82f6' },
-    { name: 'Repeat Guests', value: 410000, color: '#10b981' },
-    { name: 'Reduced Refunds', value: 245000, color: '#8b5cf6' },
-    { name: 'Higher Room Rates', value: 365000, color: '#fbbf24' },
+const qualityStandardData = [
+    { name: 'Room Items Present', value: 92, color: '#10b981' },
+    { name: 'Staff Support', value: 88, color: '#3b82f6' },
+    { name: 'Housekeeping Quality', value: 84, color: '#8b5cf6' },
+    { name: 'Housekeeping Speed', value: 95, color: '#fbbf24' },
 ];
+
+const roomIntelligenceData = {
+    failedRooms: [
+        { hotel: "JWM Nagpur", room: "402", reason: "Regular AC Failures", severity: "Critical", manager: "Deepak Sharma" },
+        { hotel: "JWM Mumbai", room: "112", reason: "Continuous Towel Missing", severity: "High", manager: "Priya Singh" },
+        { hotel: "JWM Nashik", room: "205", reason: "Minibar Missing Complaints", severity: "Medium", manager: "Rahul Verma" },
+    ],
+    passedRooms: [
+        { hotel: "JWM Pune", room: "G12", status: "Perfect Score", features: ["All Items Present", "Complete Perfect"] },
+        { hotel: "JWM Pune", room: "808", status: "Gold Standard", features: ["Soap & Tea Setup", "Dustbin Present"] },
+        { hotel: "JWM Mumbai", room: "P01", status: "Certified", features: ["TV Remote Working", "Mini-bar Full"] },
+    ]
+};
 
 export default function PortfolioDashboard() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -150,7 +163,7 @@ export default function PortfolioDashboard() {
                 String(item.totalReviews),
                 String(item.bookings),
                 String(item.complaints),
-                item.revenue,
+                String(item.compliance),
                 item.performance || ""
             ]
                 .join(" ")
@@ -242,12 +255,7 @@ export default function PortfolioDashboard() {
                                     </p>
 
                                     <h3 className={`text-3xl font-black tracking-tighter ${theme.text}`}>
-                                        {kpi.value.includes('₹') ? kpi.value : kpi.value.split(' ')[0]}
-                                        {!kpi.value.includes('₹') && kpi.value.split(' ').slice(1).length > 0 && (
-                                            <span className={`text-[10px] font-bold uppercase ml-2 tracking-widest ${theme.sub}`}>
-                                                {kpi.value.split(' ').slice(1).join(' ')}
-                                            </span>
-                                        )}
+                                        {kpi.value}
                                     </h3>
 
                                     {kpi.showStars && (
@@ -315,7 +323,7 @@ export default function PortfolioDashboard() {
                                     <th className="px-8 py-5 text-center text-emerald-600">Total Reviews</th>
                                     <th className="px-8 py-5 text-center">Bookings</th>
                                     <th className="px-8 py-5 text-center">Complaints</th>
-                                    <th className="px-8 py-5 text-right pr-12">Revenue Yield</th>
+                                    <th className="px-8 py-5 text-right pr-12">Compliance Score</th>
                                 </tr>
                             </thead>
 
@@ -416,8 +424,8 @@ export default function PortfolioDashboard() {
 
                                             <td className="px-8 py-5 text-right pr-12">
                                                 <div className="flex flex-col items-end">
-                                                    <span className="text-sm font-black text-slate-900">
-                                                        {item.revenue}
+                                                    <span className={`text-sm font-black ${item.compliance > 90 ? 'text-emerald-600' : item.compliance < 80 ? 'text-rose-600' : 'text-slate-900'}`}>
+                                                        {item.compliance}%
                                                     </span>
                                                     <div className="w-16 h-6 mt-1">
                                                         <ResponsiveContainer width="100%" height="100%">
@@ -522,27 +530,112 @@ export default function PortfolioDashboard() {
                         <div className="grid grid-cols-2 gap-8 mb-8">
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    Revenue Leak
+                                    Quality Risk
                                 </p>
-                                <p className="text-xl font-black text-rose-600">₹3.2L Lost/mo</p>
+                                <p className="text-xl font-black text-rose-600">High Exposure</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    Review Floor
+                                    Compliance
                                 </p>
-                                <p className="text-xl font-black text-slate-900">3.8 ⭐ Rating</p>
+                                <p className="text-xl font-black text-slate-900">74% Score</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-100 rounded-2xl mb-8">
                             <TrendingDown size={16} className="text-rose-600 mt-0.5 shrink-0" />
                             <p className="text-[11px] font-bold text-rose-700 tracking-tight uppercase leading-relaxed">
-                                Lowest reviews, fewest customers — review drop costing ~₹3.2L/month in lost bookings
+                                Critical compliance drop — risk of brand standard suspension if not addressed immediately
                             </p>
                         </div>
                     </motion.div>
                 </div>
 
-                {/* FINANCIAL IMPACT REVENUE MATRIX */}
+                {/* ROOM PERFORMANCE INTELLIGENCE */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* MOST FAILED ROOMS */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm"
+                    >
+                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-rose-50/30">
+                            <div>
+                                <h4 className="text-sm font-black text-rose-900 uppercase tracking-widest flex items-center gap-2">
+                                    <AlertCircle size={16} className="text-rose-600" /> Critical Room Failures
+                                </h4>
+                                <p className="text-[9px] font-bold text-rose-600/60 uppercase tracking-widest mt-1">Requires Immediate Manager Intervention</p>
+                            </div>
+                        </div>
+                        <div className="divide-y divide-slate-50">
+                            {roomIntelligenceData.failedRooms.map((room, idx) => (
+                                <div key={idx} className="p-6 hover:bg-slate-50 transition-colors flex items-center justify-between group">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-rose-100 flex flex-col items-center justify-center text-rose-600">
+                                            <span className="text-[10px] font-black leading-none uppercase">Room</span>
+                                            <span className="text-lg font-black leading-none">{room.room}</span>
+                                        </div>
+                                        <div>
+                                            <h5 className="text-xs font-black text-slate-900">{room.hotel}</h5>
+                                            <p className="text-[10px] font-bold text-rose-600 uppercase tracking-tight mt-0.5">{room.reason}</p>
+                                            <p className="text-[9px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Manager: {room.manager}</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => alert(`Notification sent to ${room.manager} regarding Room ${room.room} at ${room.hotel}`)}
+                                        className="px-4 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 transition-colors opacity-0 group-hover:opacity-100 shadow-lg"
+                                    >
+                                        Notify Manager
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* MOST PASSED ROOMS */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm"
+                    >
+                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-emerald-50/30">
+                            <div>
+                                <h4 className="text-sm font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2">
+                                    <ShieldCheck size={16} className="text-emerald-600" /> Elite Room Resonance
+                                </h4>
+                                <p className="text-[9px] font-bold text-emerald-600/60 uppercase tracking-widest mt-1">Portfolio Quality Exemplars</p>
+                            </div>
+                        </div>
+                        <div className="divide-y divide-slate-50">
+                            {roomIntelligenceData.passedRooms.map((room, idx) => (
+                                <div key={idx} className="p-6 hover:bg-slate-50 transition-colors flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex flex-col items-center justify-center text-emerald-600">
+                                            <span className="text-[10px] font-black leading-none uppercase">Room</span>
+                                            <span className="text-lg font-black leading-none">{room.room}</span>
+                                        </div>
+                                        <div>
+                                            <h5 className="text-xs font-black text-slate-900">{room.hotel}</h5>
+                                            <div className="flex gap-1.5 mt-1">
+                                                {room.features.map((f, i) => (
+                                                    <span key={i} className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-black uppercase tracking-tighter rounded">
+                                                        {f}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{room.status}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* QUALITY STANDARDS MASTERY MATRIX */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     whileInView={{ opacity: 1, scale: 1 }}
@@ -554,43 +647,43 @@ export default function PortfolioDashboard() {
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-8 sm:mb-16">
                         <div>
                             <div className="flex items-center gap-2 text-blue-400 font-black text-[12px] uppercase tracking-[0.4em] mb-4">
-                                <ShieldCheck size={18} /> Quality-to-Revenue Matrix
+                                <ShieldCheck size={18} /> Room Quality Summary
                             </div>
                             <h2 className="text-3xl min-[400px]:text-4xl sm:text-6xl font-black text-white tracking-tighter leading-none mb-3">
-                                ₹18.42L{" "}
+                                94.2%{" "}
                                 <span className="text-blue-500 text-lg min-[400px]:text-xl sm:text-3xl align-top mt-2 inline-block">
-                                    / Monthly Uplift
+                                    / Audit Score
                                 </span>
                             </h2>
                             <p className="text-slate-400 text-sm sm:text-xl font-bold tracking-tight uppercase">
-                                Increased Bookings (Reviews) → Portfolio Growth
+                                Items Present & Working → Proper Standards
                             </p>
                         </div>
                         <div className="bg-white/5 border border-white/10 p-5 sm:p-8 rounded-3xl text-right backdrop-blur-xl">
                             <p className="text-blue-400 text-[9px] font-black uppercase tracking-widest mb-2">
-                                Portfolio ROI Alpha
+                                Audit Confidence Score
                             </p>
                             <h4 className="text-2xl font-black text-white">
-                                ₹3,010 <span className="text-[10px] uppercase text-white/40 ml-1">/ room / month</span>
+                                A+ Grade <span className="text-[10px] uppercase text-white/40 ml-1">Market Leading</span>
                             </h4>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
-                        {financialImpactData.map((item, i) => (
+                        {qualityStandardData.map((item, i) => (
                             <div key={i} className="space-y-3">
                                 <div className="flex justify-between items-end">
                                     <span className="text-white text-[10px] font-black uppercase tracking-[0.2em]">
                                         {item.name}
                                     </span>
                                     <span className="text-base font-black" style={{ color: item.color }}>
-                                        +₹{(item.value / 100000).toFixed(2)}L
+                                        {item.value}% Standard
                                     </span>
                                 </div>
                                 <div className="h-2 bg-white/5 rounded-full overflow-hidden p-[1px]">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        whileInView={{ width: `${(item.value / 820000) * 100}%` }}
+                                        whileInView={{ width: `${item.value}%` }}
                                         transition={{ duration: 1.5, delay: 0.2 + (i * 0.1) }}
                                         className="h-full rounded-full"
                                         style={{ backgroundColor: item.color }}
@@ -602,10 +695,10 @@ export default function PortfolioDashboard() {
 
                     <div className="mt-10 sm:mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative z-10">
                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic whitespace-nowrap overflow-hidden text-ellipsis w-full sm:w-auto">
-                            * Proprietary Q100 Yield Attribution Analysis (Reviews → Bookings Engine)
+                            * Proprietary Q100 Quality Resilience Index (Safety → Infrastructure → Experience)
                         </p>
                         <button className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all">
-                            <Download size={16} /> Asset Growth Ledger
+                            <Download size={16} /> Quality Ledger
                         </button>
                     </div>
                 </motion.div>
