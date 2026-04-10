@@ -27,7 +27,8 @@ import {
   IndianRupee,
   FileText,
   Calculator,
-  Building2
+  Building2,
+  FlaskConical
 } from 'lucide-react';
 
 type RoleId = 'worker' | 'manager' | 'owner';
@@ -49,7 +50,8 @@ const roleConfigs = {
       { name: "AI Inspection Module", href: "/inspection", icon: Zap },
       { name: "Inspection Report", href: "/inspection/report", icon: ClipboardList },
       { name: "Shift Summary", href: "/shift-summary", icon: Sparkles },
-      { name: "Room History", href: "/history", icon: History }
+      { name: "Room History", href: "/history", icon: History },
+      { name: "AI Demo", href: "/demo", icon: FlaskConical }
     ]
   },
   manager: {
