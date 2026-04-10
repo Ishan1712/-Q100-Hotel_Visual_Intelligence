@@ -481,12 +481,13 @@ export default function InspectionFlowPage() {
 
     return (
       <div className="relative h-full animate-fade-in flex flex-col bg-slate-50 rounded-2xl md:rounded-3xl overflow-hidden">
-        <div className="p-3 md:p-4 bg-white border-b border-slate-100 flex flex-col items-center gap-2 md:gap-3 z-20">
+        {/* Mobile: centered stacked header. Desktop: single row with title left, dots right */}
+        <div className="p-3 md:px-6 md:py-3 bg-white border-b border-slate-100 flex flex-col md:flex-row items-center md:items-center md:justify-between gap-2 md:gap-0 z-20">
           <div className="flex items-center gap-2 md:gap-3">
-            <span className="text-2xl md:text-3xl">{cp.icon}</span>
+            <span className="text-2xl md:text-2xl">{cp.icon}</span>
             <div className="flex flex-col text-center sm:text-left">
               <h2 className="text-base md:text-lg font-bold text-slate-900 tracking-tight leading-none">{cp.name}</h2>
-              <span className="text-[7px] md:text-[8px] font-bold text-blue-600 uppercase tracking-widest mt-0.5 md:mt-1">Item {currentStep + 1} of 12</span>
+              <span className="text-[7px] md:text-[8px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Item {currentStep + 1} of 12</span>
             </div>
           </div>
 
@@ -504,97 +505,205 @@ export default function InspectionFlowPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col p-3 md:p-4 gap-3 md:gap-4 overflow-hidden">
-          <div className="flex-[2] relative bg-slate-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-slate-900/50 group">
-            {uploadedImage ? (
-              <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover z-20" />
-            ) : (
-              <video
-                ref={cameraVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row p-3 md:px-6 md:py-4 gap-3 md:gap-6 overflow-hidden">
 
-            {!cameraReady && !cameraError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3">
-                <div className="w-12 h-12 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
-                <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Opening Camera...</p>
-              </div>
-            )}
-
-            {cameraError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 p-6">
-                <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center">
-                  <AlertCircle size={32} className="text-rose-400" />
+          {/* ====== DESKTOP: Master Reference Column ====== */}
+          <div className="hidden md:flex md:flex-[1.2] flex-col min-h-0 bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 shrink-0">
+              <h3 className="text-sm font-semibold text-slate-700">Master Reference &mdash; {cp.name}</h3>
+            </div>
+            <div className="flex-1 mx-2 mb-2 relative rounded-xl border-2 border-dashed border-slate-200 overflow-hidden bg-slate-50 cursor-pointer group/master"
+              onClick={() => setViewingCheckpointId(cp.id)}
+            >
+              {cp.masterImg ? (
+                <img src={cp.masterImg} alt={cp.name} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center">
+                    <Camera size={20} className="text-slate-400" />
+                  </div>
+                  <span className="text-sm text-slate-400 font-medium">No master image</span>
                 </div>
-                <p className="text-white/80 text-sm font-bold text-center">Camera Access Denied</p>
-                <p className="text-white/40 text-xs text-center max-w-[250px]">{cameraError}</p>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover/master:bg-black/5 transition-colors flex items-center justify-center">
+                <Maximize2 size={24} className="text-slate-600 drop-shadow opacity-0 group-hover/master:opacity-100 transition-opacity" />
               </div>
-            )}
+            </div>
+            <div className="px-5 py-3 border-t border-slate-100 shrink-0">
+              <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">&quot;{cp.ref}&quot;</p>
+            </div>
+          </div>
 
-            {cameraReady && !comparing && !itemStatus && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                <div className="w-[80%] h-[70%] relative">
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 rounded-tl-2xl" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 rounded-tr-2xl" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 rounded-bl-2xl" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 rounded-br-2xl" />
+          {/* ====== Inspection Image / Camera Column ====== */}
+          {/* Mobile: dark fullscreen camera. Desktop: clean white card */}
+          <div className="flex-[2] md:flex-[1.2] flex flex-col min-h-0 bg-slate-950 rounded-2xl shadow-2xl border border-slate-900/50 md:bg-white md:rounded-xl md:shadow-none md:border-slate-200 overflow-hidden">
+            <div className="hidden md:block px-5 py-4 shrink-0">
+              <h3 className="text-sm font-semibold text-slate-700">Inspection Images</h3>
+            </div>
+
+            {/* Desktop: dashed image area wrapping camera/upload. Mobile: fills entire card */}
+            <div className="flex-1 min-h-0 md:mx-2 md:mb-2 relative md:rounded-xl md:border-2 md:border-dashed md:border-slate-200 overflow-hidden md:bg-slate-50">
+              {uploadedImage ? (
+                <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover bg-slate-900 md:bg-white z-20" />
+              ) : (
+                <video
+                  ref={cameraVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="absolute inset-0 w-full h-full object-cover md:bg-white"
+                />
+              )}
+
+              {!cameraReady && !cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3">
+                  <div className="w-12 h-12 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
+                  <p className="text-white/60 md:text-slate-400 text-xs font-bold uppercase tracking-widest">Opening Camera...</p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {comparing && (
-              <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-4 animate-fade-in">
-                <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
-                <h2 className="text-base md:text-lg font-bold text-white tracking-widest uppercase">Verifying...</h2>
-              </div>
-            )}
-
-            {itemStatus === 'pass' && !comparing && (
-              <div className="absolute inset-0 bg-emerald-500 z-[60] flex flex-col items-center justify-center animate-fade-out pointer-events-none">
-                <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full flex items-center justify-center shadow-2xl animate-scale-in">
-                  <Check className="text-emerald-500 w-10 h-10 md:w-12 md:h-12" strokeWidth={4} />
+              {cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 p-6">
+                  <div className="w-14 h-14 bg-slate-200 md:bg-slate-100 rounded-full flex items-center justify-center">
+                    <Camera size={24} className="text-slate-400" />
+                  </div>
+                  <p className="text-white/80 md:text-slate-700 text-sm font-semibold text-center">Capture / Upload Image</p>
+                  <p className="text-white/40 md:text-slate-400 text-xs text-center">Select below options<br/>Upload or Capture</p>
                 </div>
-                <h2 className="text-xl md:text-2xl font-black text-white tracking-tighter mt-6">PERFECT</h2>
+              )}
+
+              {cameraReady && !comparing && !itemStatus && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <div className="w-[80%] h-[70%] relative">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 md:border-slate-300 rounded-tl-2xl" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 md:border-slate-300 rounded-tr-2xl" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 md:border-slate-300 rounded-bl-2xl" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 md:border-slate-300 rounded-br-2xl" />
+                  </div>
+                </div>
+              )}
+
+              {comparing && (
+                <div className="absolute inset-0 bg-slate-900/80 md:bg-white/90 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-4 animate-fade-in">
+                  <div className="w-12 h-12 md:w-14 md:h-14 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
+                  <h2 className="text-base font-bold text-white md:text-slate-700 tracking-widest uppercase">Verifying...</h2>
+                </div>
+              )}
+
+              {itemStatus === 'pass' && !comparing && (
+                <div className="absolute inset-0 bg-emerald-500 z-[60] flex flex-col items-center justify-center animate-fade-out pointer-events-none">
+                  <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full flex items-center justify-center shadow-2xl animate-scale-in">
+                    <Check className="text-emerald-500 w-10 h-10 md:w-12 md:h-12" strokeWidth={4} />
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black text-white tracking-tighter mt-6">PERFECT</h2>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop action buttons under the image area */}
+            {!comparing && itemStatus !== 'pass' && (
+              <div className="hidden md:flex px-5 pb-4 pt-2 justify-center shrink-0">
+                {itemStatus === 'fail' ? (
+                  <div className="flex gap-3 w-full max-w-xs">
+                    <button
+                      onClick={() => {
+                        setUploadedImage(null);
+                        setResults(prev => {
+                          const newResults = { ...prev };
+                          delete newResults[cp.id];
+                          return newResults;
+                        });
+                        setAnalysisReason(null);
+                        setCheckedItems([]);
+                        setSuggestion(null);
+                      }}
+                      className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <Camera size={14} className="shrink-0" />
+                      Recapture
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (currentStep < checkpoints.length - 1) setCurrentStep(prev => prev + 1);
+                        else setPhase('report');
+                      }}
+                      className="flex-1 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <FastForward size={14} className="shrink-0" />
+                      Next
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 w-full max-w-xs">
+                    <button
+                      onClick={handlePhotoModeCapture}
+                      className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <Camera size={14} className="shrink-0" />
+                      Capture
+                    </button>
+                    <label className="flex-1 h-10 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer">
+                      <Upload size={14} className="text-slate-400 shrink-0" />
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            const file = e.target.files[0];
+                            const blobUrl = URL.createObjectURL(file);
+                            setUploadedImage(blobUrl);
+                            try {
+                              const insB64 = await fileToBase64(blobUrl);
+                              if (insB64) {
+                                await runAnalysis(insB64);
+                              }
+                            } catch (err) {
+                              console.error("Upload analysis error:", err);
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          <div className={`flex-1 bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 shadow-xl border flex flex-col animate-slide-up transition-all duration-300 ${itemStatus === 'fail' ? 'border-rose-400 bg-rose-50/20' : 'border-blue-50'
+          {/* ====== MOBILE: Results panel (exact original layout) ====== */}
+          <div className={`flex-1 md:hidden bg-white rounded-2xl p-4 shadow-xl border flex flex-col animate-slide-up transition-all duration-300 ${itemStatus === 'fail' ? 'border-rose-400 bg-rose-50/20' : 'border-blue-50'
             }`}>
-            <div className="flex-1 flex gap-4 md:gap-6">
+            <div className="flex-1 flex gap-4">
               <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex items-center gap-2 mb-2 md:mb-3">
+                <div className="flex items-center gap-2 mb-2">
                   <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg text-white ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-blue-600'}`}>
                     {cp.icon}
                   </span>
-                  <h2 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">{cp.name}</h2>
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">{cp.name}</h2>
                 </div>
 
                 {/* Items checklist */}
                 {itemStatus === 'fail' && checkedItems.length > 0 ? (
-                  <div className="flex flex-col gap-1 md:gap-2 animate-fade-in">
-                    <div className="flex flex-wrap gap-1 md:gap-2">
+                  <div className="flex flex-col gap-1 animate-fade-in">
+                    <div className="flex flex-wrap gap-1">
                       {checkedItems.filter(item => item.status === 'missing').map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-1 px-1.5 md:px-3 py-1 md:py-2 rounded-md md:rounded-xl shadow-sm border bg-white border-rose-200"
+                          className="flex items-center gap-1 px-1.5 py-1 rounded-md shadow-sm border bg-white border-rose-200"
                         >
-                          <XCircle size={10} className="text-rose-500 shrink-0 md:hidden" />
-                          <XCircle size={14} className="text-rose-500 shrink-0 hidden md:block" />
-                          <span className="text-[8px] md:text-xs font-bold uppercase tracking-wide whitespace-nowrap text-rose-600">
+                          <XCircle size={10} className="text-rose-500 shrink-0" />
+                          <span className="text-[8px] font-bold uppercase tracking-wide whitespace-nowrap text-rose-600">
                             {item.name} Missing
                           </span>
                         </div>
                       ))}
                     </div>
                     {suggestion && (
-                      <div className="flex items-start gap-1 md:gap-2 px-1.5 md:px-3 py-1 md:py-2 bg-amber-50 border border-amber-200 rounded-md md:rounded-xl">
-                        <span className="text-amber-500 text-[10px] md:text-sm shrink-0 mt-px md:mt-0.5">💡</span>
-                        <p className="text-[8px] md:text-xs font-semibold text-amber-700 leading-snug md:leading-relaxed">
+                      <div className="flex items-start gap-1 px-1.5 py-1 bg-amber-50 border border-amber-200 rounded-md">
+                        <span className="text-amber-500 text-[10px] shrink-0 mt-px">💡</span>
+                        <p className="text-[8px] font-semibold text-amber-700 leading-snug">
                           {suggestion}
                         </p>
                       </div>
@@ -602,23 +711,21 @@ export default function InspectionFlowPage() {
                   </div>
                 ) : itemStatus === 'fail' ? (
                   <div className="animate-fade-in">
-                    <div className="flex items-center gap-1 px-1.5 md:px-3 py-1 md:py-2 bg-white border border-rose-200 rounded-md md:rounded-xl shadow-sm">
-                      <AlertCircle size={10} className="text-rose-500 shrink-0 md:hidden" />
-                      <AlertCircle size={14} className="text-rose-500 shrink-0 hidden md:block" />
-                      <span className="text-[8px] md:text-xs font-bold text-rose-600 uppercase tracking-wide">
+                    <div className="flex items-center gap-1 px-1.5 py-1 bg-white border border-rose-200 rounded-md shadow-sm">
+                      <AlertCircle size={10} className="text-rose-500 shrink-0" />
+                      <span className="text-[8px] font-bold text-rose-600 uppercase tracking-wide">
                         {analysisReason || "Discrepancy Detected"}
                       </span>
                     </div>
                   </div>
                 ) : itemStatus === 'pass' ? (
-                  <div className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2.5 bg-emerald-50 border border-emerald-200 rounded-md md:rounded-xl shadow-sm">
-                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0 md:hidden" />
-                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0 hidden md:block" />
+                  <div className="flex items-center gap-1.5 px-2 py-1.5 bg-emerald-50 border border-emerald-200 rounded-md shadow-sm">
+                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-[9px] md:text-xs font-bold text-emerald-700 uppercase tracking-wide leading-tight">
+                      <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wide leading-tight">
                         Inspection Passed
                       </span>
-                      <span className="text-[7px] md:text-[10px] font-medium text-emerald-500 leading-tight mt-0.5">
+                      <span className="text-[7px] font-medium text-emerald-500 leading-tight mt-0.5">
                         All items verified and match the standard
                       </span>
                     </div>
@@ -626,7 +733,7 @@ export default function InspectionFlowPage() {
                 ) : (
                   <div className="flex items-start gap-2">
                     <CheckCircle2 size={16} className="text-blue-400 mt-0.5 shrink-0" />
-                    <p className="text-[10px] md:text-xs font-semibold text-slate-500 leading-relaxed">
+                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">
                       &quot;{cp.ref}&quot;
                     </p>
                   </div>
@@ -636,13 +743,13 @@ export default function InspectionFlowPage() {
               <div className="shrink-0 flex flex-col">
                 <div
                   onClick={() => setViewingCheckpointId(cp.id)}
-                  className={`w-24 h-24 md:w-32 md:h-32 bg-slate-50 rounded-2xl border flex items-center justify-center relative overflow-hidden group shadow-inner shrink-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] ${itemStatus === 'fail' ? 'border-rose-400' : 'border-slate-100'}`}
+                  className={`w-24 h-24 bg-slate-50 rounded-2xl border flex items-center justify-center relative overflow-hidden group shadow-inner shrink-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] ${itemStatus === 'fail' ? 'border-rose-400' : 'border-slate-100'}`}
                 >
                   <div className="absolute inset-0 bg-slate-900/5 group-hover:bg-transparent transition-colors z-10" />
                   {cp.masterImg ? (
                     <img src={cp.masterImg} alt={cp.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl md:text-5xl opacity-20">{cp.icon}</span>
+                    <span className="text-4xl opacity-20">{cp.icon}</span>
                   )}
                   <div className={`absolute top-2 left-2 text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest z-20 shadow-sm leading-none ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-emerald-500'}`}>
                     {itemStatus === 'fail' ? 'Fail' : 'Master'}
@@ -670,7 +777,7 @@ export default function InspectionFlowPage() {
                         setCheckedItems([]);
                         setSuggestion(null);
                       }}
-                      className="w-full h-12 md:h-14 bg-blue-600 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      className="w-full h-12 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
                     >
                       <Camera size={18} className="group-hover:rotate-[15deg] transition-transform shrink-0" />
                       <span className="truncate">Recapture</span>
@@ -680,7 +787,7 @@ export default function InspectionFlowPage() {
                         if (currentStep < checkpoints.length - 1) setCurrentStep(prev => prev + 1);
                         else setPhase('report');
                       }}
-                      className="w-full h-12 md:h-14 bg-slate-900 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-slate-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      className="w-full h-12 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-slate-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
                     >
                       <FastForward size={18} className="group-hover:translate-x-1 transition-transform shrink-0" />
                       <span className="truncate">Next</span>
@@ -690,12 +797,12 @@ export default function InspectionFlowPage() {
                   <>
                     <button
                       onClick={handlePhotoModeCapture}
-                      className="w-full h-12 md:h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
                     >
                       <Camera size={18} className="group-hover:rotate-[15deg] transition-transform shrink-0" />
                       <span className="truncate">Capture</span>
                     </button>
-                    <label className="w-full h-12 md:h-14 bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl md:rounded-[1.25rem] font-black text-xs md:text-sm uppercase tracking-[0.15em] shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer group">
+                    <label className="w-full h-12 bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer group">
                       <Upload size={18} className="group-hover:-translate-y-1 transition-transform text-slate-400 shrink-0" />
                       <span className="truncate">Upload</span>
                       <input
@@ -724,6 +831,55 @@ export default function InspectionFlowPage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* ====== DESKTOP: AI Results & Insights Column ====== */}
+          <div className="hidden md:flex md:flex-1 flex-col bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {/* Header with left accent border */}
+            <div className={`px-5 py-4 border-l-4 shrink-0 ${
+              itemStatus === 'fail' ? 'border-l-rose-500' :
+              itemStatus === 'pass' ? 'border-l-emerald-500' : 'border-l-indigo-500'
+            }`}>
+              <h3 className="text-sm font-bold text-slate-800">AI Results &amp; Insights</h3>
+            </div>
+
+            <div className="flex-1 flex flex-col px-5 py-4 overflow-y-auto">
+              {itemStatus === 'fail' && checkedItems.length > 0 ? (
+                <div className="flex flex-col gap-3 animate-fade-in">
+                  {checkedItems.filter(item => item.status === 'missing').map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3 px-4 py-3 rounded-lg border border-rose-200 bg-rose-50/50">
+                      <XCircle size={16} className="text-rose-500 shrink-0" />
+                      <span className="text-sm font-medium text-rose-700">{item.name} <span className="text-rose-400 font-normal">— Missing</span></span>
+                    </div>
+                  ))}
+                  {suggestion && (
+                    <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg mt-1">
+                      <span className="text-base shrink-0">💡</span>
+                      <p className="text-sm text-amber-800 leading-relaxed">{suggestion}</p>
+                    </div>
+                  )}
+                </div>
+              ) : itemStatus === 'fail' ? (
+                <div className="animate-fade-in">
+                  <div className="flex items-start gap-3 px-4 py-3 bg-rose-50 border border-rose-200 rounded-lg">
+                    <AlertCircle size={18} className="text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-rose-700 leading-relaxed">{analysisReason || "Discrepancy detected between master and inspection images."}</p>
+                  </div>
+                </div>
+              ) : itemStatus === 'pass' ? (
+                <div className="flex items-start gap-3 px-4 py-3.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-700">Inspection Passed</p>
+                    <p className="text-xs text-emerald-500 mt-1">All items verified and match the standard.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-sm text-slate-400">No AI result yet. Click <span className="font-semibold text-slate-600">Capture</span> to begin.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
