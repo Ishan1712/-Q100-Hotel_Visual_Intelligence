@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Search, Bed, Crown, Star, ChevronRight, Camera, Wifi, Flame, User, Sun, XCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Bed, Crown, Star, ChevronRight, Camera, Wifi, Flame, User, Sun, XCircle, CheckCircle2, AlertCircle, FlaskConical } from 'lucide-react';
 import Link from 'next/link';
 
 // --- Housekeeper Specific Components ---
@@ -194,16 +194,28 @@ export default function HousekeeperDashboard() {
               <p className="text-slate-500 font-medium text-sm md:text-base">6 of 14 rooms verified. Keep it up!</p>
             </div>
             
-            <Link 
-              href="/inspection"
-              className="group inline-flex items-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-slate-900 text-white rounded-2xl font-bold text-sm md:text-base shadow-xl shadow-slate-900/10 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300 w-full md:w-auto justify-center"
-            >
-              <Camera size={20} className="group-hover:rotate-[15deg] transition-transform md:w-6 md:h-6" />
-              <span>Go Scan a Room</span>
-              <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center -mr-1">
-                <ChevronRight size={14} className="md:w-4 md:h-4" />
-              </div>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <Link
+                href="/inspection"
+                className="group inline-flex items-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-slate-900 text-white rounded-2xl font-bold text-sm md:text-base shadow-xl shadow-slate-900/10 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300 w-full md:w-auto justify-center"
+              >
+                <Camera size={20} className="group-hover:rotate-[15deg] transition-transform md:w-6 md:h-6" />
+                <span>Go Scan a Room</span>
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center -mr-1">
+                  <ChevronRight size={14} className="md:w-4 md:h-4" />
+                </div>
+              </Link>
+              <Link
+                href="/demo"
+                className="md:hidden group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition-all duration-300 w-full justify-center"
+              >
+                <FlaskConical size={20} className="group-hover:rotate-[-15deg] transition-transform" />
+                <span>Demo Mode</span>
+                <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center -mr-1">
+                  <ChevronRight size={14} />
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
