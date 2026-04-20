@@ -3,7 +3,7 @@
  * Supports both Google Gemini and OpenAI GPT-4o Vision via toggle.
  */
 
-import { getComparisonPrompt } from './prompts';
+import { getComparisonPrompt, getCustomMasterPrompt } from './prompts';
 
 export type AIProvider = 'google' | 'openai';
 
@@ -127,9 +127,12 @@ export async function analyzeWithGPT4v(
   masterBase64: string,
   checkpointName: string,
   checkpointRef: string,
-  provider?: AIProvider
+  provider?: AIProvider,
+  useCustomMasterPrompt?: boolean
 ): Promise<ComparisonResult> {
-  const prompt = getComparisonPrompt(checkpointName, checkpointRef);
+  const prompt = useCustomMasterPrompt
+    ? getCustomMasterPrompt()
+    : getComparisonPrompt(checkpointName, checkpointRef);
 
   try {
     const response = await fetch('/api/compare', {

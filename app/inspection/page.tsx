@@ -84,6 +84,12 @@ export default function InspectionFlowPage() {
   const [capturedImages, setCapturedImages] = useState<Record<number, string>>({});
   const [viewingCheckpointId, setViewingCheckpointId] = useState<number | null>(null);
   const [aiProvider, setAiProvider] = useState<AIProvider>('google');
+  const [masterHardcoded, setMasterHardcoded] = useState(true);
+  const [captureStep, setCaptureStep] = useState<'master' | 'inspection'>('master');
+  const [customMasterImages, setCustomMasterImages] = useState<Record<number, string>>({});
+  const [activeCameraFor, setActiveCameraFor] = useState<'master' | 'inspection' | null>(null);
+  const overlayVideoRef = useRef<HTMLVideoElement | null>(null);
+  const overlayStreamRef = useRef<MediaStream | null>(null);
 
   const toImageSrc = (value?: string | null) => {
     if (!value) return null;
@@ -121,7 +127,9 @@ export default function InspectionFlowPage() {
 
     try {
       const cp = checkpoints[currentStep];
-      const masB64 = await masterToBase64(cp.masterImg || "");
+      const masB64 = masterHardcoded
+        ? await masterToBase64(cp.masterImg || "")
+        : customMasterImages[cp.id] || "";
 
       if (!insB64) {
         throw new Error("No inspection image captured. Please try again.");
@@ -130,7 +138,7 @@ export default function InspectionFlowPage() {
         throw new Error("Reference image not loaded. Please contact support.");
       }
 
-      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref, aiProvider);
+      const result = await analyzeWithGPT4v(insB64, masB64, cp.name, cp.ref, aiProvider, !masterHardcoded);
 
       setComparing(false);
       setAnalysisReason(result.reason);
@@ -158,27 +166,75 @@ export default function InspectionFlowPage() {
       setAnalysisReason(err.message || "Error processing image.");
       setResults(prev => ({ ...prev, [checkpoints[currentStep].id]: 'fail' }));
     }
-  }, [currentStep, checkpoints, aiProvider]);
+  }, [currentStep, checkpoints, aiProvider, masterHardcoded, customMasterImages]);
+
+  const snapshotFromCamera = React.useCallback(async (): Promise<string> => {
+    if (!cameraVideoRef.current) return "";
+    const canvas = document.createElement("canvas");
+    canvas.width = cameraVideoRef.current.videoWidth;
+    canvas.height = cameraVideoRef.current.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx?.drawImage(cameraVideoRef.current, 0, 0);
+    const dataURL = canvas.toDataURL("image/jpeg", 0.8);
+    return compressImage(dataURL);
+  }, []);
+
+  const openCameraOverlay = React.useCallback(async (target: 'master' | 'inspection') => {
+    setActiveCameraFor(target);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      overlayStreamRef.current = stream;
+      if (overlayVideoRef.current) {
+        overlayVideoRef.current.srcObject = stream;
+        await overlayVideoRef.current.play();
+      }
+    } catch (err: any) {
+      console.error('Overlay camera error:', err);
+    }
+  }, []);
+
+  const closeCameraOverlay = React.useCallback(() => {
+    if (overlayStreamRef.current) {
+      overlayStreamRef.current.getTracks().forEach(t => t.stop());
+      overlayStreamRef.current = null;
+    }
+    setActiveCameraFor(null);
+  }, []);
+
+  const captureFromOverlay = React.useCallback(async () => {
+    if (!overlayVideoRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = overlayVideoRef.current.videoWidth;
+    canvas.height = overlayVideoRef.current.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx?.drawImage(overlayVideoRef.current, 0, 0);
+    const dataURL = canvas.toDataURL("image/jpeg", 0.8);
+    const b64 = await compressImage(dataURL);
+    if (!b64) return;
+    const cp = checkpoints[currentStep];
+    if (activeCameraFor === 'master') {
+      setCustomMasterImages(prev => ({ ...prev, [cp.id]: b64 }));
+    } else if (activeCameraFor === 'inspection') {
+      setUploadedImage(dataURL);
+      closeCameraOverlay();
+      await runAnalysis(b64);
+      return;
+    }
+    closeCameraOverlay();
+  }, [activeCameraFor, currentStep, closeCameraOverlay, runAnalysis]);
 
   const handlePhotoModeCapture = React.useCallback(async () => {
-    let insB64 = "";
-
+    let b64 = "";
     if (uploadedImage) {
-      insB64 = await fileToBase64(uploadedImage);
-    } else if (cameraVideoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = cameraVideoRef.current.videoWidth;
-      canvas.height = cameraVideoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx?.drawImage(cameraVideoRef.current, 0, 0);
-      const dataURL = canvas.toDataURL("image/jpeg", 0.8);
-      insB64 = await compressImage(dataURL);
+      b64 = await fileToBase64(uploadedImage);
+    } else {
+      b64 = await snapshotFromCamera();
     }
-
-    if (insB64) {
-      await runAnalysis(insB64);
-    }
-  }, [uploadedImage, runAnalysis]);
+    if (b64) await runAnalysis(b64);
+  }, [uploadedImage, runAnalysis, snapshotFromCamera]);
 
   const triggerVideoCapture = React.useCallback((id: number, status: 'pass' | 'fail') => {
     setFlash(true);
@@ -187,6 +243,29 @@ export default function InspectionFlowPage() {
     setCaptureStrip(prev => [...prev, { id, status }]);
   }, []);
 
+  const handleUploadFile = React.useCallback(async (file: File) => {
+    const blobUrl = URL.createObjectURL(file);
+    setUploadedImage(blobUrl);
+    try {
+      const b64 = await fileToBase64(blobUrl);
+      if (b64) await runAnalysis(b64);
+    } catch (err) {
+      console.error("Upload error:", err);
+    }
+  }, [runAnalysis]);
+
+  const handleUploadMaster = React.useCallback(async (file: File) => {
+    const blobUrl = URL.createObjectURL(file);
+    try {
+      const b64 = await fileToBase64(blobUrl);
+      if (!b64) return;
+      const cp = checkpoints[currentStep];
+      setCustomMasterImages(prev => ({ ...prev, [cp.id]: b64 }));
+    } catch (err) {
+      console.error("Upload master error:", err);
+    }
+  }, [currentStep]);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -194,7 +273,7 @@ export default function InspectionFlowPage() {
   };
 
   useEffect(() => {
-    if (phase === 'photo' || phase === 'video') {
+    if ((phase === 'photo' && masterHardcoded) || phase === 'video') {
       setCameraReady(false);
       setCameraError(null);
       const startCamera = async () => {
@@ -228,6 +307,13 @@ export default function InspectionFlowPage() {
   useEffect(() => {
     setUploadedImage(null);
   }, [currentStep, phase]);
+
+  useEffect(() => {
+    if (activeCameraFor && overlayStreamRef.current && overlayVideoRef.current) {
+      overlayVideoRef.current.srcObject = overlayStreamRef.current;
+      overlayVideoRef.current.play().catch(() => {});
+    }
+  }, [activeCameraFor]);
 
   useEffect(() => {
     if (selectedRoom && Object.keys(results).length > 0) {
@@ -288,7 +374,24 @@ export default function InspectionFlowPage() {
           </p>
         </div>
 
-        <div className="relative group flex-1 max-w-md">
+        <div className="flex items-center gap-3 flex-1 max-w-md">
+          {/* Master image mode toggle */}
+          <button
+            onClick={() => setMasterHardcoded(prev => !prev)}
+            title={masterHardcoded ? "Master image: Hardcoded (click to switch to custom)" : "Master image: Custom capture (click to switch to hardcoded)"}
+            className={`flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm ${
+              masterHardcoded
+                ? "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+                : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+            }`}
+          >
+            <span className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${masterHardcoded ? "bg-indigo-500" : "bg-amber-400"}`}>
+              <span className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all duration-200 ${masterHardcoded ? "left-[18px]" : "left-0.5"}`} />
+            </span>
+            {masterHardcoded ? "Master: Fixed" : "Master: Capture"}
+          </button>
+
+        <div className="relative group flex-1">
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
             size={18}
@@ -308,6 +411,7 @@ export default function InspectionFlowPage() {
               <XCircle size={18} />
             </button>
           )}
+        </div>
         </div>
       </div>
 
@@ -509,26 +613,67 @@ export default function InspectionFlowPage() {
 
           {/* ====== DESKTOP: Master Reference Column ====== */}
           <div className="hidden md:flex md:flex-[1.2] flex-col min-h-0 bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="px-5 py-4 shrink-0">
+            <div className="px-5 py-4 shrink-0 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-700">Master Reference &mdash; {cp.name}</h3>
+              {!masterHardcoded && (
+                <span className="text-[9px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Custom</span>
+              )}
             </div>
-            <div className="flex-1 mx-2 mb-2 relative rounded-xl border-2 border-dashed border-slate-200 overflow-hidden bg-slate-50 cursor-pointer group/master"
-              onClick={() => setViewingCheckpointId(cp.id)}
+            <div className={`flex-1 mx-2 relative rounded-xl border-2 border-dashed overflow-hidden bg-slate-50 ${masterHardcoded ? 'mb-2 border-slate-200 cursor-pointer group/master' : 'border-amber-200'}`}
+              onClick={masterHardcoded ? () => setViewingCheckpointId(cp.id) : undefined}
             >
-              {cp.masterImg ? (
-                <img src={cp.masterImg} alt={cp.name} className="absolute inset-0 w-full h-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center">
-                    <Camera size={20} className="text-slate-400" />
+              {masterHardcoded ? (
+                <>
+                  {cp.masterImg ? (
+                    <img src={cp.masterImg} alt={cp.name} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center">
+                        <Camera size={20} className="text-slate-400" />
+                      </div>
+                      <span className="text-sm text-slate-400 font-medium">No master image</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover/master:bg-black/5 transition-colors flex items-center justify-center">
+                    <Maximize2 size={24} className="text-slate-600 drop-shadow opacity-0 group-hover/master:opacity-100 transition-opacity" />
                   </div>
-                  <span className="text-sm text-slate-400 font-medium">No master image</span>
+                </>
+              ) : customMasterImages[cp.id] ? (
+                <>
+                  <img src={toImageSrc(customMasterImages[cp.id]) || ""} alt="Custom master" className="absolute inset-0 w-full h-full object-cover" />
+                  <button
+                    onClick={() => setCustomMasterImages(prev => { const n = { ...prev }; delete n[cp.id]; return n; })}
+                    className="absolute top-2 right-2 z-10 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                    title="Recapture master"
+                  >
+                    <X size={14} />
+                  </button>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Camera size={20} className="text-amber-500" />
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium text-center">Capture or upload the master reference image</p>
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/0 group-hover/master:bg-black/5 transition-colors flex items-center justify-center">
-                <Maximize2 size={24} className="text-slate-600 drop-shadow opacity-0 group-hover/master:opacity-100 transition-opacity" />
-              </div>
             </div>
+            {!masterHardcoded && (
+              <div className="px-2 pb-2 pt-1 flex gap-2 shrink-0">
+                <button
+                  onClick={() => openCameraOverlay('master')}
+                  className="flex-1 h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Camera size={13} className="shrink-0" />
+                  {customMasterImages[cp.id] ? 'Recapture' : 'Capture Master'}
+                </button>
+                <label className="flex-1 h-9 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                  <Upload size={13} className="text-slate-400 shrink-0" />
+                  Upload
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUploadMaster(e.target.files[0]); }} />
+                </label>
+              </div>
+            )}
             <div className="px-5 py-3 border-t border-slate-100 shrink-0">
               <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">&quot;{cp.ref}&quot;</p>
             </div>
@@ -543,44 +688,58 @@ export default function InspectionFlowPage() {
 
             {/* Desktop: dashed image area wrapping camera/upload. Mobile: fills entire card */}
             <div className="flex-1 min-h-0 md:mx-2 md:mb-2 relative md:rounded-xl md:border-2 md:border-dashed md:border-slate-200 overflow-hidden md:bg-slate-50">
-              {uploadedImage ? (
-                <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover bg-slate-900 md:bg-white z-20" />
+              {!masterHardcoded ? (
+                /* Custom mode: static placeholder or captured image */
+                uploadedImage ? (
+                  <>
+                    <img src={uploadedImage} alt="Captured" className="absolute inset-0 w-full h-full object-cover z-10" />
+                    <button
+                      onClick={() => setUploadedImage(null)}
+                      className="absolute top-2 right-2 z-20 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center"
+                    ><X size={14} /></button>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-500/20 md:bg-blue-100 flex items-center justify-center">
+                      <Camera size={20} className="text-blue-400 md:text-blue-500" />
+                    </div>
+                    <p className="text-xs text-white/70 md:text-slate-500 font-medium text-center">Capture or upload the<br/>inspection image</p>
+                  </div>
+                )
               ) : (
-                <video
-                  ref={cameraVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="absolute inset-0 w-full h-full object-cover md:bg-white"
-                />
-              )}
-
-              {!cameraReady && !cameraError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3">
-                  <div className="w-12 h-12 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
-                  <p className="text-white/60 md:text-slate-400 text-xs font-bold uppercase tracking-widest">Opening Camera...</p>
-                </div>
-              )}
-
-              {cameraError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 p-6">
-                  <div className="w-14 h-14 bg-slate-200 md:bg-slate-100 rounded-full flex items-center justify-center">
-                    <Camera size={24} className="text-slate-400" />
-                  </div>
-                  <p className="text-white/80 md:text-slate-700 text-sm font-semibold text-center">Capture / Upload Image</p>
-                  <p className="text-white/40 md:text-slate-400 text-xs text-center">Select below options<br/>Upload or Capture</p>
-                </div>
-              )}
-
-              {cameraReady && !comparing && !itemStatus && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                  <div className="w-[80%] h-[70%] relative">
-                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 md:border-slate-300 rounded-tl-2xl" />
-                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 md:border-slate-300 rounded-tr-2xl" />
-                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 md:border-slate-300 rounded-bl-2xl" />
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 md:border-slate-300 rounded-br-2xl" />
-                  </div>
-                </div>
+                /* Hardcoded mode: live camera always on */
+                <>
+                  {uploadedImage ? (
+                    <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover bg-slate-900 md:bg-white z-20" />
+                  ) : (
+                    <video ref={cameraVideoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover md:bg-white" />
+                  )}
+                  {!cameraReady && !cameraError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3">
+                      <div className="w-12 h-12 border-4 border-blue-600/10 border-t-blue-500 rounded-full animate-spin" />
+                      <p className="text-white/60 md:text-slate-400 text-xs font-bold uppercase tracking-widest">Opening Camera...</p>
+                    </div>
+                  )}
+                  {cameraError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 p-6">
+                      <div className="w-14 h-14 bg-slate-200 md:bg-slate-100 rounded-full flex items-center justify-center">
+                        <Camera size={24} className="text-slate-400" />
+                      </div>
+                      <p className="text-white/80 md:text-slate-700 text-sm font-semibold text-center">Capture / Upload Image</p>
+                      <p className="text-white/40 md:text-slate-400 text-xs text-center">Select below options<br/>Upload or Capture</p>
+                    </div>
+                  )}
+                  {cameraReady && !comparing && !itemStatus && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                      <div className="w-[80%] h-[70%] relative">
+                        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 md:border-slate-300 rounded-tl-2xl" />
+                        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 md:border-slate-300 rounded-tr-2xl" />
+                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 md:border-slate-300 rounded-bl-2xl" />
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 md:border-slate-300 rounded-br-2xl" />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {comparing && (
@@ -636,7 +795,7 @@ export default function InspectionFlowPage() {
                 ) : (
                   <div className="flex gap-3 w-full max-w-xs">
                     <button
-                      onClick={handlePhotoModeCapture}
+                      onClick={() => masterHardcoded ? handlePhotoModeCapture() : openCameraOverlay('inspection')}
                       className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
                     >
                       <Camera size={14} className="shrink-0" />
@@ -649,21 +808,7 @@ export default function InspectionFlowPage() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={async (e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            const file = e.target.files[0];
-                            const blobUrl = URL.createObjectURL(file);
-                            setUploadedImage(blobUrl);
-                            try {
-                              const insB64 = await fileToBase64(blobUrl);
-                              if (insB64) {
-                                await runAnalysis(insB64);
-                              }
-                            } catch (err) {
-                              console.error("Upload analysis error:", err);
-                            }
-                          }
-                        }}
+                        onChange={(e) => { if (e.target.files?.[0]) handleUploadFile(e.target.files[0]); }}
                       />
                     </label>
                   </div>
@@ -740,23 +885,39 @@ export default function InspectionFlowPage() {
                 )}
               </div>
 
-              <div className="shrink-0 flex flex-col">
+              <div className="shrink-0 flex flex-col gap-1">
                 <div
-                  onClick={() => setViewingCheckpointId(cp.id)}
-                  className={`w-24 h-24 bg-slate-50 rounded-2xl border flex items-center justify-center relative overflow-hidden group shadow-inner shrink-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] ${itemStatus === 'fail' ? 'border-rose-400' : 'border-slate-100'}`}
+                  onClick={() => masterHardcoded ? setViewingCheckpointId(cp.id) : openCameraOverlay('master')}
+                  className={`w-24 h-24 rounded-2xl border flex items-center justify-center relative overflow-hidden group shadow-inner shrink-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                    !masterHardcoded ? 'bg-amber-50 border-amber-300' :
+                    itemStatus === 'fail' ? 'bg-slate-50 border-rose-400' : 'bg-slate-50 border-slate-100'
+                  }`}
                 >
-                  <div className="absolute inset-0 bg-slate-900/5 group-hover:bg-transparent transition-colors z-10" />
-                  {cp.masterImg ? (
-                    <img src={cp.masterImg} alt={cp.name} className="w-full h-full object-cover" />
+                  {masterHardcoded ? (
+                    <>
+                      <div className="absolute inset-0 bg-slate-900/5 group-hover:bg-transparent transition-colors z-10" />
+                      {cp.masterImg ? (
+                        <img src={cp.masterImg} alt={cp.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-4xl opacity-20">{cp.icon}</span>
+                      )}
+                      <div className={`absolute top-2 left-2 text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest z-20 shadow-sm leading-none ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-emerald-500'}`}>
+                        {itemStatus === 'fail' ? 'Fail' : 'Master'}
+                      </div>
+                    </>
+                  ) : customMasterImages[cp.id] ? (
+                    <>
+                      <img src={toImageSrc(customMasterImages[cp.id]) || ""} alt="Custom master" className="w-full h-full object-cover" />
+                      <div className="absolute top-2 left-2 text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest z-20 shadow-sm leading-none bg-amber-500">
+                        Master
+                      </div>
+                    </>
                   ) : (
-                    <span className="text-4xl opacity-20">{cp.icon}</span>
+                    <div className="flex flex-col items-center justify-center gap-1 p-2">
+                      <Camera size={18} className="text-amber-500" />
+                      <span className="text-[8px] font-bold text-amber-600 text-center leading-tight">Tap to capture master</span>
+                    </div>
                   )}
-                  <div className={`absolute top-2 left-2 text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest z-20 shadow-sm leading-none ${itemStatus === 'fail' ? 'bg-rose-500' : 'bg-emerald-500'}`}>
-                    {itemStatus === 'fail' ? 'Fail' : 'Master'}
-                  </div>
-                  <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity z-15 flex items-center justify-center">
-                    <Maximize2 size={24} className="text-white drop-shadow-md" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -795,9 +956,23 @@ export default function InspectionFlowPage() {
                   </>
                 ) : (
                   <>
+                    {!masterHardcoded && !customMasterImages[cp.id] && (
+                      <button
+                        onClick={() => openCameraOverlay('master')}
+                        className="col-span-2 w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      >
+                        <Camera size={18} className="group-hover:rotate-[15deg] transition-transform shrink-0" />
+                        <span className="truncate">Capture Master First</span>
+                      </button>
+                    )}
                     <button
-                      onClick={handlePhotoModeCapture}
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                      onClick={() => masterHardcoded ? handlePhotoModeCapture() : openCameraOverlay('inspection')}
+                      disabled={!masterHardcoded ? !customMasterImages[cp.id] : false}
+                      className={`w-full h-12 text-white rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 group ${
+                        !masterHardcoded && !customMasterImages[cp.id]
+                          ? 'bg-blue-300 cursor-not-allowed'
+                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                      }`}
                     >
                       <Camera size={18} className="group-hover:rotate-[15deg] transition-transform shrink-0" />
                       <span className="truncate">Capture</span>
@@ -809,22 +984,7 @@ export default function InspectionFlowPage() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={async (e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            const file = e.target.files[0];
-                            const blobUrl = URL.createObjectURL(file);
-                            setUploadedImage(blobUrl);
-
-                            try {
-                              const insB64 = await fileToBase64(blobUrl);
-                              if (insB64) {
-                                await runAnalysis(insB64);
-                              }
-                            } catch (err) {
-                              console.error("Upload analysis error:", err);
-                            }
-                          }
-                        }}
+                        onChange={(e) => { if (e.target.files?.[0]) handleUploadFile(e.target.files[0]); }}
                       />
                     </label>
                   </>
@@ -882,6 +1042,49 @@ export default function InspectionFlowPage() {
             </div>
           </div>
         </div>
+
+        {/* ====== Camera Overlay (custom mode) ====== */}
+        {activeCameraFor && (
+          <div className="absolute inset-0 z-[100] bg-black flex flex-col animate-fade-in">
+            <div className="relative flex-1 overflow-hidden">
+              <video
+                ref={overlayVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-[75%] h-[65%] relative">
+                  <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 border-white/80 rounded-tl-2xl" />
+                  <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-white/80 rounded-tr-2xl" />
+                  <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-white/80 rounded-bl-2xl" />
+                  <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 border-white/80 rounded-br-2xl" />
+                </div>
+              </div>
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+                <span className={`px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest ${activeCameraFor === 'master' ? 'bg-amber-500' : 'bg-blue-600'}`}>
+                  {activeCameraFor === 'master' ? 'Capture Master Image' : 'Capture Inspection Image'}
+                </span>
+              </div>
+              <button
+                onClick={closeCameraOverlay}
+                className="absolute top-4 right-4 z-10 w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex items-center justify-center py-8 bg-black/80">
+              <button
+                onClick={captureFromOverlay}
+                className="rounded-full border-4 border-white flex items-center justify-center active:scale-90 transition-transform"
+                style={{ width: 72, height: 72 }}
+              >
+                <div className="w-14 h-14 bg-white rounded-full" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
